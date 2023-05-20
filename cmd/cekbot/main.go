@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/pdcgo/common_conf/pdc_common"
-	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/report"
 )
 
@@ -30,24 +29,8 @@ func main() {
 
 	for _, driver := range akuns {
 		driver.DevMode = devmode
-		err := driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
-			err := driver.SellerLogin(dctx)
-			if err != nil {
-				return err
-			}
 
-			log.Println(driver.Username, " check Berhasil")
-
-			time.Sleep(time.Hour)
-
-			return nil
-
-		})
-
-		if err != nil {
-			pdc_common.ReportError(err)
-			save()
-		}
+		driver.CreateApi()
 
 	}
 

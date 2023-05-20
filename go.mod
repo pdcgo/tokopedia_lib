@@ -35,6 +35,7 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
+	github.com/gorilla/schema v1.2.0
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/lqqyt2423/go-mitmproxy v1.6.0
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect

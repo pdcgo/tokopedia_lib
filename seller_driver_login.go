@@ -3,24 +3,18 @@ package tokopedia_lib
 import (
 	"context"
 	"errors"
+	"log"
 
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 )
 
 var ErrSellerLoginFailed = errors.New("seller login failed")
 
 func (d *DriverAccount) SellerLogin(dctx *DriverContext) error {
-	// cek, err := d.ExecLogin(dctx)
 
 	errorChan := make(chan error, 1)
 
-	// if !cek {
-	// 	return ErrSellerLoginFailed
-	// }
-
-	// if err != nil {
-	// 	return err
-	// }
 	loginCtx, cancelLoginCtx := context.WithCancel(dctx.Ctx)
 
 	chromedp.Run(dctx.Ctx,
@@ -32,12 +26,16 @@ func (d *DriverAccount) SellerLogin(dctx *DriverContext) error {
 		chromedp.Run(dctx.Ctx,
 			chromedp.WaitVisible(titleSeller, chromedp.BySearch),
 			chromedp.ActionFunc(func(ctx context.Context) error {
+				cookies, err := network.GetCookies().Do(ctx)
+				if err != nil {
+					errorChan <- err
+					return err
+				}
 
-				err := d.SaveCookiesBrowser(ctx)
+				err = d.Session.SaveFromDriver(cookies)
 				if err != nil {
 					errorChan <- err
 				}
-
 				dctx.Logined = true
 				cancelLoginCtx()
 				errorChan <- nil
@@ -61,6 +59,10 @@ func (d *DriverAccount) SellerLogin(dctx *DriverContext) error {
 		)
 	}()
 
-	return <-errorChan
+	err := <-errorChan
+	if err == nil {
+		log.Println(d.Username, "login Berhasil")
+	}
+	return err
 
 }

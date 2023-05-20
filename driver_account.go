@@ -2,10 +2,12 @@ package tokopedia_lib
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
 	"github.com/chromedp/chromedp"
+	"github.com/pdcgo/tokopedia_lib/lib/api"
 )
 
 type DriverContext struct {
@@ -20,6 +22,7 @@ type DriverAccount struct {
 	Secret   string
 	DevMode  bool
 	Proxy    string
+	Session  *Session
 }
 
 type BrowserClosed struct {
@@ -61,7 +64,8 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 		Logined: false,
 		Ctx:     ctx,
 	}
-	SetDriverCookies(d.Username, &dctx)
+
+	d.Session.SetCookieToDriver(dctx.Ctx)
 
 	// checking jaga2 jika close manual browser nya
 	isClosed := BrowserClosed{
@@ -140,8 +144,6 @@ func (driver *DriverAccount) ExecLogin(dctx *DriverContext) (bool, error) {
 	waitdata := make(chan int, 1)
 	logined := false
 
-	SetDriverCookies(driver.Username, dctx)
-
 	chromedp.Run(cCtx, chromedp.Navigate("https://mitra.tokopedia.com"))
 
 	go func() {
@@ -205,12 +207,30 @@ func (d *DriverAccount) Run(headless bool, actionCallback func(dctx *DriverConte
 
 }
 
+func (d *DriverAccount) CreateApi() (*api.TokopediaApi, error) {
+	err := d.Session.Load()
+	if errors.Is(err, ErrSessionNotFound) {
+		err := d.Run(false, func(dctx *DriverContext) error {
+			return d.SellerLogin(dctx)
+		})
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return api.NewTokopediaApi(d.Session), nil
+}
+
 func NewDriverAccount(username string, password string, secret string) (*DriverAccount, error) {
+	sess := NewSession(username)
+	err := sess.Load()
 
 	return &DriverAccount{
 		Username: username,
 		Password: password,
 		Secret:   secret,
-	}, nil
+		Session:  sess,
+	}, err
 
 }
