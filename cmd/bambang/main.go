@@ -44,7 +44,7 @@ func runVerification(akun *tokopedia_lib.Account) error {
 	done := make(chan int, 1)
 	errChan := make(chan error, 1)
 
-	driver.Run(false, func(dctx *tokopedia_lib.DriverContext) {
+	driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
 		driver.ExecLogin(dctx)
 
 		submitCtx, cancel := context.WithCancel(dctx.Ctx)
@@ -121,7 +121,7 @@ func runVerification(akun *tokopedia_lib.Account) error {
 			)
 
 		}()
-
+		return nil
 	})
 
 	select {
