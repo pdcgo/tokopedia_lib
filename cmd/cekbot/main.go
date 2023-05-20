@@ -30,8 +30,8 @@ func main() {
 	for _, driver := range akuns {
 		driver.DevMode = devmode
 
-		driver.CreateApi()
-
+		_, saveSession, _ := driver.CreateApi()
+		saveSession()
 	}
 
 	log.Println("cekbot selesai..")

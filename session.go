@@ -127,6 +127,13 @@ func (sess *Session) Sync() error {
 	return nil
 }
 
+func (sess *Session) SaveSession() error {
+	sess.Lock()
+	defer sess.Unlock()
+
+	return sess.save()
+}
+
 func (sess *Session) save() error {
 	pathdata := filepath.Join(BaseSessionPath, sess.fname+".json")
 	file, err := os.OpenFile(pathdata, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)

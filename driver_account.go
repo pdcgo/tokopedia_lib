@@ -3,10 +3,12 @@ package tokopedia_lib
 import (
 	"context"
 	"errors"
+	"log"
 	"sync"
 	"time"
 
 	"github.com/chromedp/chromedp"
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 )
 
@@ -207,7 +209,7 @@ func (d *DriverAccount) Run(headless bool, actionCallback func(dctx *DriverConte
 
 }
 
-func (d *DriverAccount) CreateApi() (*api.TokopediaApi, error) {
+func (d *DriverAccount) CreateApi() (*api.TokopediaApi, func(), error) {
 	err := d.Session.Load()
 	if errors.Is(err, ErrSessionNotFound) {
 		err := d.Run(false, func(dctx *DriverContext) error {
@@ -215,11 +217,17 @@ func (d *DriverAccount) CreateApi() (*api.TokopediaApi, error) {
 		})
 
 		if err != nil {
-			return nil, err
+			return nil, func() {}, err
 		}
 	}
 
-	return api.NewTokopediaApi(d.Session), nil
+	return api.NewTokopediaApi(d.Session), func() {
+		log.Println(d.Username, "save session")
+		err := d.Session.SaveSession()
+		if err != nil {
+			pdc_common.ReportError(err)
+		}
+	}, nil
 }
 
 func NewDriverAccount(username string, password string, secret string) (*DriverAccount, error) {
