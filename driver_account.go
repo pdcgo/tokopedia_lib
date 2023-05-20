@@ -2,14 +2,10 @@ package tokopedia_lib
 
 import (
 	"context"
-	"fmt"
-	"os"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/chromedp/chromedp"
-	"github.com/pdcgo/common_conf/pdc_common"
 )
 
 type DriverContext struct {
@@ -22,42 +18,34 @@ type DriverAccount struct {
 	Username string
 	Password string
 	Secret   string
-	Status   string
-	Pesan    string
+	DevMode  bool
+	Proxy    string
 }
-
-// type DriverControl struct {
-// 	Context context.Context
-// 	ErrCtl  chan<- error
-// }
-
-// type UserIdData struct {
-// 	Value int32 `json:"value"`
-// }
-
-// type UserInfo struct {
-// 	UserID int32
-// }
 
 type BrowserClosed struct {
 	sync.Mutex
 	Data bool
 }
 
-// func (d *DriverAccount) ProfilePath() string {
-// 	pathdata, _ := filepath.Abs("/shopee_profile/" + d.Username)
-// 	return pathdata
-// }
-
 func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 	opt := []func(*chromedp.ExecAllocator){
 		chromedp.Flag("headless", headless),
 		chromedp.Flag("incognito", true),
+		// chromedp.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3830.0 Safari/536.36"),
 		// chromedp.Flag("start-maximized", true),
 		// chromedp.Flag("disable-blink-features", "AutomationControlled"),
 
 		// chromedp.UserDataDir(pathProfile),
 		// chromedp.Flag("profile-directory", "Default"),
+	}
+
+	if d.DevMode {
+		opt = append(opt,
+			chromedp.Flag("auto-open-devtools-for-tabs", true),
+		)
+	}
+	if d.Proxy != "" {
+		opt = append(opt, chromedp.ProxyServer(d.Proxy))
 	}
 
 	parentCtx := context.Background()
@@ -96,11 +84,53 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 			return
 		}
 
-		DumpDriverCookies(d.Username, &dctx)
 		cancelCtx()
 		cancelAloc()
 
 	}
+}
+
+func (driver *DriverAccount) mitraLogin(ctx context.Context) error {
+	chromedp.Run(ctx, chromedp.Navigate("https://mitra.tokopedia.com"))
+	errChan := make(chan error, 1)
+
+	go func() {
+		pathemail := `//*/input[@name="login"]`
+		selanjutnya := `//*/button[@id="button-submit"]`
+		pathpass := `//*/input[@id="login-widget-password"]`
+		// masuk := `//*/span[@aria-label="login-button"]`
+		pathauthentica := `//*/div[@aria-label="google_authenticator"]`
+		tabakun := `//*/div[@data-testid="tabHomeAkunSaya"]`
+
+		chromedp.Run(ctx,
+			chromedp.WaitVisible(tabakun, chromedp.BySearch),
+			chromedp.Click(tabakun, chromedp.BySearch),
+			chromedp.WaitVisible(pathemail, chromedp.BySearch),
+			chromedp.SendKeys(pathemail, driver.Username, chromedp.BySearch),
+			chromedp.Click(selanjutnya, chromedp.BySearch),
+			chromedp.WaitVisible(pathpass, chromedp.BySearch),
+			chromedp.SendKeys(pathpass, driver.Password, chromedp.BySearch),
+			chromedp.Click(selanjutnya, chromedp.BySearch),
+			chromedp.WaitVisible(pathauthentica, chromedp.BySearch),
+			chromedp.Click(pathauthentica, chromedp.BySearch),
+			chromedp.WaitVisible(tabakun, chromedp.BySearch),
+		)
+		errChan <- nil
+	}()
+
+	go func() {
+		pathotp := `//*/input[@autocomplete="one-time-code"]`
+
+		chromedp.Run(ctx,
+			chromedp.WaitVisible(pathotp, chromedp.BySearch),
+			chromedp.ActionFunc(func(ctx context.Context) error {
+				otp, _ := GetTotp(driver.Secret)
+				return chromedp.Run(ctx, chromedp.SendKeys(pathotp, otp, chromedp.BySearch))
+			}),
+		)
+	}()
+
+	return <-errChan
 }
 
 func (driver *DriverAccount) ExecLogin(dctx *DriverContext) (bool, error) {
@@ -167,122 +197,20 @@ func (driver *DriverAccount) ExecLogin(dctx *DriverContext) (bool, error) {
 	return logined, nil
 }
 
-func (d *DriverAccount) Run(headless bool, actionCallback func(dctx *DriverContext)) {
+func (d *DriverAccount) Run(headless bool, actionCallback func(dctx *DriverContext) error) error {
 	dctx, cancel := d.CreateContext(headless)
 	defer cancel()
 
-	actionCallback(dctx)
+	return actionCallback(dctx)
 
 }
 
-// type ApiCookies struct {
-// 	U   *url.URL
-// 	Jar http.CookieJar
-// }
-
-// func (c *ApiCookies) GetCToken() string {
-// 	token := c.FindCookie("CTOKEN")
-// 	data, _ := url.QueryUnescape(token)
-// 	return data
-// }
-
-// func (c *ApiCookies) FindCookie(name string) string {
-// 	for _, cookie := range c.Jar.Cookies(c.U) {
-// 		if cookie.Name == name {
-// 			return cookie.Value
-// 		}
-// 	}
-// 	return ""
-// }
-
-// func GetCookies(ctx context.Context) *ApiCookies {
-// 	var hasil []*http.Cookie
-
-// 	chromedp.Run(ctx,
-// 		chromedp.ActionFunc(func(ctx context.Context) error {
-// 			cook := network.GetCookies()
-// 			cookies, _ := cook.Do(ctx)
-// 			for _, co := range cookies {
-// 				cookie := http.Cookie{
-// 					Name:   co.Name,
-// 					Value:  co.Value,
-// 					Path:   co.Path,
-// 					Domain: co.Domain,
-// 					Secure: co.Secure,
-// 				}
-// 				hasil = append(hasil, &cookie)
-// 			}
-
-// 			return nil
-// 		}),
-// 	)
-
-// 	jar, _ := cookiejar.New(nil)
-// 	u, _ := url.Parse("https://seller.shopee.co.id")
-// 	jar.SetCookies(u, hasil)
-
-// 	return &ApiCookies{
-// 		U:   u,
-// 		Jar: jar,
-// 	}
-// }
-
-//
-
-// type LoginResult struct {
-// 	Loginned bool
-// 	F02      bool
-// }
-
-func NewDriverAccount(username string, password string, secret string, status string, pesan string) (*DriverAccount, error) {
+func NewDriverAccount(username string, password string, secret string) (*DriverAccount, error) {
 
 	return &DriverAccount{
 		Username: username,
 		Password: password,
 		Secret:   secret,
-		Status:   status,
-		Pesan:    pesan,
-	}, nil
-
-}
-
-func GetakunFromFile(fname string) ([]*DriverAccount, func(), error) {
-	hasil := []*DriverAccount{}
-	data, _ := os.ReadFile(fname)
-	lines := strings.Split(string(data), "\n")
-
-Parent:
-	for _, line := range lines {
-		if line == "" {
-			continue Parent
-		}
-
-		dataline := make([]string, 5)
-
-		fixline := strings.ReplaceAll(line, "\r", "")
-
-		for ind, value := range strings.Split(fixline, "|") {
-			dataline[ind] = value
-		}
-
-		driver, err := NewDriverAccount(dataline[0], dataline[1], dataline[2], dataline[3], dataline[4])
-		if err != nil {
-			pdc_common.ReportError(err)
-		}
-
-		hasil = append(hasil, driver)
-	}
-
-	return hasil, func() {
-		f, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
-		for _, driver := range hasil {
-			f.WriteString(fmt.Sprintf("%s|%s|%s|%s|%s\n", driver.Username, driver.Password, driver.Secret, driver.Status, driver.Pesan))
-		}
-
 	}, nil
 
 }

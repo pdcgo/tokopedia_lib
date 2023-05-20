@@ -33,7 +33,7 @@ func createBaseKtp(nik string) (string, string, error) {
 }
 
 func runVerification(akun *tokopedia_lib.Account) error {
-	driver, _ := tokopedia_lib.NewDriverAccount(akun.Username, akun.Pass, akun.Secret, "", "")
+	driver, _ := tokopedia_lib.NewDriverAccount(akun.Username, akun.Pass, akun.Secret)
 
 	nikfoto, selfiefoto, err := createBaseKtp(akun.Ktp)
 	if err != nil {

@@ -13,13 +13,13 @@ import (
 // }
 
 func main() {
-	akuns, save, _ := tokopedia_lib.GetakunFromFile("akun.txt")
+	akuns, save, _ := getakunFromFile("akun.txt")
 
 	for _, driver := range akuns {
 		if driver.Status == "success" || driver.Status == "gagal" {
 			continue
 		}
-		driver.Run(false, func(dctx *tokopedia_lib.DriverContext) {
+		driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
 			driver.ExecLogin(dctx)
 
 			timeout := time.After(time.Second * 30)
@@ -61,6 +61,8 @@ func main() {
 			}
 
 			save()
+
+			return nil
 		})
 
 	}

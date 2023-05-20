@@ -15,7 +15,7 @@ import (
 )
 
 // TODO: cookies dump afternya tidak ada
-var BaseSessionPath = "./tokopedia_session_new/"
+var BaseSessionPath = "/tokopedia_session_new/"
 
 func init() {
 	pathdata, _ := filepath.Abs(BaseSessionPath)
@@ -75,29 +75,16 @@ func SetDriverCookies(username string, dcontext *DriverContext) {
 	)
 }
 
-func DumpDriverCookies(username string, dcontext *DriverContext) []*network.Cookie {
-	pathuser := `//*/div[@data-testid="imgSellerSidebarProfile"]`
-
-	if !dcontext.Logined {
-		return []*network.Cookie{}
-	}
-
-	cookieChan := make(chan []*network.Cookie, 1)
-	defer close(cookieChan)
-
-	chromedp.Run(
-		dcontext.Ctx,
-		chromedp.Navigate("https://seller.tokopedia.com"),
-		chromedp.WaitVisible(pathuser, chromedp.BySearch),
+func (d *DriverAccount) SaveCookiesBrowser(ctx context.Context) error {
+	return chromedp.Run(ctx,
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			cookies, err := network.GetCookies().Do(ctx)
-			cookieChan <- cookies
 			if err != nil {
 				pdc_common.ReportError(err)
 				return err
 			}
 
-			pathdata := filepath.Join(BaseSessionPath, username+".json")
+			pathdata := filepath.Join(BaseSessionPath, d.Username+".json")
 			file, err := os.OpenFile(pathdata, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 			if err != nil {
 				return pdc_common.ReportError(err)
@@ -112,6 +99,4 @@ func DumpDriverCookies(username string, dcontext *DriverContext) []*network.Cook
 			return nil
 		}),
 	)
-
-	return <-cookieChan
 }
