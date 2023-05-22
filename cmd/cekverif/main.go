@@ -20,7 +20,7 @@ func main() {
 			continue
 		}
 		driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
-			driver.ExecLogin(dctx)
+			driver.SellerLogin(dctx)
 
 			timeout := time.After(time.Second * 30)
 			success := make(chan int, 1)

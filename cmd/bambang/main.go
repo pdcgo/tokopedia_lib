@@ -11,6 +11,7 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/go-vgo/robotgo"
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib"
 )
 
@@ -23,10 +24,10 @@ func createBaseKtp(nik string) (string, string, error) {
 	selfiefoto, _ = filepath.Abs(selfiefoto)
 
 	if _, err := os.Stat(nikfoto); errors.Is(err, os.ErrNotExist) {
-		return "", "", errors.New(nikfoto + "tidak ada")
+		return "", "", errors.New(nikfoto + " tidak ada")
 	}
 	if _, err := os.Stat(selfiefoto); errors.Is(err, os.ErrNotExist) {
-		return "", "", errors.New(nikfoto + "tidak ada")
+		return "", "", errors.New(selfiefoto + " selfie tidak ada")
 	}
 
 	return nikfoto, selfiefoto, nil
@@ -42,12 +43,14 @@ func runVerification(akun *tokopedia_lib.Account) error {
 	}
 
 	done := make(chan int, 1)
-	errChan := make(chan error, 1)
+	errChan := make(chan error)
+	defer close(errChan)
 
-	driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
-		driver.ExecLogin(dctx)
+	return driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
+		driver.SellerLogin(dctx)
 
 		submitCtx, cancel := context.WithCancel(dctx.Ctx)
+		defer cancel()
 
 		button1 := `//*/label[@for="pic1"]`
 		finish := `//*/button/div/span[contains(text(), "Upload")]`
@@ -70,11 +73,12 @@ func runVerification(akun *tokopedia_lib.Account) error {
 						chromedp.Text(toast, &pesan, chromedp.BySearch),
 					)
 					if pesan != "" {
+						log.Println("error", pesan)
 						pesan = strings.ReplaceAll(pesan, "\n", "")
 						pesan = strings.ReplaceAll(pesan, "OK", "")
 						pesan = strings.ReplaceAll(pesan, "\t", "")
 						pesan = strings.ReplaceAll(pesan, "'", "")
-						cancel()
+						// cancel()
 						errChan <- errors.New(pesan)
 						time.Sleep(time.Second * 3)
 					}
@@ -121,29 +125,39 @@ func runVerification(akun *tokopedia_lib.Account) error {
 			)
 
 		}()
+
+		timeout := time.After(time.Minute)
+
+		select {
+		case <-done:
+			log.Println(driver.Username, "Submit Done")
+			akun.Status = "done"
+		case err := <-errChan:
+			log.Println(driver.Username, "error", err.Error())
+			pdc_common.ReportError(err)
+			akun.Status = err.Error()
+			time.Sleep(time.Minute)
+
+		case <-timeout:
+			akun.Status = "timeout 60 second"
+		}
+
 		return nil
 	})
 
-	select {
-	case <-done:
-		log.Println(driver.Username, "Submit Done")
-		akun.Status = "done"
-	case err := <-errChan:
-		log.Println(driver.Username, "error", err.Error())
-		akun.Status = err.Error()
-	}
-
-	return nil
 }
 
 func main() {
 	akuns, save, err := tokopedia_lib.GetVerificationAkun("akun_verification.txt")
 	if err != nil {
-		panic(err)
+		pdc_common.ReportError(err)
+		time.Sleep(time.Minute)
+		return
 	}
 
 	for _, akun := range akuns {
 		runVerification(akun)
+		save()
 	}
 
 	save()

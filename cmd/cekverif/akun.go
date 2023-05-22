@@ -51,7 +51,7 @@ Parent:
 	return hasil, func() {
 		f, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 		if err != nil {
-			panic(err)
+			pdc_common.ReportError(err)
 		}
 		defer f.Close()
 		for _, driver := range hasil {
