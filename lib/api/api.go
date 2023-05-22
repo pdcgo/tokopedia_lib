@@ -12,7 +12,7 @@ import (
 
 var ClientApi *http.Client = &http.Client{
 	Transport: &http.Transport{
-		MaxIdleConnsPerHost: 5,
+		MaxIdleConnsPerHost: 100,
 	},
 	Timeout: 30 * time.Second,
 }
@@ -21,11 +21,13 @@ type Session interface {
 	Sync() error
 	Update(cookies []*http.Cookie) error
 	AddToHttpRequest(req *http.Request)
+	UserAgent() string
 }
 
 type TokopediaApi struct {
-	Session Session
-	encoder *schema.Encoder
+	Session           Session
+	encoder           *schema.Encoder
+	AuthenticatedData *IsAtuheticatedData
 }
 
 func (api *TokopediaApi) NewRequest(method, ur string, query any, body io.Reader) *http.Request {
@@ -55,7 +57,7 @@ func (api *TokopediaApi) SendRequest(req *http.Request, hasil any) error {
 	}
 
 	body, _ := io.ReadAll(res.Body)
-	// log.Info().Msg(string(body))
+	// log.Println(string(body))
 	err = json.Unmarshal(body, hasil)
 	if err != nil {
 		return pdc_common.ReportError(err)

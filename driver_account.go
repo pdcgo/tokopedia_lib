@@ -219,9 +219,17 @@ func (d *DriverAccount) CreateApi() (*api.TokopediaApi, func(), error) {
 		if err != nil {
 			return nil, func() {}, err
 		}
+		d.Session.Load()
 	}
 
-	return api.NewTokopediaApi(d.Session), func() {
+	acapi := api.NewTokopediaApi(d.Session)
+	_, err = acapi.IsAutheticated()
+	if err != nil {
+		d.Session.DeleteSession()
+		return nil, func() {}, err
+	}
+
+	return acapi, func() {
 		log.Println(d.Username, "save session")
 		err := d.Session.SaveSession()
 		if err != nil {

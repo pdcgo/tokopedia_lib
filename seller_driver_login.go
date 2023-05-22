@@ -32,7 +32,14 @@ func (d *DriverAccount) SellerLogin(dctx *DriverContext) error {
 					return err
 				}
 
-				err = d.Session.SaveFromDriver(cookies)
+				var userAgent string
+				err = chromedp.Evaluate("navigator.userAgent", &userAgent).Do(ctx)
+				if err != nil {
+					errorChan <- err
+					return err
+				}
+
+				err = d.Session.SaveFromDriver(cookies, userAgent)
 				if err != nil {
 					errorChan <- err
 				}

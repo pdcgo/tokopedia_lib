@@ -32,6 +32,11 @@ type Session struct {
 	sync.Mutex
 	fname   string
 	Cookies []*http.Cookie
+	Ua      string
+}
+
+func (sess *Session) UserAgent() string {
+	return sess.Ua
 }
 
 func (sess *Session) Update(cookies []*http.Cookie) error {
@@ -100,7 +105,7 @@ func (sess *Session) AddToHttpRequest(req *http.Request) {
 	}
 }
 
-func (sess *Session) SaveFromDriver(cookies []*network.Cookie) error {
+func (sess *Session) SaveFromDriver(cookies []*network.Cookie, ua string) error {
 	sess.Lock()
 	defer sess.Unlock()
 
@@ -119,6 +124,7 @@ func (sess *Session) SaveFromDriver(cookies []*network.Cookie) error {
 	}
 
 	sess.Cookies = fixCookies
+	sess.Ua = ua
 	return sess.save()
 
 }
@@ -173,10 +179,17 @@ func (sess *Session) Load() error {
 	return nil
 }
 
+func (sess *Session) DeleteSession() error {
+	pathdata := filepath.Join(BaseSessionPath, sess.fname+".json")
+	return os.Remove(pathdata)
+
+}
+
 func NewSession(fname string) *Session {
 	session := Session{
 		fname:   fname,
 		Cookies: []*http.Cookie{},
+		Ua:      "",
 	}
 	return &session
 }

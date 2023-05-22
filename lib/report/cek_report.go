@@ -1,6 +1,7 @@
 package report
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -11,10 +12,11 @@ import (
 
 type CekReport struct {
 	*tokopedia_lib.DriverAccount
+	ShopName         string
 	ProductActive    int
 	ProductInActive  int
 	ProductViolation int
-	ShopScore        int
+	ShopScore        float32
 	UreadChat        int
 	NewOrder         int
 	PmStatus         string
@@ -37,7 +39,7 @@ Parent:
 			continue
 		}
 
-		dataline := make([]string, 12)
+		dataline := make([]string, 13)
 
 		fixline := strings.ReplaceAll(line, "\r", "")
 
@@ -51,7 +53,10 @@ Parent:
 		}
 
 		if err != nil {
-			pdc_common.ReportError(err)
+			if !errors.Is(err, tokopedia_lib.ErrSessionNotFound) {
+				pdc_common.ReportError(err)
+			}
+
 		}
 
 		hasil = append(hasil, &driver)
@@ -64,13 +69,14 @@ Parent:
 		}
 		defer f.Close()
 
-		f.WriteString("username,password,secret,product_active,product_inactive,product_violation,shop_score,unread_chat,new_order,pm_status,extend_status,status\n")
+		f.WriteString("username,password,secret,shopname,product_active,product_inactive,product_violation,shop_score,unread_chat,new_order,pm_status,extend_status,status\n")
 		for _, driver := range hasil {
 
-			f.WriteString(fmt.Sprintf("%s,%s,%s,%d,%d,%d,%d,%d,%d,%s,%s,%s\n",
+			f.WriteString(fmt.Sprintf("%s,%s,%s,%s,%d,%d,%d,%.2f,%d,%d,%s,%s,%s\n",
 				driver.Username,
 				driver.Password,
 				driver.Secret,
+				driver.ShopName,
 				driver.ProductActive,
 				driver.ProductInActive,
 				driver.ProductViolation,
