@@ -8,8 +8,10 @@ require (
 	github.com/Xuanwo/go-locale v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/klauspost/compress v1.10.3 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15 // indirect
+	nhooyr.io/websocket v1.8.7 // indirect
 )
 
 require (
