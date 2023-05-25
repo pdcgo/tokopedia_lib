@@ -59,34 +59,30 @@ func (sClient *SocketClient) WsOption() *websocket.DialOptions {
 
 }
 
-func (sClient *SocketClient) NewClient(ctx context.Context, url string, opts *websocket.DialOptions) (*SocketClient, error) {
-	c, _, err := websocket.Dial(ctx, url, opts)
+func (sClient *SocketClient) NewClient(ctx context.Context) error {
+	wsOpts := sClient.WsOption()
+	c, _, err := websocket.Dial(ctx, sClient.url, wsOpts)
 	if err != nil {
-		return nil, err
+		pdc_common.ReportError(err)
+		return err
 	}
-
-	cl := &SocketClient{
-		url: url,
-		c:   c,
-	}
-
-	return cl, nil
+	sClient.c = c
+	return nil
 }
 
 func (sClient *SocketClient) ConnectWebsocket() {
-	wsOpts := sClient.WsOption()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	client, err := sClient.NewClient(ctx, sClient.url, wsOpts)
+	err := sClient.NewClient(ctx)
 	if err != nil {
 		pdc_common.ReportError(err)
 	}
-	defer client.c.Close(websocket.StatusNormalClosure, "connction was closed")
+	defer sClient.c.Close(websocket.StatusNormalClosure, "connction was closed")
 
 	go func() {
 		for {
-			msgType, msg, err := client.c.Reader(ctx)
+			msgType, msg, err := sClient.c.Reader(ctx)
 			if err != nil {
 				pdc_common.ReportError(err)
 				return
@@ -101,7 +97,7 @@ func (sClient *SocketClient) ConnectWebsocket() {
 	for {
 		select {
 		case <-ticker.C:
-			err := client.c.Ping(ctx)
+			err := sClient.c.Ping(ctx)
 			if err != nil {
 				pdc_common.ReportError(err)
 			} else {

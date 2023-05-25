@@ -39,6 +39,10 @@ func (sess *Session) UserAgent() string {
 	return sess.Ua
 }
 
+func (sess *Session) GetCookies() []*http.Cookie {
+	return sess.Cookies
+}
+
 func (sess *Session) Update(cookies []*http.Cookie) error {
 	sess.Lock()
 	defer sess.Unlock()
