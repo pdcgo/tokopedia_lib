@@ -2,10 +2,7 @@ package socket_test
 
 import (
 	"context"
-	"log"
-	"strings"
 	"testing"
-	"time"
 
 	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/socket"
@@ -49,10 +46,13 @@ func TestSendMessage(t *testing.T) {
 
 	err := sClient.NewClient(ctx)
 	assert.Nil(t, err)
-	dateTime := time.Now().Format(time.DateTime)
 
-	startTime := strings.Replace(dateTime, " ", "T", 1) + "Z"
-	log.Println(startTime)
+	startTime := socket.StartTime()
+	t.Logf("%s startTime", startTime)
+
+	localId := socket.LocalId()
+	t.Logf("%s localId", localId)
+	t.Logf("%s Reply Time String", socket.ReplyTimeStr())
 
 	payload := socket.BaseSocketType{
 		Code: 103,
@@ -63,7 +63,7 @@ func TestSendMessage(t *testing.T) {
 			FromUserName: "Imam",
 			Source:       "inbox",
 			ParentReply:  nil,
-			LocalId:      "-321754",
+			LocalId:      localId,
 			StartTime:    startTime,
 		},
 	}
