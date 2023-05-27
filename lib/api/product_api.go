@@ -1,6 +1,9 @@
 package api
 
-import "strconv"
+import (
+	"log"
+	"strconv"
+)
 
 type ProductListMetaRes struct {
 	Data struct {
@@ -111,8 +114,127 @@ func (api *TokopediaApi) ProductListMeta() (*ProductListMetaRes, error) {
 	}
 
 	req := api.NewGraphqlReq(&query)
-
+	log.Println("create req success")
 	var hasil ProductListMetaRes
+	err := api.SendRequest(req, &hasil)
+
+	return &hasil, err
+}
+
+type InputVariable struct {
+	Pictures struct {
+		Data []struct {
+			UploadIds string `json:"uploadIds"`
+		} `json:"data"`
+	} `json:"pictures"`
+	ProductName string `json:"productName"`
+	Category    struct {
+		ID string `json:"id"`
+	} `json:"category"`
+	Condition     string `json:"condition"`
+	MinOrder      int64  `json:"minOrder"`
+	PriceCurrency string `json:"minCurrency"`
+	Weight        int64  `json:"weight"`
+	WeightUnit    string `json:"weightUnit"`
+	MustInsurance bool   `json:"mustInsurance"`
+	Menus         []struct {
+		MenuID string `json:"menuID"`
+	} `json:"menus"`
+	Annotations []string `json:"annotations"`
+	Description string   `json:"description"`
+	Dimention   struct {
+		Width  int `json:"width"`
+		Height int `json:"height"`
+		Length int `json:"length"`
+	} `json:"dimension"`
+	Catalog *struct {
+		CatalogID string `json:"catalogID"`
+		IsActive  bool   `json:"isActive"`
+	} `json:"catalog,omitempty"`
+}
+
+type InputNoVariant struct {
+	InputVariable
+	Sku    string `json:"sku"`
+	Stock  int64  `json:"stock"`
+	Price  int64  `json:"price"`
+	Status string `json:"status"`
+}
+
+type InputVariant struct {
+	InputVariable
+	Variant struct {
+		Selections []struct {
+			UnitID    string `json:"unitID"`
+			VariantID string `json:"variantID"`
+			Name      string `json:"name"`
+			Options   []struct {
+				UnitValueID string `json:"unitValueID"`
+				Value       string `json:"value"`
+				HexCode     string `json:"hexCode"`
+			} `json:"options"`
+		} `json:"selections"`
+		Products []struct {
+			Combination []int  `json:"combination"`
+			IsPrimary   bool   `json:"isPrimary"`
+			Price       int    `json:"price"`
+			Sku         string `json:"sku"`
+			Status      string `json:"status"`
+			Stock       int    `json:"stock"`
+			Pictures    []struct {
+				UploadIds string `json:"uploadIds"`
+			} `json:"pictures"`
+			Weight     int    `json:"weight"`
+			WeightUnit string `json:"weightUnit"`
+		} `json:"products"`
+		SizeChart []interface{} `json:"sizeChart"`
+	} `json:"variant"`
+}
+
+type VariablesProductAdd struct {
+	Input interface{} `json:"input"`
+}
+
+type ProductAddResp struct {
+	Data struct {
+		ProductAddV3 struct {
+			Header struct {
+				Message   []any  `json:"message"`
+				Reason    string `json:"reason"`
+				ErrorCode string `json:"errorCode"`
+				TypeName  string `json:"__typename"`
+			} `json:"header"`
+			IsSuccess bool   `json:"isSuccess"`
+			ProductId string `json:"productID"`
+			TypeName  string `json:"__typename"`
+		} `json:"ProductAddV3"`
+	} `json:"data"`
+}
+
+func (api *TokopediaApi) ProductAdd(variables *VariablesProductAdd) (*ProductAddResp, error) {
+	query := GraphqlPayload{
+		OperationName: "productAdd",
+		Variables:     variables,
+		Query: `
+		mutation productAdd($input: ProductInputV3!) {
+			  ProductAddV3(input: $input) {
+			    header {
+			      messages
+			      reason
+			      errorCode
+			      __typename
+			    }
+		    isSuccess
+		    productID
+		    __typename
+		  }
+		}
+		`,
+	}
+
+	req := api.NewGraphqlReq(&query)
+
+	var hasil ProductAddResp
 	err := api.SendRequest(req, &hasil)
 
 	return &hasil, err
