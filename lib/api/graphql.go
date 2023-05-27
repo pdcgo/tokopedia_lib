@@ -10,7 +10,7 @@ import (
 )
 
 type GraphqlPayload struct {
-	OperationName string      `json:"isAuthenticatedQuery"`
+	OperationName string      `json:"operationName"`
 	Variables     interface{} `json:"variables"`
 	Query         string      `json:"query"`
 }
@@ -20,6 +20,8 @@ func (api *TokopediaApi) graphqlDefaultHeader(req *http.Request) {
 	headers := map[string]string{
 		"User-Agent":   api.Session.UserAgent(),
 		"Content-Type": "application/json",
+		"Origin":       "https://seller.tokopedia.com",
+		"Accept":       "*/*",
 	}
 
 	for key, value := range headers {
@@ -31,7 +33,7 @@ func (api *TokopediaApi) graphqlDefaultHeader(req *http.Request) {
 func (api *TokopediaApi) NewGraphqlReq(payload *GraphqlPayload) *http.Request {
 	ur := fmt.Sprintf("https://gql.tokopedia.com/graphql/%s", payload.OperationName)
 
-	dataraw, err := json.Marshal(payload)
+	dataraw, err := json.Marshal([]*GraphqlPayload{payload})
 	if err != nil {
 		pdc_common.ReportError(err)
 	}

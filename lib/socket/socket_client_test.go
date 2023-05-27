@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewClientWebsocket(t *testing.T) {
-	driver, _ := tokopedia_lib.NewDriverAccount("082329471203", "220599", "IULI WGH6 TIK3 CZBK HGE2 7DBR LQ5L R5WQ")
+	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
 	sClient := socket.CreateSocketClient(driver.Session)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -20,7 +20,7 @@ func TestNewClientWebsocket(t *testing.T) {
 }
 
 func TestSendEvent(t *testing.T) {
-	driver, _ := tokopedia_lib.NewDriverAccount("082329471203", "220599", "IULI WGH6 TIK3 CZBK HGE2 7DBR LQ5L R5WQ")
+	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
 	sClient := socket.CreateSocketClient(driver.Session)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -39,7 +39,7 @@ func TestSendEvent(t *testing.T) {
 }
 
 func TestSendMessage(t *testing.T) {
-	driver, _ := tokopedia_lib.NewDriverAccount("082329471203", "220599", "IULI WGH6 TIK3 CZBK HGE2 7DBR LQ5L R5WQ")
+	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
 	sClient := socket.CreateSocketClient(driver.Session)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

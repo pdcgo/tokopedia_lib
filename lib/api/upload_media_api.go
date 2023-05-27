@@ -35,20 +35,11 @@ func headerUploadImage(fileSize int64, boundary string) map[string]string {
 	contentLength := strconv.Itoa(int(fileSize))
 
 	headers := map[string]string{
-		"Content-Length":     contentLength,
-		"Sec-Ch-Ua":          `"Google Chrome";v="113", "Chromium";v="113", "Not-A.Brand";v="24"`,
-		"Sec-Ch-Ua-Platform": `"Windows"`,
-		"Sec-Ch-Ua-Mobile":   "?0",
-		"User-Agent":         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
-		"Content-Type":       "multipart/form-data; boundary=" + boundary,
-		"Accept":             "*/*",
-		"Origin":             "https://seller.tokopedia.com",
-		"Sec-Fetch-Site":     "cross-site",
-		"Sec-Fetch-Mode":     "cors",
-		"Sec-Fetch-Dest":     "empty",
-		"Referer":            "https://seller.tokopedia.com/add-product",
-		"Accept-Encoding":    "gzip, deflate, br",
-		"Accept-Language":    "en-US,en;q=0.9",
+		"Content-Length": contentLength,
+		"User-Agent":     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
+		"Content-Type":   "multipart/form-data; boundary=" + boundary,
+		"Accept":         "*/*",
+		"Origin":         "https://seller.tokopedia.com",
 	}
 	return headers
 }

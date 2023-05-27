@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/pdcgo/tokopedia_lib"
@@ -15,7 +16,7 @@ func TestUploadProductImage(t *testing.T) {
 	defer saveSession()
 
 	t.Run("test upload product", func(t *testing.T) {
-		result, err := apiSession.UploadProductImage("blob.jpeg")
+		result, err := apiSession.UploadProductImage("../../blob.jpeg")
 		assert.NotEmpty(t, result)
 		assert.Nil(t, err)
 	})
@@ -29,7 +30,8 @@ func TestUploadImageChat(t *testing.T) {
 	defer saveSession()
 
 	t.Run("test upload product", func(t *testing.T) {
-		result, err := apiSession.UploadImageChat("2484220963", "blob.jpeg")
+		shopId := strconv.Itoa(int(apiSession.AuthenticatedData.UserShopInfo.Info.ShopID))
+		result, err := apiSession.UploadImageChat(shopId, "../../blob.jpeg")
 		assert.NotEmpty(t, result)
 		assert.Nil(t, err)
 	})

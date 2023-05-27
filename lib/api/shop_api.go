@@ -76,7 +76,7 @@ type ShopInfoByIDVar struct {
 	Fields  []string `json:"fields"`
 }
 
-func (api *TokopediaApi) ShopInfoByID() (*ShopInfoByIDRes, error) {
+func (api *TokopediaApi) ShopInfoByID() ([]*ShopInfoByIDRes, error) {
 	query := GraphqlPayload{
 		OperationName: "ShopInfoByIDQuery",
 		Variables: ShopInfoByIDVar{
@@ -154,10 +154,10 @@ func (api *TokopediaApi) ShopInfoByID() (*ShopInfoByIDRes, error) {
 
 	req := api.NewGraphqlReq(&query)
 
-	var hasil ShopInfoByIDRes
+	var hasil []*ShopInfoByIDRes
 	err := api.SendRequest(req, &hasil)
 
-	return &hasil, err
+	return hasil, err
 }
 
 type GoldGetPMOSStatusRes struct {
@@ -190,7 +190,7 @@ type GoldGetPMOSStatusVar struct {
 	ShopID int64 `json:"shopId"`
 }
 
-func (api *TokopediaApi) GoldGetPMOSStatus() (*GoldGetPMOSStatusRes, error) {
+func (api *TokopediaApi) GoldGetPMOSStatus() ([]*GoldGetPMOSStatusRes, error) {
 	query := GraphqlPayload{
 		OperationName: "goldGetPMOSStatusQuery",
 		Variables: GoldGetPMOSStatusVar{
@@ -224,10 +224,10 @@ func (api *TokopediaApi) GoldGetPMOSStatus() (*GoldGetPMOSStatusRes, error) {
 
 	req := api.NewGraphqlReq(&query)
 
-	var hasil GoldGetPMOSStatusRes
+	var hasil []*GoldGetPMOSStatusRes
 	err := api.SendRequest(req, &hasil)
 
-	return &hasil, err
+	return hasil, err
 }
 
 type GetShopScoreLevelRes struct {
@@ -283,7 +283,7 @@ type GetShopScoreLevelVar struct {
 	IncludeRawData  bool   `json:"includeRawData"`
 }
 
-func (api *TokopediaApi) GetShopScoreLevel() (*GetShopScoreLevelRes, error) {
+func (api *TokopediaApi) GetShopScoreLevel() ([]*GetShopScoreLevelRes, error) {
 	shopid := strconv.Itoa(int(api.AuthenticatedData.UserShopInfo.Info.ShopID))
 	query := GraphqlPayload{
 		OperationName: "GetShopScoreLevel",
@@ -340,8 +340,8 @@ func (api *TokopediaApi) GetShopScoreLevel() (*GetShopScoreLevelRes, error) {
 
 	req := api.NewGraphqlReq(&query)
 
-	var hasil GetShopScoreLevelRes
+	var hasil []*GetShopScoreLevelRes
 	err := api.SendRequest(req, &hasil)
 
-	return &hasil, err
+	return hasil, err
 }

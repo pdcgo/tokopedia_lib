@@ -95,7 +95,7 @@ func cekbot(driver *report.CekReport) {
 				pdc_common.ReportError(err)
 			}
 
-			driver.ShopScore = hasil.Data.ShopScoreLevel.Result.ShopScore
+			driver.ShopScore = hasil[0].Data.ShopScoreLevel.Result.ShopScore
 
 		}()
 
@@ -108,8 +108,8 @@ func cekbot(driver *report.CekReport) {
 				pdc_common.ReportError(err)
 			}
 
-			driver.UreadChat = hasil.Data.Notifications.Chat.UnreadsSeller
-			driver.NewOrder = hasil.Data.Notifications.SellerOrderStatus.NewOrder
+			driver.UreadChat = hasil[0].Data.Notifications.Chat.UnreadsSeller
+			driver.NewOrder = hasil[0].Data.Notifications.SellerOrderStatus.NewOrder
 
 		}()
 
@@ -122,9 +122,9 @@ func cekbot(driver *report.CekReport) {
 				pdc_common.ReportError(err)
 			}
 
-			driver.ExtendStatus = hasil.Data.GoldGetPMOSStatus.Data.PowerMerchant.AutoExtend.Status
+			driver.ExtendStatus = hasil[0].Data.GoldGetPMOSStatus.Data.PowerMerchant.AutoExtend.Status
 
-			switch hasil.Data.GoldGetPMOSStatus.Data.PowerMerchant.Status {
+			switch hasil[0].Data.GoldGetPMOSStatus.Data.PowerMerchant.Status {
 			case "active":
 				driver.PmStatus = "aktif"
 			case "idde":
@@ -144,7 +144,7 @@ func cekbot(driver *report.CekReport) {
 				pdc_common.ReportError(err)
 			}
 
-			switch hasil.Data.ShopInfoByID.Result[0].StatusInfo.StatusName {
+			switch hasil[0].Data.ShopInfoByID.Result[0].StatusInfo.StatusName {
 			case "Moderated Permanently":
 				driver.Status = "Moderasi Permanen"
 			case "Moderated":

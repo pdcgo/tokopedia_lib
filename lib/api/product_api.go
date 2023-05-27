@@ -3,6 +3,7 @@ package api
 import (
 	"log"
 	"strconv"
+	"time"
 )
 
 type ProductListMetaRes struct {
@@ -61,7 +62,7 @@ type ProductListMetaVar struct {
 func (api *TokopediaApi) ProductListMeta() (*ProductListMetaRes, error) {
 	shopid := strconv.Itoa(int(api.AuthenticatedData.UserShopInfo.Info.ShopID))
 	query := GraphqlPayload{
-		OperationName: "ShopInfoByIDQuery",
+		OperationName: "ProductListMeta",
 		Variables: ProductListMetaVar{
 			ShopID:    shopid,
 			ExtraInfo: []string{"rbac", "access", "category"},
@@ -115,10 +116,10 @@ func (api *TokopediaApi) ProductListMeta() (*ProductListMetaRes, error) {
 
 	req := api.NewGraphqlReq(&query)
 	log.Println("create req success")
-	var hasil ProductListMetaRes
+	var hasil []*ProductListMetaRes
 	err := api.SendRequest(req, &hasil)
 
-	return &hasil, err
+	return hasil[0], err
 }
 
 type InputVariable struct {
@@ -151,6 +152,11 @@ type InputVariable struct {
 		CatalogID string `json:"catalogID"`
 		IsActive  bool   `json:"isActive"`
 	} `json:"catalog,omitempty"`
+	PreOrder struct {
+		Duration int    `json:"duration"`
+		IsActive bool   `json:"isActive"`
+		TimeUnit string `json:"timeUnit"`
+	} `json:"preorder,omitempty"`
 }
 
 type InputNoVariant struct {
@@ -191,7 +197,7 @@ type InputVariant struct {
 	} `json:"variant"`
 }
 
-type VariablesProductAdd struct {
+type ProductAddVar struct {
 	Input interface{} `json:"input"`
 }
 
@@ -211,7 +217,7 @@ type ProductAddResp struct {
 	} `json:"data"`
 }
 
-func (api *TokopediaApi) ProductAdd(variables *VariablesProductAdd) (*ProductAddResp, error) {
+func (api *TokopediaApi) ProductAdd(variables *ProductAddVar) (*ProductAddResp, error) {
 	query := GraphqlPayload{
 		OperationName: "productAdd",
 		Variables:     variables,
@@ -234,8 +240,229 @@ func (api *TokopediaApi) ProductAdd(variables *VariablesProductAdd) (*ProductAdd
 
 	req := api.NewGraphqlReq(&query)
 
-	var hasil ProductAddResp
+	var hasil []*ProductAddResp
 	err := api.SendRequest(req, &hasil)
 
-	return &hasil, err
+	return hasil[0], err
+}
+
+type ProductListVar struct {
+	ShopID string `json:"shopID"`
+	Filter []struct {
+		ID    string   `json:"id"`
+		Value []string `json:"value"`
+	} `json:"filter"`
+	Sort struct {
+		ID    string `json:"id"`
+		Value string `json:"value"`
+	} `json:"sort"`
+	ExtraInfo   []string `json:"extraInfo"`
+	WarehouseID string   `json:"warehouseID"`
+}
+
+type ProductListResp []struct {
+	Data struct {
+		ProductList struct {
+			Header struct {
+				ProcessTime float64       `json:"processTime"`
+				Messages    []interface{} `json:"messages"`
+				Reason      string        `json:"reason"`
+				ErrorCode   string        `json:"errorCode"`
+				Typename    string        `json:"__typename"`
+			} `json:"header"`
+			Data []struct {
+				ID    string `json:"id"`
+				Name  string `json:"name"`
+				Price struct {
+					Min      int    `json:"min"`
+					Max      int    `json:"max"`
+					Typename string `json:"__typename"`
+				} `json:"price"`
+				Stock            int    `json:"stock"`
+				Status           string `json:"status"`
+				MinOrder         int    `json:"minOrder"`
+				MaxOrder         int    `json:"maxOrder"`
+				Weight           int    `json:"weight"`
+				WeightUnit       string `json:"weightUnit"`
+				Condition        string `json:"condition"`
+				IsMustInsurance  bool   `json:"isMustInsurance"`
+				IsKreasiLokal    bool   `json:"isKreasiLokal"`
+				IsCOD            bool   `json:"isCOD"`
+				IsCampaign       bool   `json:"isCampaign"`
+				IsVariant        bool   `json:"isVariant"`
+				URL              string `json:"url"`
+				Sku              string `json:"sku"`
+				Cashback         int    `json:"cashback"`
+				Featured         int    `json:"featured"`
+				HasStockReserved bool   `json:"hasStockReserved"`
+				HasInbound       bool   `json:"hasInbound"`
+				WarehouseCount   int    `json:"warehouseCount"`
+				IsEmptyStock     bool   `json:"isEmptyStock"`
+				Score            struct {
+					Total    int    `json:"total"`
+					Typename string `json:"__typename"`
+				} `json:"score"`
+				Pictures []struct {
+					URLThumbnail string `json:"urlThumbnail"`
+					Typename     string `json:"__typename"`
+				} `json:"pictures"`
+				Shop struct {
+					ID       string `json:"id"`
+					Typename string `json:"__typename"`
+				} `json:"shop"`
+				Wholesale []interface{} `json:"wholesale"`
+				Stats     struct {
+					CountView   int    `json:"countView"`
+					CountReview int    `json:"countReview"`
+					CountTalk   int    `json:"countTalk"`
+					Typename    string `json:"__typename"`
+				} `json:"stats"`
+				TxStats struct {
+					Sold     int    `json:"sold"`
+					Typename string `json:"__typename"`
+				} `json:"txStats"`
+				Topads             interface{}   `json:"topads"`
+				PriceSuggestion    interface{}   `json:"priceSuggestion"`
+				CampaignType       []interface{} `json:"campaignType"`
+				SuspendLevel       int           `json:"suspendLevel"`
+				HasStockAlert      bool          `json:"hasStockAlert"`
+				StockAlertCount    int           `json:"stockAlertCount"`
+				StockAlertActive   bool          `json:"stockAlertActive"`
+				HaveNotifyMeOOS    bool          `json:"haveNotifyMeOOS"`
+				NotifyMeOOSCount   int           `json:"notifyMeOOSCount"`
+				NotifyMeOOSWording string        `json:"notifyMeOOSWording"`
+				ManageProductData  struct {
+					IsStockGuaranteed bool   `json:"isStockGuaranteed"`
+					ScoreV3           int    `json:"scoreV3"`
+					Typename          string `json:"__typename"`
+				} `json:"manageProductData"`
+				CreateTime time.Time `json:"createTime"`
+				Typename   string    `json:"__typename"`
+			} `json:"data"`
+			Typename string `json:"__typename"`
+		} `json:"ProductList"`
+	} `json:"data"`
+}
+
+func (api *TokopediaApi) ProductList(payload *ProductListVar) (*ProductListResp, error) {
+
+	query := GraphqlPayload{
+		OperationName: "ProductList",
+		Variables:     payload,
+		Query: `query ProductList($shopID: String!, $filter: [GoodsFilterInput], $sort: GoodsSortInput, $extraInfo: [String], $warehouseID: String) {
+			  ProductList(shopID: $shopID, filter: $filter, sort: $sort, extraInfo: $extraInfo, warehouseID: $warehouseID) {
+			    header {
+			      processTime
+			      messages
+			      reason
+			      errorCode
+			      __typename
+			    }
+		    data {
+			      id
+			      name
+			      price {
+			        min
+			        max
+			        __typename
+			      }
+		      stock
+		      status
+		      minOrder
+		      maxOrder
+		      weight
+		      weightUnit
+		      condition
+		      isMustInsurance
+		      isKreasiLokal
+		      isCOD
+		      isCampaign
+		      isVariant
+		      url
+		      sku
+		      cashback
+		      featured
+		      hasStockReserved
+		      hasInbound
+		      warehouseCount
+		      isEmptyStock
+		      score {
+			        total
+			        __typename
+			      }
+		      pictures {
+			        urlThumbnail
+			        __typename
+			      }
+		      shop {
+			        id
+			        __typename
+			      }
+		      wholesale {
+			        minQty
+			        __typename
+			      }
+		      stats {
+			        countView
+			        countReview
+			        countTalk
+			        __typename
+			      }
+		      txStats {
+			        sold
+			        __typename
+			      }
+		      topads {
+			        status
+			        management
+			        __typename
+			      }
+		      priceSuggestion {
+			        suggestedPrice
+			        suggestedPriceTreshold
+			        suggestedPriceMin
+			        suggestedPriceMax
+			        label
+			        productRecommendation {
+			          title
+			          productID
+			          price
+			          imageURL
+			          sold
+			          rating
+			          __typename
+			        }
+		        __typename
+		      }
+		      campaignType {
+			        id
+			        name
+			        iconURL
+			        __typename
+			      }
+		      suspendLevel
+		      hasStockAlert
+		      stockAlertCount
+		      stockAlertActive
+		      haveNotifyMeOOS
+		      notifyMeOOSCount
+		      notifyMeOOSWording
+		      manageProductData {
+			        isStockGuaranteed
+			        scoreV3
+			        __typename
+			      }
+		      createTime
+		      __typename
+		    }
+		    __typename
+		  }
+		}`,
+	}
+
+	req := api.NewGraphqlReq(&query)
+
+	var hasil *ProductListResp
+	err := api.SendRequest(req, &hasil)
+	return hasil, err
 }
