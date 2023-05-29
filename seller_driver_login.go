@@ -56,7 +56,7 @@ func (d *DriverAccount) SellerLogin(dctx *DriverContext) error {
 		chromedp.Run(loginCtx,
 			chromedp.WaitReady(masukTitle, chromedp.BySearch),
 		)
-		err := d.mitraLogin(loginCtx)
+		err := d.MitraLogin(loginCtx)
 		if err != nil {
 			errorChan <- err
 		}

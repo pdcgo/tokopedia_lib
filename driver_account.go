@@ -96,7 +96,7 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 	}
 }
 
-func (driver *DriverAccount) mitraLogin(ctx context.Context) error {
+func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	chromedp.Run(ctx, chromedp.Navigate("https://mitra.tokopedia.com"))
 	errChan := make(chan error, 1)
 

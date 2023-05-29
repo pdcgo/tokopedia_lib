@@ -1,10 +1,9 @@
-package main
+package web
 
 import (
 	_ "embed"
 	"errors"
 	"log"
-	"os"
 	"sync"
 	"time"
 
@@ -12,13 +11,6 @@ import (
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/report"
 )
-
-//go:embed ..\..\logger_credentials.json
-var cred []byte
-
-var devmode = os.Getenv("DEV_MODE") != ""
-var Version = "development"
-var LogName = "golang_tokopedia_cekbot"
 
 var concurent = make(chan int, 50)
 var waitallakun sync.WaitGroup
@@ -161,7 +153,7 @@ func cekbot(driver *report.CekReport) {
 
 }
 
-func main() {
+func RunCheckAkun() {
 	setupPdcLogger()
 	// proxy := tokpedproxy.NewInspectProxy("localhost:8082", context.Background())
 	// go proxy.RunProxy()
