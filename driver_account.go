@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net/http"
 	"sync"
 	"time"
 
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
@@ -18,13 +20,25 @@ type DriverContext struct {
 	Ctx     context.Context
 }
 
+type DriverSession interface {
+	SetCookieToDriver(ctx context.Context) error
+	Load() error
+	DeleteSession() error
+	SaveSession() error
+	Sync() error
+	Update(cookies []*http.Cookie) error
+	AddToHttpRequest(req *http.Request)
+	UserAgent() string
+	SaveFromDriver(cookies []*network.Cookie, ua string) error
+}
+
 type DriverAccount struct {
 	Username string
 	Password string
 	Secret   string
 	DevMode  bool
 	Proxy    string
-	Session  *Session
+	Session  DriverSession
 }
 
 type BrowserClosed struct {
