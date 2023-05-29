@@ -3,7 +3,8 @@ package api
 import (
 	"log"
 	"strconv"
-	"time"
+
+	"github.com/pdcgo/tokopedia_lib/lib/model"
 )
 
 type ProductListMetaRes struct {
@@ -116,109 +117,14 @@ func (api *TokopediaApi) ProductListMeta() (*ProductListMetaRes, error) {
 
 	req := api.NewGraphqlReq(&query)
 	log.Println("create req success")
-	var hasil []*ProductListMetaRes
+	var hasil *ProductListMetaRes
 	err := api.SendRequest(req, &hasil)
 
-	return hasil[0], err
+	return hasil, err
 }
 
-type InputVariable struct {
-	Pictures struct {
-		Data []struct {
-			UploadIds string `json:"uploadIds"`
-		} `json:"data"`
-	} `json:"pictures"`
-	ProductName string `json:"productName"`
-	Category    struct {
-		ID string `json:"id"`
-	} `json:"category"`
-	Condition     string `json:"condition"`
-	MinOrder      int64  `json:"minOrder"`
-	PriceCurrency string `json:"minCurrency"`
-	Weight        int64  `json:"weight"`
-	WeightUnit    string `json:"weightUnit"`
-	MustInsurance bool   `json:"mustInsurance"`
-	Menus         []struct {
-		MenuID string `json:"menuID"`
-	} `json:"menus"`
-	Annotations []string `json:"annotations"`
-	Description string   `json:"description"`
-	Dimention   struct {
-		Width  int `json:"width"`
-		Height int `json:"height"`
-		Length int `json:"length"`
-	} `json:"dimension"`
-	Catalog *struct {
-		CatalogID string `json:"catalogID"`
-		IsActive  bool   `json:"isActive"`
-	} `json:"catalog,omitempty"`
-	PreOrder struct {
-		Duration int    `json:"duration"`
-		IsActive bool   `json:"isActive"`
-		TimeUnit string `json:"timeUnit"`
-	} `json:"preorder,omitempty"`
-}
-
-type InputNoVariant struct {
-	InputVariable
-	Sku    string `json:"sku"`
-	Stock  int64  `json:"stock"`
-	Price  int64  `json:"price"`
-	Status string `json:"status"`
-}
-
-type InputVariant struct {
-	InputVariable
-	Variant struct {
-		Selections []struct {
-			UnitID    string `json:"unitID"`
-			VariantID string `json:"variantID"`
-			Name      string `json:"name"`
-			Options   []struct {
-				UnitValueID string `json:"unitValueID"`
-				Value       string `json:"value"`
-				HexCode     string `json:"hexCode"`
-			} `json:"options"`
-		} `json:"selections"`
-		Products []struct {
-			Combination []int  `json:"combination"`
-			IsPrimary   bool   `json:"isPrimary"`
-			Price       int    `json:"price"`
-			Sku         string `json:"sku"`
-			Status      string `json:"status"`
-			Stock       int    `json:"stock"`
-			Pictures    []struct {
-				UploadIds string `json:"uploadIds"`
-			} `json:"pictures"`
-			Weight     int    `json:"weight"`
-			WeightUnit string `json:"weightUnit"`
-		} `json:"products"`
-		SizeChart []interface{} `json:"sizeChart"`
-	} `json:"variant"`
-}
-
-type ProductAddVar struct {
-	Input interface{} `json:"input"`
-}
-
-type ProductAddResp struct {
-	Data struct {
-		ProductAddV3 struct {
-			Header struct {
-				Message   []any  `json:"message"`
-				Reason    string `json:"reason"`
-				ErrorCode string `json:"errorCode"`
-				TypeName  string `json:"__typename"`
-			} `json:"header"`
-			IsSuccess bool   `json:"isSuccess"`
-			ProductId string `json:"productID"`
-			TypeName  string `json:"__typename"`
-		} `json:"ProductAddV3"`
-	} `json:"data"`
-}
-
-func (api *TokopediaApi) ProductAdd(variables *ProductAddVar) (*ProductAddResp, error) {
-	query := GraphqlPayload{
+func (api *TokopediaApi) ProductAdd(variables *model.ProductAddVar) (*model.ProductAddResp, error) {
+	gqlQuery := GraphqlPayload{
 		OperationName: "productAdd",
 		Variables:     variables,
 		Query: `
@@ -238,115 +144,17 @@ func (api *TokopediaApi) ProductAdd(variables *ProductAddVar) (*ProductAddResp, 
 		`,
 	}
 
-	req := api.NewGraphqlReq(&query)
+	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil []*ProductAddResp
+	var hasil *model.ProductAddResp
 	err := api.SendRequest(req, &hasil)
 
-	return hasil[0], err
+	return hasil, err
 }
 
-type ProductListVar struct {
-	ShopID string `json:"shopID"`
-	Filter []struct {
-		ID    string   `json:"id"`
-		Value []string `json:"value"`
-	} `json:"filter"`
-	Sort struct {
-		ID    string `json:"id"`
-		Value string `json:"value"`
-	} `json:"sort"`
-	ExtraInfo   []string `json:"extraInfo"`
-	WarehouseID string   `json:"warehouseID"`
-}
+func (api *TokopediaApi) ProductList(payload *model.ProductListVar) (*model.ProductListResp, error) {
 
-type ProductListResp []struct {
-	Data struct {
-		ProductList struct {
-			Header struct {
-				ProcessTime float64       `json:"processTime"`
-				Messages    []interface{} `json:"messages"`
-				Reason      string        `json:"reason"`
-				ErrorCode   string        `json:"errorCode"`
-				Typename    string        `json:"__typename"`
-			} `json:"header"`
-			Data []struct {
-				ID    string `json:"id"`
-				Name  string `json:"name"`
-				Price struct {
-					Min      int    `json:"min"`
-					Max      int    `json:"max"`
-					Typename string `json:"__typename"`
-				} `json:"price"`
-				Stock            int    `json:"stock"`
-				Status           string `json:"status"`
-				MinOrder         int    `json:"minOrder"`
-				MaxOrder         int    `json:"maxOrder"`
-				Weight           int    `json:"weight"`
-				WeightUnit       string `json:"weightUnit"`
-				Condition        string `json:"condition"`
-				IsMustInsurance  bool   `json:"isMustInsurance"`
-				IsKreasiLokal    bool   `json:"isKreasiLokal"`
-				IsCOD            bool   `json:"isCOD"`
-				IsCampaign       bool   `json:"isCampaign"`
-				IsVariant        bool   `json:"isVariant"`
-				URL              string `json:"url"`
-				Sku              string `json:"sku"`
-				Cashback         int    `json:"cashback"`
-				Featured         int    `json:"featured"`
-				HasStockReserved bool   `json:"hasStockReserved"`
-				HasInbound       bool   `json:"hasInbound"`
-				WarehouseCount   int    `json:"warehouseCount"`
-				IsEmptyStock     bool   `json:"isEmptyStock"`
-				Score            struct {
-					Total    int    `json:"total"`
-					Typename string `json:"__typename"`
-				} `json:"score"`
-				Pictures []struct {
-					URLThumbnail string `json:"urlThumbnail"`
-					Typename     string `json:"__typename"`
-				} `json:"pictures"`
-				Shop struct {
-					ID       string `json:"id"`
-					Typename string `json:"__typename"`
-				} `json:"shop"`
-				Wholesale []interface{} `json:"wholesale"`
-				Stats     struct {
-					CountView   int    `json:"countView"`
-					CountReview int    `json:"countReview"`
-					CountTalk   int    `json:"countTalk"`
-					Typename    string `json:"__typename"`
-				} `json:"stats"`
-				TxStats struct {
-					Sold     int    `json:"sold"`
-					Typename string `json:"__typename"`
-				} `json:"txStats"`
-				Topads             interface{}   `json:"topads"`
-				PriceSuggestion    interface{}   `json:"priceSuggestion"`
-				CampaignType       []interface{} `json:"campaignType"`
-				SuspendLevel       int           `json:"suspendLevel"`
-				HasStockAlert      bool          `json:"hasStockAlert"`
-				StockAlertCount    int           `json:"stockAlertCount"`
-				StockAlertActive   bool          `json:"stockAlertActive"`
-				HaveNotifyMeOOS    bool          `json:"haveNotifyMeOOS"`
-				NotifyMeOOSCount   int           `json:"notifyMeOOSCount"`
-				NotifyMeOOSWording string        `json:"notifyMeOOSWording"`
-				ManageProductData  struct {
-					IsStockGuaranteed bool   `json:"isStockGuaranteed"`
-					ScoreV3           int    `json:"scoreV3"`
-					Typename          string `json:"__typename"`
-				} `json:"manageProductData"`
-				CreateTime time.Time `json:"createTime"`
-				Typename   string    `json:"__typename"`
-			} `json:"data"`
-			Typename string `json:"__typename"`
-		} `json:"ProductList"`
-	} `json:"data"`
-}
-
-func (api *TokopediaApi) ProductList(payload *ProductListVar) (*ProductListResp, error) {
-
-	query := GraphqlPayload{
+	gqlQuery := GraphqlPayload{
 		OperationName: "ProductList",
 		Variables:     payload,
 		Query: `query ProductList($shopID: String!, $filter: [GoodsFilterInput], $sort: GoodsSortInput, $extraInfo: [String], $warehouseID: String) {
@@ -460,9 +268,219 @@ func (api *TokopediaApi) ProductList(payload *ProductListVar) (*ProductListResp,
 		}`,
 	}
 
-	req := api.NewGraphqlReq(&query)
+	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil *ProductListResp
+	var hasil *model.ProductListResp
+	err := api.SendRequest(req, &hasil)
+	return hasil, err
+}
+
+func (api *TokopediaApi) GetProductV3(payload *model.GetProductV3Var) (*model.GetProductV3Resp, error) {
+	gqlQuery := GraphqlPayload{
+		OperationName: "getProductV3",
+		Variables:     payload,
+		Query: `query getProductV3($productID: String!, $options: OptionV3!, $extraInfo: ExtraInfoV3) {
+			  getProductV3(productID: $productID, options: $options, extraInfo: $extraInfo) {
+			    lock {
+			      full
+			      partial {
+			        price
+			        status
+			        stock
+			        wholesale
+			        name
+			        __typename
+			      }
+		      __typename
+		    }
+		    txStats {
+			      itemSold
+			      __typename
+			    }
+		    shop {
+			      id
+			      __typename
+			    }
+		    productID
+		    productName
+		    status
+		    stock
+		    price
+		    minOrder
+		    description
+		    weightUnit
+		    weight
+		    condition
+		    mustInsurance
+		    sku
+		    category {
+			      id
+			      name
+			      title
+			      detail {
+			        id
+			        name
+			        breadcrumbURL
+			        __typename
+			      }
+		      __typename
+		    }
+		    menu {
+			      menuID
+			      name
+			      url
+			      __typename
+			    }
+		    menus
+		    video {
+			      url
+			      __typename
+			    }
+		    customVideo {
+			      id
+			      fileName
+			      url
+			      __typename
+			    }
+		    pictures {
+			      picID
+			      filePath
+			      fileName
+			      width
+			      height
+			      urlOriginal
+			      __typename
+			    }
+		    wholesale {
+			      minQty
+			      price
+			      __typename
+			    }
+		    dimension {
+			      length
+			      width
+			      height
+			      __typename
+			    }
+		    preorder {
+			      duration
+			      timeUnit
+			      isActive
+			      __typename
+			    }
+		    variant {
+			      products {
+			        status
+			        combination
+			        isPrimary
+			        price
+			        sku
+			        stock
+			        weight
+			        weightUnit
+			        pictures {
+			          picID
+			          filePath
+			          fileName
+			          width
+			          height
+			          urlOriginal
+			          __typename
+			        }
+		        __typename
+		      }
+		      selections {
+			        variantID
+			        variantName
+			        unitID
+			        unitName
+			        identifier
+			        options {
+			          unitValueID
+			          value
+			          hexCode
+			          __typename
+			        }
+		        __typename
+		      }
+		      sizecharts {
+			        picID
+			        filePath
+			        fileName
+			        width
+			        height
+			        urlOriginal
+			        __typename
+			      }
+		      __typename
+		    }
+		    cpl {
+			      shipperServices
+			      __typename
+			    }
+		    __typename
+		  }
+		}`,
+	}
+
+	req := api.NewGraphqlReq(&gqlQuery)
+
+	var hasil *model.GetProductV3Resp
+	err := api.SendRequest(req, &hasil)
+	return hasil, err
+}
+
+func (api *TokopediaApi) ProductUpdate(payload *model.ProductUpdateVar) (*model.ProductUpdateResp, error) {
+	gqlQuery := GraphqlPayload{
+		OperationName: "productUpdate",
+		Variables:     payload,
+		Query: `mutation productUpdate($input: ProductInputV3!) {
+			  ProductUpdateV3(input: $input) {
+			    header {
+			      messages
+			      reason
+			      errorCode
+			      __typename
+			    }
+		    isSuccess
+		    productID
+		    __typename
+		  }
+		}`,
+	}
+
+	req := api.NewGraphqlReq(&gqlQuery)
+
+	var hasil *model.ProductUpdateResp
+	err := api.SendRequest(req, &hasil)
+	return hasil, err
+}
+
+func (api *TokopediaApi) BulkProductEditV3(payload *model.BulkProductEditV3Var) (*model.BulkProductEditV3Resp, error) {
+	gqlQuery := GraphqlPayload{
+		OperationName: "BulkProductEditV3",
+		Variables:     payload,
+		Query: `mutation BulkProductEditV3($input: [ProductInputV3]!) {
+			  BulkProductEditV3(input: $input) {
+			    productID
+			    result {
+			      header {
+			        messages
+			        reason
+			        errorCode
+			        __typename
+			      }
+		      isSuccess
+		      __typename
+		    }
+		    __typename
+		  }
+		}`,
+	}
+
+	req := api.NewGraphqlReq(&gqlQuery)
+
+	var hasil *model.BulkProductEditV3Resp
 	err := api.SendRequest(req, &hasil)
 	return hasil, err
 }

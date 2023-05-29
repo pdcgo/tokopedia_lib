@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/pdcgo/tokopedia_lib"
-	"github.com/pdcgo/tokopedia_lib/lib/api"
+	"github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,23 +32,17 @@ func TestProductAddApi(t *testing.T) {
 	defer saveSession()
 
 	t.Run("product add", func(t *testing.T) {
-		input := api.InputNoVariant{
-			InputVariable: api.InputVariable{
+		input := model.InputNoVariant{
+			InputVariable: model.InputVariable{
 				Pictures: struct {
-					Data []struct {
-						UploadIds string "json:\"uploadIds\""
-					} "json:\"data\""
+					Data []model.Pictures "json:\"data\""
 				}{
-					Data: []struct {
-						UploadIds string "json:\"uploadIds\""
-					}{{
+					Data: []model.Pictures{{
 						UploadIds: "efd84e98-1fa6-41a2-a69c-eb969ad61191",
 					}},
 				},
 				ProductName: "Fantech CRYPTO VX7 Mouse Gaming Macro - Hitam",
-				Category: struct {
-					ID string "json:\"id\""
-				}{
+				Category: model.Category{
 					ID: "4011",
 				},
 				Condition:     "NEW",
@@ -62,11 +56,7 @@ func TestProductAddApi(t *testing.T) {
 				}{},
 				Annotations: []string{"5037"},
 				Description: "Fantech VX7 Crypto adalah wired gaming mouse dengan gaming optical sensor, sensitivitas 200-8000 DPI, 60 IPS speed, akselerasi 20g, dan juga polling rate 125Hz. Mouse gaming ini juga dilengkapi dengan switch yang memiliki lifecycle hingga 10 juta klik, teflon mouse skates yang besar, 6 tombol yang bisa diatur, serta 4 mode efek pencahayaan. \n",
-				Dimention: struct {
-					Width  int "json:\"width\""
-					Height int "json:\"height\""
-					Length int "json:\"length\""
-				}{
+				Dimention: model.Dimension{
 					Width:  12,
 					Height: 8,
 					Length: 16,
@@ -77,7 +67,7 @@ func TestProductAddApi(t *testing.T) {
 			Price:  125000,
 			Status: "LIMITED",
 		}
-		variable := api.ProductAddVar{
+		variable := model.ProductAddVar{
 			Input: input,
 		}
 		hasil, err := apiSession.ProductAdd(&variable)
@@ -100,12 +90,9 @@ func TestProductList(t *testing.T) {
 
 	t.Run("test get product list", func(t *testing.T) {
 		shopId := strconv.Itoa(int(apiSession.AuthenticatedData.UserShopInfo.Info.ShopID))
-		query := api.ProductListVar{
+		query := model.ProductListVar{
 			ShopID: shopId,
-			Filter: []struct {
-				ID    string   "json:\"id\""
-				Value []string "json:\"value\""
-			}{
+			Filter: []model.Filter{
 				{
 					ID:    "pageSize",
 					Value: []string{"20"},
@@ -121,10 +108,7 @@ func TestProductList(t *testing.T) {
 					Value: []string{"1"},
 				},
 			},
-			Sort: struct {
-				ID    string "json:\"id\""
-				Value string "json:\"value\""
-			}{
+			Sort: model.Sort{
 				ID:    "DEFAULT",
 				Value: "DESC",
 			},
@@ -135,5 +119,45 @@ func TestProductList(t *testing.T) {
 		hasil, err := apiSession.ProductList(&query)
 		assert.NotEmpty(t, hasil)
 		assert.Nil(t, err)
+	})
+}
+
+func TestGetProductV3(t *testing.T) {
+	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
+	driver.Session.Ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
+	driver.DevMode = true
+	apiSession, saveSession, _ := driver.CreateApi()
+	defer saveSession()
+
+	t.Run("test getProductV3", func(t *testing.T) {
+		variable := model.GetProductV3Var{
+			ProductID: "9781591960",
+			Options: model.Options{
+				Basic:       true,
+				Menu:        true,
+				Shop:        true,
+				Category:    true,
+				Wholesale:   true,
+				Preorder:    true,
+				Picture:     true,
+				Sku:         true,
+				Lock:        true,
+				Variant:     true,
+				Video:       true,
+				Edit:        true,
+				TxStats:     true,
+				Dimension:   true,
+				CustomVideo: true,
+			},
+			ExtraInfo: struct {
+				Event bool "json:\"event\""
+			}{
+				Event: false,
+			},
+		}
+		hasil, err := apiSession.GetProductV3(&variable)
+		assert.NotEmpty(t, hasil)
+		assert.Nil(t, err)
+		t.Log(hasil)
 	})
 }

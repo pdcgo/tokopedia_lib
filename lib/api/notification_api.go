@@ -45,10 +45,10 @@ type NotificationCounterVar struct {
 	ShopID string `json:"shopId"`
 }
 
-func (api *TokopediaApi) NotificationCounter() ([]*NotificationCounterRes, error) {
+func (api *TokopediaApi) NotificationCounter() (*NotificationCounterRes, error) {
 	shopid := strconv.Itoa(int(api.AuthenticatedData.UserShopInfo.Info.ShopID))
 	query := GraphqlPayload{
-		OperationName: "ShopInfoByIDQuery",
+		OperationName: "NotificationCounterQuery",
 		Variables: NotificationCounterVar{
 			ShopID: shopid,
 		},
@@ -93,7 +93,7 @@ func (api *TokopediaApi) NotificationCounter() ([]*NotificationCounterRes, error
 
 	req := api.NewGraphqlReq(&query)
 
-	var hasil []*NotificationCounterRes
+	var hasil *NotificationCounterRes
 	err := api.SendRequest(req, &hasil)
 
 	return hasil, err

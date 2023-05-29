@@ -180,9 +180,3 @@ func LocalId() string {
 	localId := fmt.Sprintf("-%f", math.Round(1e6*rand.Float64()))
 	return localId
 }
-
-// send image upload dulu ke https://chat.tokopedia.com/tc/v1/upload_secure
-// Multipart
-// msg_id			2484220963
-// file	image/jpeg	a.jpeg	39.94 KB (40,894 bytes)
-// source			topchat
