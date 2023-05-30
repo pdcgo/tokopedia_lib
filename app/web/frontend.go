@@ -4,6 +4,7 @@ import (
 	"embed"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -22,13 +23,15 @@ func RegisterTokopediaFrontend(r *gin.Engine, prefix string) {
 		if uri == "" {
 			return nil
 		}
-		uri = prefix + uri
+		uri, _ = url.JoinPath("/", prefix, "./", uri)
 		r.StaticFileFS(uri, file, httpfs)
 
 		return nil
 	})
 
-	r.GET("/"+prefix, func(ctx *gin.Context) {
+	pathhome, _ := url.JoinPath("/", prefix, "./")
+
+	r.GET(pathhome, func(ctx *gin.Context) {
 		data, _ := frontendAssets.ReadFile("assets/frontend/index.html")
 		ctx.Data(http.StatusOK, "text/html", data)
 	})

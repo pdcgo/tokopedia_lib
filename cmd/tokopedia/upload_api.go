@@ -1,0 +1,64 @@
+package main
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/pdcgo/tokopedia_lib/app/upload_app"
+	"github.com/pdcgo/v2_gots_sdk"
+)
+
+type AkunUploadStatus struct {
+	LimitUpload int     `json:"limit_upload"`
+	CountUpload int     `json:"count_upload"`
+	Active      bool    `json:"active_upload"`
+	Lastup      float32 `json:"lastup"`
+}
+
+type UploadApi struct {
+	upload *upload_app.UploadApp
+}
+
+func (api *UploadApi) Start(ctx *gin.Context) {
+	api.upload.Start()
+	ctx.JSON(http.StatusOK, Response{
+		Msg: "success",
+	})
+}
+func (api *UploadApi) Stop(ctx *gin.Context) {
+	api.upload.Cancel()
+	ctx.JSON(http.StatusOK, Response{
+		Msg: "success",
+	})
+}
+func (api *UploadApi) Status(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, api.upload.Status)
+}
+
+func RegisterCommand(g *v2_gots_sdk.SdkGroup, upload *upload_app.UploadApp) {
+
+	api := UploadApi{
+		upload: upload,
+	}
+
+	command := g.Group("upload")
+
+	command.Register(&v2_gots_sdk.Api{
+		Method:       http.MethodGet,
+		RelativePath: "start",
+		Response:     Response{},
+	}, api.Start)
+
+	command.Register(&v2_gots_sdk.Api{
+		Method:       http.MethodGet,
+		RelativePath: "stop",
+		Response:     Response{},
+	}, api.Stop)
+
+	command.Register(&v2_gots_sdk.Api{
+		Method:       http.MethodGet,
+		RelativePath: "status",
+		Response:     upload_app.UploadStatus{},
+	}, api.Status)
+
+}

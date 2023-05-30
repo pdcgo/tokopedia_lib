@@ -1,32 +1,29 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"github.com/pdcgo/tokopedia_lib/app/upload_app"
 	"github.com/pdcgo/tokopedia_lib/app/web"
 	"github.com/pdcgo/v2_gots_sdk"
 )
 
-func main() {
-	r := gin.Default()
+func SetUpTokopediaRouter(r *gin.Engine, prefix string) {
+
+	upload_app := upload_app.NewUploadApp()
 
 	sdk := v2_gots_sdk.NewApiSdk(r)
 	save := sdk.GenerateSdkFunc("frontend/src/sdk.ts")
 
-	sdk.Register(&v2_gots_sdk.Api{
-		Method:       http.MethodGet,
-		RelativePath: "/ping",
-	},
-		func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"message": "pong",
-			})
-		})
+	g := sdk.Group("/tokopedia")
+	RegisterAkunApi(g)
+	RegisterCommand(g, upload_app)
 
-	web.RegisterTokopediaFrontend(r, "tokopedia/")
-
+	web.RegisterTokopediaFrontend(r, prefix)
 	save()
+}
 
+func main() {
+	r := gin.Default()
+	SetUpTokopediaRouter(r, "tokopedia")
 	r.Run("localhost:8080")
 }

@@ -22,7 +22,7 @@ func buildFrontendAsset() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	source, _ := filepath.Abs("frontend/build")
+	source, _ := filepath.Abs("frontend/dist")
 	dest, _ := filepath.Abs("app/web/assets/frontend")
 	err = os.RemoveAll(dest)
 	if err != nil {

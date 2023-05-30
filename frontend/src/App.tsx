@@ -60,7 +60,7 @@ function App () {
           size='large'
           shape='circle'
           style={{ fontSize: 18 }}
-          icon={<ArrowLeftOutlined rev={0} />}
+          icon={<ArrowLeftOutlined rev="0" />}
         ></Button>
       </BackButtonContainer>
       <AppContainer2>
