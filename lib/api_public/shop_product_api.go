@@ -1,11 +1,11 @@
-package api
+package api_public
 
 import (
 	"github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/tokopedia_lib/lib/query"
 )
 
-func (api *TokopediaApi) ShopProducts(payload *model.ShopProductVar) (*model.ShopProductResp, error) {
+func (api *TokopediaApiPublic) ShopProducts(payload *model.ShopProductVar) (*model.ShopProductResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "ShopProducts",
 		Variables:     payload,

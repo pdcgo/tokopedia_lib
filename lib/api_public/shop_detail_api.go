@@ -1,11 +1,11 @@
-package api
+package api_public
 
 import (
 	"github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/tokopedia_lib/lib/query"
 )
 
-func (api *TokopediaApi) ShopCoreInfo(payload *model.ShopCoreInfoVar) (*model.ShopCoreInfoResp, error) {
+func (api *TokopediaApiPublic) ShopCoreInfo(payload *model.ShopCoreInfoVar) (*model.ShopCoreInfoResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "ShopInfoCore",
 		Variables:     payload,
@@ -19,7 +19,7 @@ func (api *TokopediaApi) ShopCoreInfo(payload *model.ShopCoreInfoVar) (*model.Sh
 	return &hasil, err
 }
 
-func (api *TokopediaApi) ShopStatisticQuery(payload *model.ShopStatisticQueryVar) (*model.ShopStatisticQueryResp, error) {
+func (api *TokopediaApiPublic) ShopStatisticQuery(payload *model.ShopStatisticQueryVar) (*model.ShopStatisticQueryResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "ShopStatisticQuery",
 		Variables:     payload,
@@ -32,7 +32,7 @@ func (api *TokopediaApi) ShopStatisticQuery(payload *model.ShopStatisticQueryVar
 	return &hasil, err
 }
 
-func (api *TokopediaApi) GetShopOperationalHourStatus(payload *model.ShopIdVar) (*model.GetShopOperationalHourStatusResp, error) {
+func (api *TokopediaApiPublic) GetShopOperationalHourStatus(payload *model.ShopIdVar) (*model.GetShopOperationalHourStatusResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "GetShopOperationalHourStatus",
 		Variables:     payload,
@@ -45,7 +45,7 @@ func (api *TokopediaApi) GetShopOperationalHourStatus(payload *model.ShopIdVar) 
 	return &hasil, err
 }
 
-func (api *TokopediaApi) VoucherListQuery(payload *model.ShopIdVarInt) (*model.ShopVoucherQueryResp, error) {
+func (api *TokopediaApiPublic) VoucherListQuery(payload *model.ShopIdVarInt) (*model.ShopVoucherQueryResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "VoucherListQuery",
 		Variables:     payload,
@@ -58,7 +58,7 @@ func (api *TokopediaApi) VoucherListQuery(payload *model.ShopIdVarInt) (*model.S
 	return &hasil, err
 }
 
-func (api *TokopediaApi) ShopNote(payload *model.ShopNoteVar) (*model.ShopNoteResp, error) {
+func (api *TokopediaApiPublic) ShopNote(payload *model.ShopNoteVar) (*model.ShopNoteResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "ShopNote",
 		Variables:     payload,
@@ -71,7 +71,7 @@ func (api *TokopediaApi) ShopNote(payload *model.ShopNoteVar) (*model.ShopNoteRe
 	return &hasil, err
 }
 
-func (api *TokopediaApi) ShopPageLayoutV2(payload *model.ShopPageGetLayoutV2Var) (*model.ShopPageGetLayoutV2Resp, error) {
+func (api *TokopediaApiPublic) ShopPageLayoutV2(payload *model.ShopPageGetLayoutV2Var) (*model.ShopPageGetLayoutV2Resp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "ShopPageGetLayoutV2",
 		Variables:     payload,

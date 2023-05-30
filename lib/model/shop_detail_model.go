@@ -1,64 +1,5 @@
 package model
 
-type ShopCore struct {
-	Description string `json:"description"`
-	Domain      string `json:"domain"`
-	ShopID      string `json:"shopID"`
-	Name        string `json:"name"`
-	TagLine     string `json:"tagLine"`
-	DefaultSort int    `json:"defaultSort"`
-	Typename    string `json:"__typename"`
-}
-
-type CreateInfo struct {
-	OpenSince string `json:"openSince"`
-	Typename  string `json:"__typename"`
-}
-
-type FavoriteData struct {
-	TotalFavorite    int    `json:"totalFavorite"`
-	AlreadyFavorited int    `json:"alreadyFavorited"`
-	Typename         string `json:"__typename"`
-}
-
-type ShopAssets struct {
-	Avatar   string `json:"avatar"`
-	Cover    string `json:"cover"`
-	Typename string `json:"__typename"`
-}
-
-type ShippingLoc struct {
-	DistrictName string `json:"districtName"`
-	CityName     string `json:"cityName"`
-	Typename     string `json:"__typename"`
-}
-
-type ShopStats struct {
-	ProductSold    string `json:"productSold"`
-	TotalTxSuccess string `json:"totalTxSuccess"`
-	TotalShowcase  string `json:"totalShowcase"`
-	Typename       string `json:"__typename"`
-}
-
-type StatusInfo struct {
-	ShopStatus    int    `json:"shopStatus"`
-	StatusMessage string `json:"statusMessage"`
-	StatusTitle   string `json:"statusTitle"`
-	TickerType    string `json:"tickerType"`
-	Typename      string `json:"__typename"`
-}
-
-type ClosedInfo struct {
-	ClosedNote string `json:"closedNote"`
-	Until      string `json:"until"`
-	Reason     string `json:"reason"`
-	Detail     struct {
-		Status   int    `json:"status"`
-		Typename string `json:"__typename"`
-	} `json:"detail"`
-	Typename string `json:"__typename"`
-}
-
 type ShipmentInfoProduct struct {
 	IsAvailable int    `json:"isAvailable"`
 	ProductName string `json:"productName"`
@@ -66,77 +7,9 @@ type ShipmentInfoProduct struct {
 	Typename    string `json:"__typename"`
 }
 
-type ShipmentInfo struct {
-	IsAvailable int                   `json:"isAvailable"`
-	Image       string                `json:"image"`
-	Name        string                `json:"name"`
-	Product     []ShipmentInfoProduct `json:"product"`
-	Typename    string                `json:"__typename"`
-}
-
-type GoldOS struct {
-	IsGold      int    `json:"isGold"`
-	IsGoldBadge int    `json:"isGoldBadge"`
-	IsOfficial  int    `json:"isOfficial"`
-	Badge       string `json:"badge"`
-	ShopTier    int    `json:"shopTier"`
-	Typename    string `json:"__typename"`
-}
-
-type CustomSEO struct {
-	Title         string `json:"title"`
-	Description   string `json:"description"`
-	BottomContent string `json:"bottomContent"`
-	Typename      string `json:"__typename"`
-}
-
-type PartnerInfo struct {
-	FsType   int    `json:"fsType"`
-	Typename string `json:"__typename"`
-}
-
-type EpharmacyInfo struct {
-	SiaNumber  string `json:"siaNumber"`
-	SipaNumber string `json:"sipaNumber"`
-	Apj        string `json:"apj"`
-	Typename   string `json:"__typename"`
-}
-
-type ShopInfoByIDResult struct {
-	ShopCore         ShopCore       `json:"shopCore"`
-	CreateInfo       CreateInfo     `json:"createInfo"`
-	FavoriteData     FavoriteData   `json:"favoriteData"`
-	ActiveProduct    int            `json:"activeProduct"`
-	ShopAssets       ShopAssets     `json:"shopAssets"`
-	Location         string         `json:"location"`
-	IsAllowManage    int            `json:"isAllowManage"`
-	BranchLinkDomain string         `json:"branchLinkDomain"`
-	IsOpen           int            `json:"isOpen"`
-	ShipmentInfo     []ShipmentInfo `json:"shipmentInfo"`
-	ShippingLoc      ShippingLoc    `json:"shippingLoc"`
-	ShopStats        ShopStats      `json:"shopStats"`
-	StatusInfo       StatusInfo     `json:"statusInfo"`
-	ClosedInfo       ClosedInfo     `json:"closedInfo"`
-	BbInfo           []interface{}  `json:"bbInfo"`
-	GoldOS           GoldOS         `json:"goldOS"`
-	ShopSnippetURL   string         `json:"shopSnippetURL"`
-	CustomSEO        CustomSEO      `json:"customSEO"`
-	IsQA             bool           `json:"isQA"`
-	IsGoApotik       bool           `json:"isGoApotik"`
-	PartnerInfo      []PartnerInfo  `json:"partnerInfo"`
-	EpharmacyInfo    EpharmacyInfo  `json:"epharmacyInfo"`
-	Typename         string         `json:"__typename"`
-}
-
 type Error struct {
 	Message  string `json:"message"`
 	Typename string `json:"__typename"`
-}
-
-type ShopInfoByID struct {
-	Result   []ShopInfoByIDResult `json:"result"`
-	Error    Error                `json:"error"`
-	Typename string               `json:"__typename"`
 }
 
 type RecentOneMonth struct {
@@ -151,20 +24,20 @@ type ShopSatisfaction struct {
 	Typename       string         `json:"__typename"`
 }
 
-type ShopRatingDetail struct {
+type RatingDetail struct {
 	FormattedTotalReviews string  `json:"formattedTotalReviews"`
 	Rate                  int     `json:"rate"`
-	Percentage            string  `json:"percentage"`
+	Percentage            string  `json:"percentage,omitempty"`
 	PercentageFloat       float64 `json:"percentageFloat"`
 	TotalReviews          int     `json:"totalReviews"`
 	Typename              string  `json:"__typename"`
 }
 
 type ShopRating struct {
-	Detail      []ShopRatingDetail `json:"detail"`
-	TotalRating int                `json:"totalRating"`
-	RatingScore string             `json:"ratingScore"`
-	Typename    string             `json:"__typename"`
+	Detail      []RatingDetail `json:"detail"`
+	TotalRating int            `json:"totalRating"`
+	RatingScore string         `json:"ratingScore"`
+	Typename    string         `json:"__typename"`
 }
 
 type ShopReputation struct {
@@ -208,7 +81,6 @@ type Status struct {
 	Status     int    `json:"status"`
 	Typename   string `json:"__typename"`
 }
-
 type VoucherType struct {
 	Identifier  string `json:"identifier"`
 	VoucherType int    `json:"voucherType"`
@@ -362,17 +234,6 @@ type ShopPageGetLayout struct {
 }
 
 ////////////////////////////////////////////////////
-
-type ShopCoreInfoVar struct {
-	ID     int    `json:"id"`
-	Domain string `json:"domain"`
-}
-
-type ShopCoreInfoResp struct {
-	Data struct {
-		ShopInfoByID `json:"shopInfoByID"`
-	} `json:"data"`
-}
 
 type ShopStatisticQueryVar struct {
 	ShopID    int    `json:"shopID"`

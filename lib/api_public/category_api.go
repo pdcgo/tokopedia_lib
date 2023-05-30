@@ -1,12 +1,12 @@
-package api
+package api_public
 
 import (
 	"github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/tokopedia_lib/lib/query"
 )
 
-func (api *TokopediaApi) CategoryAllListLite() (*model.CategoryAllListLiteResp, error) {
-	var variable interface{}
+func (api *TokopediaApiPublic) CategoryAllListLite() (*model.CategoryAllListLiteResp, error) {
+	var variable struct{}
 	gqlQuery := GraphqlPayload{
 		OperationName: "categoryAllListLite",
 		Variables:     variable,
@@ -15,13 +15,13 @@ func (api *TokopediaApi) CategoryAllListLite() (*model.CategoryAllListLiteResp, 
 
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil []*model.CategoryAllListLiteResp
+	var hasil model.CategoryAllListLiteResp
 	err := api.SendRequest(req, &hasil)
-	return hasil[0], err
+	return &hasil, err
 }
 
 // category recom
-func (api *TokopediaApi) JarvisRecommendation(payload *model.JarvisRecommendationVar) (*model.JarvisRecommendationResp, error) {
+func (api *TokopediaApiPublic) JarvisRecommendation(payload *model.JarvisRecommendationVar) (*model.JarvisRecommendationResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "jarvisRecommendation",
 		Variables:     payload,
@@ -29,7 +29,7 @@ func (api *TokopediaApi) JarvisRecommendation(payload *model.JarvisRecommendatio
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil []*model.JarvisRecommendationResp
+	var hasil model.JarvisRecommendationResp
 	err := api.SendRequest(req, &hasil)
-	return hasil[0], err
+	return &hasil, err
 }

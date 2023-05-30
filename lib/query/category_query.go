@@ -2,7 +2,7 @@ package query
 
 const (
 	CategoryAllListLite = `query categoryAllListLite {
-		categoryAllListLite(filter: \"seller\") {
+		categoryAllListLite(filter: "seller") {
 		  categories {
 			id
 			name

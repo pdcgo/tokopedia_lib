@@ -1,18 +1,17 @@
-package api_test
+package api_public_test
 
 import (
 	"testing"
 
 	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestShopProducts(t *testing.T) {
-	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.DevMode = true
-	apiSession, saveSession, _ := driver.CreateApi()
-	defer saveSession()
+	pSession := tokopedia_lib.NewSessionPublic()
+	api := api_public.NewTokopediaApiPublic(pSession)
 
 	t.Run("test ShopProduct", func(t *testing.T) {
 		variable := model.ShopProductVar{
@@ -26,7 +25,7 @@ func TestShopProducts(t *testing.T) {
 			UserLat:        "",
 			UserLong:       "",
 		}
-		hasil, err := apiSession.ShopProducts(&variable)
+		hasil, err := api.ShopProducts(&variable)
 		assert.Nil(t, err)
 		assert.NotEmpty(t, hasil)
 	})

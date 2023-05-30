@@ -46,15 +46,20 @@ type CategoryDetail []struct {
 	ID            string `json:"id"`
 	Name          string `json:"name"`
 	BreadcrumbURL string `json:"breadcrumbURL"`
+	IsAdult       bool   `json:"isAdult,omitempty"`
 	Typename      string `json:"__typename"`
 }
 
 type Category struct {
-	ID       string          `json:"id"`
-	Name     string          `json:"name,omitempty"`
-	Title    string          `json:"title,omitempty"`
-	Detail   *CategoryDetail `json:"detail,omitempty"`
-	Typename string          `json:"__typename"`
+	ID            string          `json:"id"`
+	Name          string          `json:"name,omitempty"`
+	Title         string          `json:"title,omitempty"`
+	Detail        *CategoryDetail `json:"detail,omitempty"`
+	BreadcrumbURL string          `json:"breadcrumbURL,omitempty"`
+	IsAdult       bool            `json:"isAdult,omitempty"`
+	IsKyc         bool            `json:"isKyc,omitempty"`
+	MinAge        int             `json:"minAge,omitempty"`
+	Typename      string          `json:"__typename"`
 }
 
 type Dimension struct {
@@ -98,19 +103,15 @@ type InputVariable struct {
 	PreOrder    PreOrder  `json:"preorder,omitempty"`
 }
 
-type NoVariantStockPrice struct {
+type InputNoVariant struct {
+	InputVariable
 	Sku    string `json:"sku"`
 	Stock  int64  `json:"stock"`
 	Price  int64  `json:"price"`
 	Status string `json:"status"`
 }
 
-type InputNoVariant struct {
-	*InputVariable
-	*NoVariantStockPrice
-}
-
-type ProductVariant struct {
+type ProdctVariant struct {
 	Combination []int      `json:"combination"`
 	IsPrimary   bool       `json:"isPrimary"`
 	Price       int        `json:"price"`
@@ -136,15 +137,15 @@ type ProductSelection struct {
 }
 
 type Variant struct {
-	Products   []ProductVariant   `json:"products"`
+	Products   []ProdctVariant    `json:"products"`
 	Selections []ProductSelection `json:"selections"`
 	Sizecharts []interface{}      `json:"sizecharts"`
 	Typename   string             `json:"__typename,omitempty"`
 }
 
 type InputVariant struct {
-	*InputVariable
-	Variant *Variant `json:"variant"`
+	InputVariable
+	Variant Variant `json:"variant"`
 }
 
 type Header struct {
@@ -262,7 +263,8 @@ type Cpl struct {
 }
 
 type Menu struct {
-	MenuID   string `json:"menuID"`
+	ID       string `json:"id,omitempty"`
+	MenuID   string `json:"menuID,omitempty"`
 	Name     string `json:"name"`
 	URL      string `json:"url"`
 	Typename string `json:"__typename"`
