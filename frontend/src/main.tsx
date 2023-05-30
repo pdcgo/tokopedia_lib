@@ -8,7 +8,7 @@ const theme: ThemeConfig = {
   token: {
     fontFamily:
       "Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji' ",
-    fontSize: 13.5,
+    fontSize: 13.4,
     colorPrimary: '#106C36',
     colorInfo: '#4fc078',
     colorError: '#e7b072',

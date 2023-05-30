@@ -4,7 +4,7 @@ import {
   FilePptOutlined,
   UploadOutlined
 } from '@ant-design/icons'
-import { Button, Card, Checkbox, Divider, Pagination, message } from 'antd'
+import { Button, Card, Checkbox, Divider, Input, Pagination, message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import type { Profile } from '../components/ProfileCard'
 import ProfileCard from '../components/ProfileCard'
@@ -86,7 +86,8 @@ export default function Upload (): React.ReactElement {
           }}
         >
           <Checkbox>Select All</Checkbox>
-          <Flex>
+          <Flex style={{flex: 1}}>
+            <Input allowClear placeholder='Search Profile...' style={{flex: 1}} />
             <Button icon={<FilePptOutlined rev='paste' />}>Paste All</Button>
             <Button icon={<CheckOutlined rev='active' />}>Set Active</Button>
             <Button danger icon={<DeleteOutlined rev='remove' />}>
