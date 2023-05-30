@@ -5,7 +5,7 @@ import (
 
 	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
-	"github.com/pdcgo/tokopedia_lib/lib/model"
+	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +15,7 @@ func TestShopCoreInfo(t *testing.T) {
 	api := api_public.NewTokopediaApiPublic(pSession)
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
-		variable := model.ShopCoreInfoVar{
+		variable := model_public.ShopCoreInfoVar{
 			ID:     0,
 			Domain: "lenovo-tangerang",
 		}
@@ -31,7 +31,7 @@ func TestShopStatisticQuery(t *testing.T) {
 	api := api_public.NewTokopediaApiPublic(pSession)
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
-		variable := model.ShopStatisticQueryVar{
+		variable := model_public.ShopStatisticQueryVar{
 			ShopID:    11534215,
 			ShopIDStr: "11534215",
 		}
@@ -47,7 +47,7 @@ func TestGetShopOperationalHourStatus(t *testing.T) {
 	api := api_public.NewTokopediaApiPublic(pSession)
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
-		variable := model.ShopIdVar{
+		variable := model_public.ShopIdVar{
 			ShopID: "11534215",
 		}
 		hasil, err := api.GetShopOperationalHourStatus(&variable)
@@ -62,7 +62,7 @@ func TestVoucherListQuery(t *testing.T) {
 	api := api_public.NewTokopediaApiPublic(pSession)
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
-		variable := model.ShopIdVarInt{
+		variable := model_public.ShopIdVarInt{
 			ShopID: 11534215,
 		}
 		hasil, err := api.VoucherListQuery(&variable)
@@ -77,7 +77,7 @@ func TestShopNote(t *testing.T) {
 	api := api_public.NewTokopediaApiPublic(pSession)
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
-		variable := model.ShopNoteVar{
+		variable := model_public.ShopNoteVar{
 			ID:  "0",
 			Sid: "11534215",
 		}

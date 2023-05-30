@@ -1,11 +1,11 @@
 package api_public
 
 import (
-	"github.com/pdcgo/tokopedia_lib/lib/model"
+	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/pdcgo/tokopedia_lib/lib/query"
 )
 
-func (api *TokopediaApiPublic) PdpGetlayoutQuery(payload *model.PdpGetlayoutQueryVar) (*model.PdpGetlayoutQueryResp, error) {
+func (api *TokopediaApiPublic) PdpGetlayoutQuery(payload *model_public.PdpGetlayoutQueryVar) (*model_public.PdpGetlayoutQueryResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "PDPGetLayoutQuery",
 		Variables:     payload,
@@ -22,12 +22,12 @@ func (api *TokopediaApiPublic) PdpGetlayoutQuery(payload *model.PdpGetlayoutQuer
 		req.Header.Set(key, val)
 	}
 
-	var hasil model.PdpGetlayoutQueryResp
+	var hasil model_public.PdpGetlayoutQueryResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
 
-func (api *TokopediaApiPublic) PdpGetDataP2(payload *model.PdpGetDataP2Var) (*model.PdpGetDataP2Resp, error) {
+func (api *TokopediaApiPublic) PdpGetDataP2(payload *model_public.PdpGetDataP2Var) (*model_public.PdpGetDataP2Resp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "PDPGetDataP2",
 		Variables:     payload,
@@ -35,12 +35,12 @@ func (api *TokopediaApiPublic) PdpGetDataP2(payload *model.PdpGetDataP2Var) (*mo
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.PdpGetDataP2Resp
+	var hasil model_public.PdpGetDataP2Resp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
 
-func (api *TokopediaApiPublic) PdpShopNote(payload *model.ShopIdVar) (*model.PdpShopNoteResp, error) {
+func (api *TokopediaApiPublic) PdpShopNote(payload *model_public.ShopIdVar) (*model_public.PdpShopNoteResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "PDPShopNote",
 		Variables:     payload,
@@ -49,12 +49,12 @@ func (api *TokopediaApiPublic) PdpShopNote(payload *model.ShopIdVar) (*model.Pdp
 
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.PdpShopNoteResp
+	var hasil model_public.PdpShopNoteResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
 
-func (api *TokopediaApiPublic) ProductRatingandTopics(payload *model.ProductIdVar) (*model.ProductRatingandTopicsResp, error) {
+func (api *TokopediaApiPublic) ProductRatingandTopics(payload *model_public.ProductIdVar) (*model_public.ProductRatingandTopicsResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "productRatingAndTopics",
 		Variables:     payload,
@@ -63,12 +63,12 @@ func (api *TokopediaApiPublic) ProductRatingandTopics(payload *model.ProductIdVa
 
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.ProductRatingandTopicsResp
+	var hasil model_public.ProductRatingandTopicsResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
 
-func (api *TokopediaApiPublic) PdpGetReiewImageQuery(payload *model.PdpGetReiewImageQueryVar) (*model.PdpGetReiewImageQueryResp, error) {
+func (api *TokopediaApiPublic) PdpGetReiewImageQuery(payload *model_public.PdpGetReiewImageQueryVar) (*model_public.PdpGetReiewImageQueryResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "PDPGetReviewImageQuery",
 		Variables:     payload,
@@ -76,13 +76,13 @@ func (api *TokopediaApiPublic) PdpGetReiewImageQuery(payload *model.PdpGetReiewI
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.PdpGetReiewImageQueryResp
+	var hasil model_public.PdpGetReiewImageQueryResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 
 }
 
-func (api *TokopediaApiPublic) ProductReviewList(payload *model.ProductReviewListVar) (*model.ProductReviewListResp, error) {
+func (api *TokopediaApiPublic) ProductReviewList(payload *model_public.ProductReviewListVar) (*model_public.ProductReviewListResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "productReviewList",
 		Variables:     payload,
@@ -90,13 +90,13 @@ func (api *TokopediaApiPublic) ProductReviewList(payload *model.ProductReviewLis
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.ProductReviewListResp
+	var hasil model_public.ProductReviewListResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 
 }
 
-func (api *TokopediaApiPublic) RecomWidget(payload *model.RecomWidgetVar) (*model.RecomWidgetResp, error) {
+func (api *TokopediaApiPublic) RecomWidget(payload *model_public.RecomWidgetVar) (*model_public.RecomWidgetResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "RecomWidget",
 		Variables:     payload,
@@ -104,7 +104,7 @@ func (api *TokopediaApiPublic) RecomWidget(payload *model.RecomWidgetVar) (*mode
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.RecomWidgetResp
+	var hasil model_public.RecomWidgetResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }

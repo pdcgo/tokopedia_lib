@@ -1,11 +1,11 @@
 package api_public
 
 import (
-	"github.com/pdcgo/tokopedia_lib/lib/model"
+	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/pdcgo/tokopedia_lib/lib/query"
 )
 
-func (api *TokopediaApiPublic) SearchProductQueryV4(payload *model.ParamsVar) (*model.SearchProductQueryV4Resp, error) {
+func (api *TokopediaApiPublic) SearchProductQueryV4(payload *model_public.ParamsVar) (*model_public.SearchProductQueryV4Resp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "SearchProductQueryV4",
 		Variables:     payload,
@@ -13,12 +13,12 @@ func (api *TokopediaApiPublic) SearchProductQueryV4(payload *model.ParamsVar) (*
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.SearchProductQueryV4Resp
+	var hasil model_public.SearchProductQueryV4Resp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
 
-func (api *TokopediaApiPublic) TopadsProductQuery(payload *model.AdParamsVar) (*model.TopadsProductQueryResp, error) {
+func (api *TokopediaApiPublic) TopadsProductQuery(payload *model_public.AdParamsVar) (*model_public.TopadsProductQueryResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "TopadsProductQuery",
 		Variables:     payload,
@@ -26,7 +26,7 @@ func (api *TokopediaApiPublic) TopadsProductQuery(payload *model.AdParamsVar) (*
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.TopadsProductQueryResp
+	var hasil model_public.TopadsProductQueryResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }

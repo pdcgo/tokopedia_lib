@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type ShipmentInfoProduct struct {
 	IsAvailable int    `json:"isAvailable"`

@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type Media struct {
 	Type            string `json:"type"`
@@ -42,6 +42,34 @@ type BasicInfoStats struct {
 	CountTalk   string  `json:"countTalk"`
 	Rating      float64 `json:"rating"`
 	Typename    string  `json:"__typename"`
+}
+
+type CategoryDetail []struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	BreadcrumbURL string `json:"breadcrumbURL"`
+	IsAdult       bool   `json:"isAdult,omitempty"`
+	Typename      string `json:"__typename"`
+}
+
+type Category struct {
+	ID            string          `json:"id"`
+	Name          string          `json:"name,omitempty"`
+	Title         string          `json:"title,omitempty"`
+	Detail        *CategoryDetail `json:"detail,omitempty"`
+	BreadcrumbURL string          `json:"breadcrumbURL,omitempty"`
+	IsAdult       bool            `json:"isAdult,omitempty"`
+	IsKyc         bool            `json:"isKyc,omitempty"`
+	MinAge        int             `json:"minAge,omitempty"`
+	Typename      string          `json:"__typename"`
+}
+
+type Menu struct {
+	ID       string `json:"id,omitempty"`
+	MenuID   string `json:"menuID,omitempty"`
+	Name     string `json:"name"`
+	URL      string `json:"url"`
+	Typename string `json:"__typename"`
 }
 
 type BasicInfo struct {

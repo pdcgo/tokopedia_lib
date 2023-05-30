@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type Result struct {
 	ID         string `json:"id"`

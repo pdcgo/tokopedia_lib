@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type ShopCore struct {
 	Description string `json:"description"`

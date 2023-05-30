@@ -1,11 +1,11 @@
 package api_public
 
 import (
-	"github.com/pdcgo/tokopedia_lib/lib/model"
+	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/pdcgo/tokopedia_lib/lib/query"
 )
 
-func (api *TokopediaApiPublic) ShopCoreInfo(payload *model.ShopCoreInfoVar) (*model.ShopCoreInfoResp, error) {
+func (api *TokopediaApiPublic) ShopCoreInfo(payload *model_public.ShopCoreInfoVar) (*model_public.ShopCoreInfoResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "ShopInfoCore",
 		Variables:     payload,
@@ -14,12 +14,12 @@ func (api *TokopediaApiPublic) ShopCoreInfo(payload *model.ShopCoreInfoVar) (*mo
 
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.ShopCoreInfoResp
+	var hasil model_public.ShopCoreInfoResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
 
-func (api *TokopediaApiPublic) ShopStatisticQuery(payload *model.ShopStatisticQueryVar) (*model.ShopStatisticQueryResp, error) {
+func (api *TokopediaApiPublic) ShopStatisticQuery(payload *model_public.ShopStatisticQueryVar) (*model_public.ShopStatisticQueryResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "ShopStatisticQuery",
 		Variables:     payload,
@@ -27,12 +27,12 @@ func (api *TokopediaApiPublic) ShopStatisticQuery(payload *model.ShopStatisticQu
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.ShopStatisticQueryResp
+	var hasil model_public.ShopStatisticQueryResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
 
-func (api *TokopediaApiPublic) GetShopOperationalHourStatus(payload *model.ShopIdVar) (*model.GetShopOperationalHourStatusResp, error) {
+func (api *TokopediaApiPublic) GetShopOperationalHourStatus(payload *model_public.ShopIdVar) (*model_public.GetShopOperationalHourStatusResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "GetShopOperationalHourStatus",
 		Variables:     payload,
@@ -40,12 +40,12 @@ func (api *TokopediaApiPublic) GetShopOperationalHourStatus(payload *model.ShopI
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.GetShopOperationalHourStatusResp
+	var hasil model_public.GetShopOperationalHourStatusResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
 
-func (api *TokopediaApiPublic) VoucherListQuery(payload *model.ShopIdVarInt) (*model.ShopVoucherQueryResp, error) {
+func (api *TokopediaApiPublic) VoucherListQuery(payload *model_public.ShopIdVarInt) (*model_public.ShopVoucherQueryResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "VoucherListQuery",
 		Variables:     payload,
@@ -53,12 +53,12 @@ func (api *TokopediaApiPublic) VoucherListQuery(payload *model.ShopIdVarInt) (*m
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.ShopVoucherQueryResp
+	var hasil model_public.ShopVoucherQueryResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
 
-func (api *TokopediaApiPublic) ShopNote(payload *model.ShopNoteVar) (*model.ShopNoteResp, error) {
+func (api *TokopediaApiPublic) ShopNote(payload *model_public.ShopNoteVar) (*model_public.ShopNoteResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "ShopNote",
 		Variables:     payload,
@@ -66,12 +66,12 @@ func (api *TokopediaApiPublic) ShopNote(payload *model.ShopNoteVar) (*model.Shop
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.ShopNoteResp
+	var hasil model_public.ShopNoteResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
 
-func (api *TokopediaApiPublic) ShopPageLayoutV2(payload *model.ShopPageGetLayoutV2Var) (*model.ShopPageGetLayoutV2Resp, error) {
+func (api *TokopediaApiPublic) ShopPageLayoutV2(payload *model_public.ShopPageGetLayoutV2Var) (*model_public.ShopPageGetLayoutV2Resp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "ShopPageGetLayoutV2",
 		Variables:     payload,
@@ -79,7 +79,7 @@ func (api *TokopediaApiPublic) ShopPageLayoutV2(payload *model.ShopPageGetLayout
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.ShopPageGetLayoutV2Resp
+	var hasil model_public.ShopPageGetLayoutV2Resp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }

@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type FilterSearch struct {
 	Searchable  int    `json:"searchable"`

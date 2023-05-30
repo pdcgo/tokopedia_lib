@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type DetailImage struct {
 	AttachmentID string `json:"attachmentID"`

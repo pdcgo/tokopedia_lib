@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type Tokonow struct {
 	ShopID      string `json:"shopID"`

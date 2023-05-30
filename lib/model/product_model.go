@@ -103,15 +103,19 @@ type InputVariable struct {
 	PreOrder    PreOrder  `json:"preorder,omitempty"`
 }
 
-type InputNoVariant struct {
-	InputVariable
+type NoVariantStockPrice struct {
 	Sku    string `json:"sku"`
 	Stock  int64  `json:"stock"`
 	Price  int64  `json:"price"`
 	Status string `json:"status"`
 }
 
-type ProdctVariant struct {
+type InputNoVariant struct {
+	*InputVariable
+	*NoVariantStockPrice
+}
+
+type ProductVariant struct {
 	Combination []int      `json:"combination"`
 	IsPrimary   bool       `json:"isPrimary"`
 	Price       int        `json:"price"`
@@ -137,15 +141,15 @@ type ProductSelection struct {
 }
 
 type Variant struct {
-	Products   []ProdctVariant    `json:"products"`
+	Products   []ProductVariant   `json:"products"`
 	Selections []ProductSelection `json:"selections"`
 	Sizecharts []interface{}      `json:"sizecharts"`
 	Typename   string             `json:"__typename,omitempty"`
 }
 
 type InputVariant struct {
-	InputVariable
-	Variant Variant `json:"variant"`
+	*InputVariable
+	Variant *Variant `json:"variant"`
 }
 
 type Header struct {

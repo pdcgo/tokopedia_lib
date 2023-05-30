@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type Categories struct {
 	ID       int          `json:"id"`

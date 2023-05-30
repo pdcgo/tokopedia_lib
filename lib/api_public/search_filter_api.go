@@ -1,11 +1,11 @@
 package api_public
 
 import (
-	"github.com/pdcgo/tokopedia_lib/lib/model"
+	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/pdcgo/tokopedia_lib/lib/query"
 )
 
-func (api *TokopediaApiPublic) FilterSortProductQuery(payload *model.ParamsVar) (*model.FilterSortProductResp, error) {
+func (api *TokopediaApiPublic) FilterSortProductQuery(payload *model_public.ParamsVar) (*model_public.FilterSortProductResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "FilterSortProductQuery",
 		Variables:     payload,
@@ -13,7 +13,7 @@ func (api *TokopediaApiPublic) FilterSortProductQuery(payload *model.ParamsVar) 
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil model.FilterSortProductResp
+	var hasil model_public.FilterSortProductResp
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }

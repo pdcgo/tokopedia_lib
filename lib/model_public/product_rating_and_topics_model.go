@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type ProductIdVar struct {
 	ProductId string `json:"productID"`

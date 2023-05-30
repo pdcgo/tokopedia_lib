@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type Links struct {
 	Prev     string `json:"prev"`
@@ -46,6 +46,23 @@ type Badge struct {
 type Label struct {
 	ColorHex string `json:"color_hex"`
 	Content  string `json:"content"`
+	Typename string `json:"__typename"`
+}
+
+type Stats struct {
+	CountView     int    `json:"countView,omitempty"`
+	CountReview   int    `json:"countReview,omitempty"`
+	CountTalk     int    `json:"countTalk,omitempty"`
+	ReviewCount   int    `json:"reviewCount,omitempty"`
+	Rating        int    `json:"rating,omitempty"`
+	AverageRating string `json:"averageRating,omitempty"`
+	Typename      string `json:"__typename"`
+}
+
+type Price struct {
+	Min      int    `json:"min,omitempty"`
+	Max      int    `json:"max,omitempty"`
+	TextIdr  string `json:"text_idr,omitempty"`
 	Typename string `json:"__typename"`
 }
 

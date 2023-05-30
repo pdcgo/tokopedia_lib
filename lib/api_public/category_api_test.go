@@ -5,7 +5,7 @@ import (
 
 	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
-	"github.com/pdcgo/tokopedia_lib/lib/model"
+	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +24,7 @@ func TestJarvisRecommendation(t *testing.T) {
 	pSession := tokopedia_lib.NewSessionPublic()
 	api := api_public.NewTokopediaApiPublic(pSession)
 
-	variable := model.JarvisRecommendationVar{
+	variable := model_public.JarvisRecommendationVar{
 		ProductName: "sepatu",
 	}
 	hasil, err := api.JarvisRecommendation(&variable)

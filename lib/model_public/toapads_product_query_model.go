@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type Meta struct {
 	AbTest     string `json:"ab_test"`

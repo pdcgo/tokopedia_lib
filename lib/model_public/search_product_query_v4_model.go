@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type Violation struct {
 	HeaderText      string `json:"headerText"`

@@ -1,4 +1,4 @@
-package model
+package model_public
 
 type RecomWidgetVar struct {
 	UserID         int           `json:"userID"`
