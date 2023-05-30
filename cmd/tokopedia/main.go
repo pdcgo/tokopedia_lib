@@ -11,7 +11,9 @@ import (
 func SetUpTokopediaRouter(r *gin.Engine, prefix string) {
 	db := datasource.NewSqliteDatabase("tokopedia_data.db")
 
-	app := upload_app.NewUploadApp()
+	app := upload_app.NewUploadApp(db, &upload_app.UploadConfig{
+		Concurent: 5,
+	})
 	repo := upload_app.NewAkunRepo(db)
 
 	sdk := v2_gots_sdk.NewApiSdk(r)

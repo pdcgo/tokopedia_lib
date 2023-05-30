@@ -4,24 +4,29 @@ import (
 	"context"
 	"log"
 	"sync"
+
+	"gorm.io/gorm"
 )
 
-type UploadStatus struct {
-	AkunCount   int `json:"account_count"`
-	Uploaded    int `json:"uploaded"`
-	NotUploaded int `json:"not_uploaded"`
+type UploadConfig struct {
+	Concurent int
 }
 
 type UploadApp struct {
 	sync.Mutex
-	Ctx    context.Context
-	Cancel func()
-	Status *UploadStatus
+	limitGuard chan int
+	iterator   *AkunUploadIterator
+	Ctx        context.Context
+	Cancel     func()
 }
 
-func NewUploadApp() *UploadApp {
-
-	return &UploadApp{}
+func NewUploadApp(db *gorm.DB, config *UploadConfig) *UploadApp {
+	iterator := NewAkunUploadIterator(db)
+	return &UploadApp{
+		limitGuard: make(chan int, config.Concurent),
+		iterator:   iterator,
+		Cancel:     func() {},
+	}
 }
 
 func (app *UploadApp) CreateNewContext() {
@@ -32,8 +37,25 @@ func (app *UploadApp) CreateNewContext() {
 	app.Cancel = cancel
 }
 
-func (app *UploadApp) Start() {
-	app.CreateNewContext()
+func (app *UploadApp) Status() (*UploadStatus, error) {
+	return app.iterator.GetStatus()
 
+}
+
+func (app *UploadApp) RunUpload() {
+
+	for {
+
+	}
+
+}
+
+func (app *UploadApp) Start() {
+	app.Cancel()
+	app.CreateNewContext()
+	app.iterator.Reset()
 	log.Println("upload running")
+
+	go app.RunUpload()
+
 }

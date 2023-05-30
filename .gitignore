@@ -40,3 +40,6 @@ asset_sampah
 emailmumet.zip
 
 *.jpeg
+test/tokopedia_test.db
+
+tokopedia_data.db

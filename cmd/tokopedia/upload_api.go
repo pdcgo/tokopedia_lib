@@ -25,7 +25,9 @@ func (api *UploadApi) Stop(ctx *gin.Context) {
 	})
 }
 func (api *UploadApi) Status(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, api.upload.Status)
+	status, _ := api.upload.Status()
+
+	ctx.JSON(http.StatusOK, status)
 }
 
 func RegisterCommand(g *v2_gots_sdk.SdkGroup, upload *upload_app.UploadApp) {

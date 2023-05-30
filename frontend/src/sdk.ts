@@ -16,6 +16,8 @@ export interface AkunItem {
     count_upload: number;
     active_upload: boolean;
     lastup: number;
+    in_upload: boolean;
+    last_error: string;
     username: string;
     password: string;
     secret: string;
@@ -52,9 +54,9 @@ export interface AkunDeletePayload {
 
 
 export interface UploadStatus {
-    account_count: number;
-    uploaded: number;
-    not_uploaded: number;
+    akun_count: number;
+    count_upload: number;
+    limit_upload: number;
 }
 
 class ClientSdk {
