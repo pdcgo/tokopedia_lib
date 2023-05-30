@@ -56,6 +56,10 @@ func (sess *PurnaSession) AddToHttpRequest(req *http.Request)  {}
 func (sess *PurnaSession) UserAgent() string {
 	return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
 }
+func (sess *PurnaSession) GetCookies() []*http.Cookie {
+	log.Println("not Implemented")
+	return []*http.Cookie{}
+}
 func (sess *PurnaSession) SaveFromDriver(cookies []*network.Cookie, ua string) error { return nil }
 
 func NewPurnaSession(fname string) (*PurnaSession, error) {

@@ -30,6 +30,7 @@ type DriverSession interface {
 	AddToHttpRequest(req *http.Request)
 	UserAgent() string
 	SaveFromDriver(cookies []*network.Cookie, ua string) error
+	GetCookies() []*http.Cookie
 }
 
 type DriverAccount struct {

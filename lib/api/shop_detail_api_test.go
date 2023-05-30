@@ -10,7 +10,6 @@ import (
 
 func TestShopCoreInfo(t *testing.T) {
 	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.Session.Ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
 	driver.DevMode = true
 	apiSession, saveSession, _ := driver.CreateApi()
 	defer saveSession()
@@ -28,7 +27,6 @@ func TestShopCoreInfo(t *testing.T) {
 
 func TestShopStatisticQuery(t *testing.T) {
 	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.Session.Ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
 	driver.DevMode = true
 	apiSession, saveSession, _ := driver.CreateApi()
 	defer saveSession()
@@ -46,7 +44,6 @@ func TestShopStatisticQuery(t *testing.T) {
 
 func TestGetShopOperationalHourStatus(t *testing.T) {
 	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.Session.Ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
 	driver.DevMode = true
 	apiSession, saveSession, _ := driver.CreateApi()
 	defer saveSession()
@@ -63,7 +60,6 @@ func TestGetShopOperationalHourStatus(t *testing.T) {
 
 func TestVoucherListQuery(t *testing.T) {
 	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.Session.Ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
 	driver.DevMode = true
 	apiSession, saveSession, _ := driver.CreateApi()
 	defer saveSession()
@@ -80,7 +76,6 @@ func TestVoucherListQuery(t *testing.T) {
 
 func TestShopNote(t *testing.T) {
 	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.Session.Ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
 	driver.DevMode = true
 	apiSession, saveSession, _ := driver.CreateApi()
 	defer saveSession()
