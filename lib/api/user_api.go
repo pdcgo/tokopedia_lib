@@ -38,8 +38,11 @@ type IsAuthenticatedRes struct {
 }
 
 func (api *TokopediaApi) IsAutheticated() (*IsAuthenticatedRes, error) {
+	var variable struct{}
+
 	query := GraphqlPayload{
 		OperationName: "isAuthenticatedQuery",
+		Variables:     variable,
 		Query: `
 		query isAuthenticatedQuery {
 			isAuthenticated
@@ -75,14 +78,14 @@ func (api *TokopediaApi) IsAutheticated() (*IsAuthenticatedRes, error) {
 
 	req := api.NewGraphqlReq(&query)
 
-	var hasil IsAuthenticatedRes
+	var hasil *IsAuthenticatedRes
 	err := api.SendRequest(req, &hasil)
 
 	if err != nil {
-		return &hasil, err
+		return hasil, err
 	}
 
 	api.AuthenticatedData = &hasil.Data
 
-	return &hasil, err
+	return hasil, err
 }
