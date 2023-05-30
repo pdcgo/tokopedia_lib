@@ -160,7 +160,7 @@ type BaseSocketType struct {
 }
 
 func StartTime() string {
-	dateTime := time.Now().Format(time.DateTime)
+	dateTime := time.Now().Format("2006-01-02 15:04:05")
 
 	startTime := strings.Replace(dateTime, " ", "T", 1) + "Z"
 	return startTime
