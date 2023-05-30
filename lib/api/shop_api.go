@@ -154,10 +154,10 @@ func (api *TokopediaApi) ShopInfoByID() (*ShopInfoByIDRes, error) {
 
 	req := api.NewGraphqlReq(&query)
 
-	var hasil ShopInfoByIDRes
+	var hasil *ShopInfoByIDRes
 	err := api.SendRequest(req, &hasil)
 
-	return &hasil, err
+	return hasil, err
 }
 
 type GoldGetPMOSStatusRes struct {
@@ -224,10 +224,10 @@ func (api *TokopediaApi) GoldGetPMOSStatus() (*GoldGetPMOSStatusRes, error) {
 
 	req := api.NewGraphqlReq(&query)
 
-	var hasil GoldGetPMOSStatusRes
+	var hasil *GoldGetPMOSStatusRes
 	err := api.SendRequest(req, &hasil)
 
-	return &hasil, err
+	return hasil, err
 }
 
 type GetShopScoreLevelRes struct {
@@ -340,8 +340,8 @@ func (api *TokopediaApi) GetShopScoreLevel() (*GetShopScoreLevelRes, error) {
 
 	req := api.NewGraphqlReq(&query)
 
-	var hasil GetShopScoreLevelRes
+	var hasil *GetShopScoreLevelRes
 	err := api.SendRequest(req, &hasil)
 
-	return &hasil, err
+	return hasil, err
 }

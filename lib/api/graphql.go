@@ -10,7 +10,7 @@ import (
 )
 
 type GraphqlPayload struct {
-	OperationName string      `json:"isAuthenticatedQuery"`
+	OperationName string      `json:"operationName"`
 	Variables     interface{} `json:"variables"`
 	Query         string      `json:"query"`
 }
