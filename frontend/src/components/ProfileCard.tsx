@@ -70,6 +70,10 @@ export default function ProfileCard (props: {
             <Typography.Text>Password :</Typography.Text>
             <Input.Password placeholder='⁎⁎⁎⁎⁎⁎⁎⁎' />
           </FlexColumn>
+          <FlexColumn style={{ rowGap: '5px' }}>
+            <Typography.Text>Upload Limit :</Typography.Text>
+            <Input placeholder='1000' />
+          </FlexColumn>
           <div></div>
           <Checkbox style={{ userSelect: 'none' }}>Active</Checkbox>
         </FlexColumn>
