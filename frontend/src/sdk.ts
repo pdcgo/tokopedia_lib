@@ -2,13 +2,13 @@ import { AxiosInstance, AxiosResponse } from "axios";
 
 
 export interface AkunListQuery {
-    page: number;
-    per_page: number;
-    Search: string;
+    offset: number;
+    limit: number;
+    search: string;
 }
 export interface Pagination {
-    page: number;
-    per_page: number;
+    offset: number;
+    limit: number;
     count: number;
 }
 export interface AkunItem {
@@ -46,10 +46,6 @@ export interface AkunUpdatePayload {
 }
 
 export interface AkunDeletePayload {
-    usernames: string[];
-}
-
-export interface AkunResetPayload {
     usernames: string[];
 }
 
@@ -98,14 +94,6 @@ export async function PostTokopediaAkunUpdate(query: any, data: AkunUpdatePayloa
 
 export async function PostTokopediaAkunDelete(query: any, data: AkunDeletePayload): Promise<Response> {
     let res = await clientSdk.client.post<any, AxiosResponse<Response, any>, AkunDeletePayload>('/tokopedia/akun/delete', data, {
-        params: query,
-    });
-    return res.data;
-}
-
-
-export async function PostTokopediaAkunReset(query: any, data: AkunResetPayload): Promise<Response> {
-    let res = await clientSdk.client.post<any, AxiosResponse<Response, any>, AkunResetPayload>('/tokopedia/akun/reset', data, {
         params: query,
     });
     return res.data;

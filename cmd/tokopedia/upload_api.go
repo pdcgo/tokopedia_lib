@@ -8,13 +8,6 @@ import (
 	"github.com/pdcgo/v2_gots_sdk"
 )
 
-type AkunUploadStatus struct {
-	LimitUpload int     `json:"limit_upload"`
-	CountUpload int     `json:"count_upload"`
-	Active      bool    `json:"active_upload"`
-	Lastup      float32 `json:"lastup"`
-}
-
 type UploadApi struct {
 	upload *upload_app.UploadApp
 }
