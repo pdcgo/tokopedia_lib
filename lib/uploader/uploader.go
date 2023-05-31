@@ -15,6 +15,13 @@ type TokopediaUploader struct {
 	Ctx context.Context
 }
 
+func NewTokopediaUploader(ctx context.Context, apiclient *api.TokopediaApi) *TokopediaUploader {
+	return &TokopediaUploader{
+		Api: apiclient,
+		Ctx: ctx,
+	}
+}
+
 type PayloadUpload struct {
 	sync.Mutex
 	Input               *model.InputVariable

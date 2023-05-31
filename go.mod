@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/pdcgo/common_conf v1.1.0
-	github.com/pdcgo/v2_gots_sdk v1.2.1
+	github.com/pdcgo/v2_gots_sdk v1.2.2
 	nhooyr.io/websocket v1.8.7
 )
 

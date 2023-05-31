@@ -205,6 +205,8 @@ github.com/pdcgo/v2_gots_sdk v1.2.0 h1:OwBmLE40uDivgkkVmmZsaaoKgLYg1TEwBnEs52JN1
 github.com/pdcgo/v2_gots_sdk v1.2.0/go.mod h1:5BAAOs/jCBPp3TuLroZyZ69MIbXo6E1YzwH+gyeAocc=
 github.com/pdcgo/v2_gots_sdk v1.2.1 h1:ASSirU/cf/i6cjwXKzWR6QFH57HywlRXxM1GndpYh3I=
 github.com/pdcgo/v2_gots_sdk v1.2.1/go.mod h1:5BAAOs/jCBPp3TuLroZyZ69MIbXo6E1YzwH+gyeAocc=
+github.com/pdcgo/v2_gots_sdk v1.2.2 h1:PbsVYdJuWq9qfGrV2MX2AAqnZOg/BDf0K7gwPn72ty4=
+github.com/pdcgo/v2_gots_sdk v1.2.2/go.mod h1:5BAAOs/jCBPp3TuLroZyZ69MIbXo6E1YzwH+gyeAocc=
 github.com/pelletier/go-toml/v2 v2.0.6 h1:nrzqCb7j9cDFj2coyLNLaZuJTLjWjlaz6nvTvIwycIU=
 github.com/pelletier/go-toml/v2 v2.0.6/go.mod h1:eumQOmlWiOPt5WriQQqoM5y18pDHwha2N+QD+EUNTek=
 github.com/pelletier/go-toml/v2 v2.0.8 h1:0ctb6s9mE31h0/lhu+J6OPmVeDxJn+kYnJc2jZR9tGQ=

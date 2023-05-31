@@ -1,5 +1,3 @@
-import { AxiosInstance, AxiosResponse } from "axios";
-
 
 export interface AkunListQuery {
     offset: number;
@@ -53,74 +51,67 @@ export interface AkunDeletePayload {
 
 
 
-export interface UploadStatus {
+export interface UploadAppStatus {
+    Status: string;
     akun_count: number;
     count_upload: number;
     limit_upload: number;
 }
+export type SdkConfig = { 
 
-class ClientSdk {
-    client!: AxiosInstance
+	GetTokopediaAkunList: {
+		method: "get"
+		params: AkunListQuery
+		payload: undefined
+		response: AkunListResponse
+		path: "/tokopedia/akun/list"
+	},
 
-}
-const clientSdk = new ClientSdk()
+	PostTokopediaAkunBulkAdd: {
+		method: "post"
+		params: undefined
+		payload: BulkPayload
+		response: Response
+		path: "/tokopedia/akun/bulk_add"
+	},
 
-export function SetClient(client: AxiosInstance) {
-    clientSdk.client = client
-}
+	PostTokopediaAkunUpdate: {
+		method: "post"
+		params: undefined
+		payload: AkunUpdatePayload
+		response: Response
+		path: "/tokopedia/akun/update"
+	},
 
+	PostTokopediaAkunDelete: {
+		method: "post"
+		params: undefined
+		payload: AkunDeletePayload
+		response: Response
+		path: "/tokopedia/akun/delete"
+	},
 
-export async function GetTokopediaAkunList(query: AkunListQuery): Promise<AkunListResponse> {
-    let res = await clientSdk.client.get<any, AxiosResponse<AkunListResponse, any>, any>('/tokopedia/akun/list', {
-        params: query,
-    });
-    return res.data;
-}
+	GetTokopediaUploadStart: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: Response
+		path: "/tokopedia/upload/start"
+	},
 
+	GetTokopediaUploadStop: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: Response
+		path: "/tokopedia/upload/stop"
+	},
 
-export async function PostTokopediaAkunBulkAdd(query: any, data: BulkPayload): Promise<Response> {
-    let res = await clientSdk.client.post<any, AxiosResponse<Response, any>, BulkPayload>('/tokopedia/akun/bulk_add', data, {
-        params: query,
-    });
-    return res.data;
-}
-
-
-export async function PostTokopediaAkunUpdate(query: any, data: AkunUpdatePayload): Promise<Response> {
-    let res = await clientSdk.client.post<any, AxiosResponse<Response, any>, AkunUpdatePayload>('/tokopedia/akun/update', data, {
-        params: query,
-    });
-    return res.data;
-}
-
-
-export async function PostTokopediaAkunDelete(query: any, data: AkunDeletePayload): Promise<Response> {
-    let res = await clientSdk.client.post<any, AxiosResponse<Response, any>, AkunDeletePayload>('/tokopedia/akun/delete', data, {
-        params: query,
-    });
-    return res.data;
-}
-
-
-export async function GetTokopediaUploadStart(query: any): Promise<Response> {
-    let res = await clientSdk.client.get<any, AxiosResponse<Response, any>, any>('/tokopedia/upload/start', {
-        params: query,
-    });
-    return res.data;
-}
-
-
-export async function GetTokopediaUploadStop(query: any): Promise<Response> {
-    let res = await clientSdk.client.get<any, AxiosResponse<Response, any>, any>('/tokopedia/upload/stop', {
-        params: query,
-    });
-    return res.data;
-}
-
-
-export async function GetTokopediaUploadStatus(query: any): Promise<UploadStatus> {
-    let res = await clientSdk.client.get<any, AxiosResponse<UploadStatus, any>, any>('/tokopedia/upload/status', {
-        params: query,
-    });
-    return res.data;
+	GetTokopediaUploadStatus: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: UploadAppStatus
+		path: "/tokopedia/upload/status"
+	}
 }

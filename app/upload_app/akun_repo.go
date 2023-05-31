@@ -65,6 +65,23 @@ func (iter *AkunUploadIterator) GetStatus() (*UploadStatus, error) {
 	err := iter.db.Raw(query).Scan(&hasil).Error
 	return &hasil, err
 }
+func (iter *AkunUploadIterator) InProcessCount() (int64, error) {
+	var count int64
+	err := iter.db.Model(&AkunItem{}).Where(&AkunItem{
+		AkunUploadStatus: AkunUploadStatus{
+			InUpload: true,
+		},
+	}).Count(&count).Error
+	return count, err
+}
+
+func (iter *AkunUploadIterator) DeactiveAll() error {
+	return iter.db.Model(&AkunItem{}).Updates(&AkunItem{
+		AkunUploadStatus: AkunUploadStatus{
+			Active: false,
+		},
+	}).Error
+}
 
 func (iter *AkunUploadIterator) Get() (akun *AkunItem, updateinc func(count int, err error) error, finish func() error, err error) {
 	akun = &AkunItem{}
