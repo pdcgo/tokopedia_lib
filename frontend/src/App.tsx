@@ -94,7 +94,7 @@ function App () {
                 {menu.name}
               </span>
             ),
-            children: <menu.child key={activeMenu} />
+            children: <menu.child key={activeMenu} activePage={activeMenu} />
           }))}
         />
       </AppContainer2>

@@ -15,15 +15,18 @@ export type Profile = {
 }
 
 export default function ProfileCard (props: {
-  profile: Profile
+  profile: Profile,
+  number: number
 }): React.ReactElement {
   return (
     <Card
       title={
         <Checkbox style={{ userSelect: 'none' }}>
+          {props.number + '. '}
           {props.profile.username}
         </Checkbox>
       }
+      hoverable
       size='small'
       type='inner'
       actions={[
@@ -64,11 +67,14 @@ export default function ProfileCard (props: {
         <FlexColumn style={{ flex: 1 }}>
           <FlexColumn style={{ rowGap: '5px' }}>
             <Typography.Text>Username :</Typography.Text>
-            <Input placeholder='username' />
+            <Input value={props.profile.username} placeholder='username' />
           </FlexColumn>
           <FlexColumn style={{ rowGap: '5px' }}>
             <Typography.Text>Password :</Typography.Text>
-            <Input.Password placeholder='⁎⁎⁎⁎⁎⁎⁎⁎' />
+            <Input.Password
+              value={props.profile.password}
+              placeholder='⁎⁎⁎⁎⁎⁎⁎⁎'
+            />
           </FlexColumn>
           <FlexColumn style={{ rowGap: '5px' }}>
             <Typography.Text>Upload Limit :</Typography.Text>

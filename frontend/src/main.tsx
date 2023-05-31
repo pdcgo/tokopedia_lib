@@ -25,12 +25,15 @@ const theme: ThemeConfig = {
     },
     Input: {
       fontSize: 14,
-      fontSizeLG: 13.5,
+      fontSizeLG: 13.5
     },
     Button: {
       boxShadow: 'none',
       boxShadowSecondary: 'none',
       boxShadowTertiary: 'none'
+    },
+    Card: {
+      colorBorderSecondary: '#e1dfdd'
     }
   }
 }

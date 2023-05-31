@@ -29,9 +29,7 @@ function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, opt
 
     async function sender(config: SenderConfigs<K[T]['method'], K[T]['path'], K[T]['payload'], K[T]['params']>) {
         setPending(true)
-        setError(null)
-        setResponse(null)
-
+        
         try {
             const { data } = await client({
                 method: config.method,
@@ -39,13 +37,15 @@ function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, opt
                 url: config.path,
                 params: config.params,
             });
-
+            
             if (data.error) {
                 const err = { error: data.error, msg: data.msg }
-
+                
                 setError(err)
+                setResponse(null)
                 options?.onError?.(err)
             } else {
+                setError(null)
                 setResponse(data as K[T]['response'])
                 options?.onSuccess?.(data as K[T]['response'])
             }
@@ -53,7 +53,8 @@ function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, opt
             if (isDev) console.log(error)
 
             const err = { error: String(error), msg: "Unpredictable Error Type" }
-
+            
+            setResponse(null)
             setError(err)
             options?.onError?.(err)
         } finally {

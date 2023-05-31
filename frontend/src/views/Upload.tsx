@@ -13,6 +13,7 @@ import {
   Divider,
   Input,
   Pagination,
+  Result,
   message
 } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -20,24 +21,41 @@ import { useRequest } from '../client'
 import ProfileCard from '../components/ProfileCard'
 import { Flex, FlexColumn } from '../styled_components'
 
-export default function Upload (): React.ReactElement {
-  const [query, setQuery] = useState({ page: 1, limit: 1, name: '' })
+export default function Upload (props: {
+  activePage?: string
+}): React.ReactElement {
+  const [query, setQuery] = useState({ page: 1, limit: 10, name: '' })
   const [showBottomPagination, setShowBottomPagination] = useState(false)
   const [messageApi, ctx] = message.useMessage()
 
-  const { sender, response } = useRequest('GetTokopediaAkunList')
+  const { sender, response, pending, error } = useRequest(
+    'GetTokopediaAkunList'
+  )
 
   useEffect(() => {
-    sender({
-      method: 'get',
-      path: '/tokopedia/akun/list',
-      params: {
-        limit: query.limit,
-        offset: (query.page - 1) * query.limit,
-        search: query.name
-      }
-    })
-  }, [query.limit, query.name, query.page])
+    if (pending) {
+      messageApi.loading({
+        key: 'load-accounts',
+        content: 'Loading accounts...'
+      })
+    } else {
+      messageApi.destroy('load-accounts')
+    }
+  }, [pending])
+
+  useEffect(() => {
+    if (props.activePage == 'upload') {
+      sender({
+        method: 'get',
+        path: '/tokopedia/akun/list',
+        params: {
+          limit: query.limit,
+          offset: (query.page - 1) * query.limit,
+          search: query.name
+        }
+      })
+    }
+  }, [query.limit, query.name, query.page, props.activePage])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -56,6 +74,22 @@ export default function Upload (): React.ReactElement {
       observer.unobserve(document.getElementById('top-pagination')!)
     }
   }, [])
+
+  function render () {
+    if (error !== null && !pending) {
+      return (
+        <Flex style={{ justifyContent: 'center', width: '100%' }}>
+          <Result status='error' title={error.msg} subTitle={error.error} />
+        </Flex>
+      )
+    } else if (!response?.data.length && !pending) {
+      return (
+        <Flex style={{ justifyContent: 'center', width: '100%' }}>
+          <Result status='404' title='Data not found!' />
+        </Flex>
+      )
+    }
+  }
 
   return (
     <FlexColumn>
@@ -117,33 +151,40 @@ export default function Upload (): React.ReactElement {
         </Flex>
       </Card>
       <Divider dashed style={{ margin: '5px 0' }} />
+      {render()}
       <Flex style={{ justifyContent: 'flex-start' }} id='top-pagination'>
-        <Pagination
-          pageSize={query.limit}
-          total={response?.pagination.count}
-          showSizeChanger
-          pageSizeOptions={[1, 2, 3]}
-          current={query.page}
-          onChange={(page, size) => {
-            if (query.limit !== size) {
-              setQuery(q => ({ ...q, limit: size, page: 1 }))
-            } else {
-              setQuery(q => ({ ...q, limit: size, page }))
-            }
-          }}
-        />
+        {Boolean(response?.data.length) && (
+          <Pagination
+            pageSize={query.limit}
+            total={response?.pagination.count}
+            showSizeChanger
+            pageSizeOptions={[10, 20, 30, 40, 50, 75, 100]}
+            current={query.page}
+            onChange={(page, size) => {
+              if (query.limit !== size) {
+                setQuery(q => ({ ...q, limit: size, page: 1 }))
+              } else {
+                setQuery(q => ({ ...q, limit: size, page }))
+              }
+            }}
+          />
+        )}
       </Flex>
       <div></div>
-      {response?.data.map(profile => (
-        <ProfileCard profile={profile} />
+      <div style={{display: 'grid', gap: '7px', gridTemplateColumns: '1fr 1fr'}}>
+
+
+      {response?.data.map((profile, index) => (
+        <ProfileCard profile={profile} key={profile.username} number={index + 1 + (query.page - 1) * query.limit} />
       ))}
+      </div>
       <div></div>
       {showBottomPagination && (
         <Pagination
           pageSize={query.limit}
           total={response?.pagination.count}
           showSizeChanger
-          pageSizeOptions={[1, 2, 3]}
+          pageSizeOptions={[10, 20, 30, 40, 50, 75, 100]}
           current={query.page}
           onChange={(page, size) => {
             if (query.limit !== size) {
