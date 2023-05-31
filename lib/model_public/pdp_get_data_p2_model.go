@@ -374,12 +374,12 @@ type PdpGetData struct {
 }
 
 type PdpGetDataP2Var struct {
-	Affiliate    interface{}  `json:"affiliate"`
-	ProductID    string       `json:"productID"`
-	PdpSession   string       `json:"pdpSession"`
-	DeviceID     string       `json:"deviceID"`
-	UserLocation UserLocation `json:"userLocation"`
-	Tokonow      Tokonow      `json:"tokonow"`
+	Affiliate    interface{}   `json:"affiliate"`
+	ProductID    string        `json:"productID"`
+	PdpSession   string        `json:"pdpSession"`
+	DeviceID     string        `json:"deviceID"`
+	UserLocation *UserLocation `json:"userLocation,omitempty"`
+	Tokonow      *Tokonow      `json:"tokonow,omitempty"`
 }
 
 type PdpGetDataP2Resp struct {

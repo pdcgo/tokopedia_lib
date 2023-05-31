@@ -66,8 +66,17 @@ func (api *AkunApi) BulkAdd(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, &hasil)
 		return
 	}
+	akuns := make([]*upload_app.AkunItem, len(payload.Data))
 
-	err = api.db.Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(payload.Data, 50).Error
+	for ind, bitem := range payload.Data {
+		akuns[ind] = &upload_app.AkunItem{
+			Username: bitem.Username,
+			Password: bitem.Password,
+			Secret:   bitem.Secret,
+		}
+	}
+
+	err = api.db.Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(akuns, 50).Error
 	if err != nil {
 		hasil.Msg = "error"
 		hasil.Err = err.Error()

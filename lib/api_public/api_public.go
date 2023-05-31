@@ -21,13 +21,13 @@ var ClientApi *http.Client = &http.Client{
 	Timeout: 30 * time.Second,
 }
 
-type Session interface {
-	PublicUa() string
-	SetCookiesToReq(*http.Request)
+type SessionPublic struct {
+	Cookies []*http.Cookie
+	Ua      string
 }
 
 type TokopediaApiPublic struct {
-	Session Session
+	Session SessionPublic
 }
 
 func (api *TokopediaApiPublic) NewRequest(method, ur string, query any, body io.Reader) *http.Request {
@@ -43,7 +43,9 @@ func (api *TokopediaApiPublic) NewRequest(method, ur string, query any, body io.
 	}
 
 	// log.Info().Msg(req.URL.String())
-	api.Session.SetCookiesToReq(req)
+	for _, cookie := range api.Session.Cookies {
+		req.AddCookie(cookie)
+	}
 
 	return req
 }
@@ -65,9 +67,35 @@ func (api *TokopediaApiPublic) SendRequest(req *http.Request, hasil any) error {
 	// return api.Session.Update(res.Cookies())
 }
 
-func NewTokopediaApiPublic(session Session) *TokopediaApiPublic {
+func defaultHeader() map[string]string {
+	headers := map[string]string{
+		"content-type": "application/json",
+		"origin":       "https://www.tokopedia.com",
+		"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
+	}
+	return headers
+}
+
+func NewTokopediaApiPublic() *TokopediaApiPublic {
+	headers := defaultHeader()
+	req, err := http.NewRequest(http.MethodGet, "https://www.tokopedia.com/", nil)
+	if err != nil {
+		pdc_common.ReportError(err)
+	}
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+	resp, err := ClientApi.Do(req)
+	if err != nil {
+		pdc_common.ReportError(err)
+	}
+
+	pSession := SessionPublic{
+		Cookies: resp.Cookies(),
+		Ua:      resp.Request.UserAgent(),
+	}
 
 	return &TokopediaApiPublic{
-		Session: session,
+		Session: pSession,
 	}
 }

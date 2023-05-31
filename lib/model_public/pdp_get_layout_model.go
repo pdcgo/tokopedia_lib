@@ -15,13 +15,13 @@ type UserLocation struct {
 }
 
 type PdpGetlayoutQueryVar struct {
-	ShopDomain   string       `json:"shopDomain"`
-	ProductKey   string       `json:"productKey"`
-	LayoutID     string       `json:"layoutID"`
-	APIVersion   int          `json:"apiVersion"`
-	Tokonow      Tokonow      `json:"tokonow"`
-	UserLocation UserLocation `json:"userLocation"`
-	ExtParam     string       `json:"extParam"`
+	ShopDomain   string        `json:"shopDomain"`
+	ProductKey   string        `json:"productKey"`
+	LayoutID     string        `json:"layoutID"`
+	APIVersion   int           `json:"apiVersion"`
+	Tokonow      *Tokonow      `json:"tokonow,omitempty"`
+	UserLocation *UserLocation `json:"userLocation,omitempty"`
+	ExtParam     string        `json:"extParam"`
 }
 
 type PdpGetlayoutQueryResp struct {

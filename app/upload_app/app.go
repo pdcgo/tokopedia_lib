@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/uploader"
 	"gorm.io/gorm"
@@ -31,11 +31,12 @@ type UploadAppStatus struct {
 
 type UploadApp struct {
 	sync.Mutex
-	limitGuard chan int
-	iterator   *AkunUploadIterator
-	Ctx        context.Context
-	Cancel     func()
-	RunStatus  RunStatus
+	limitGuard       chan int
+	iterator         *AkunUploadIterator
+	Ctx              context.Context
+	Cancel           func()
+	RunStatus        RunStatus
+	HandlerGenerator func(akun *AkunItem) []uploader.UploadHandler
 }
 
 func NewUploadApp(db *gorm.DB, config *UploadConfig) *UploadApp {
@@ -65,12 +66,27 @@ func (app *UploadApp) Status() (*UploadAppStatus, error) {
 
 }
 
+func (app *UploadApp) CreateApi(akun *AkunItem) (*api.TokopediaApi, func(), error) {
+	driver, err := tokopedia_lib.NewDriverAccount(akun.Username, akun.Password, akun.Secret)
+	if err != nil {
+		return nil, func() {}, err
+	}
+	return driver.CreateApi()
+}
+
 func (app *UploadApp) RunTask() {
 	defer func() {
 		<-app.limitGuard
 	}()
 
-	_, updateinc, _, err := app.iterator.Get()
+	akun, updateinc, _, err := app.iterator.Get()
+	if err != nil {
+		pdc_common.ReportError(err)
+		return
+	}
+
+	api, saveApi, err := app.CreateApi(akun)
+	defer saveApi()
 	if err != nil {
 		pdc_common.ReportError(err)
 		return
@@ -79,11 +95,9 @@ func (app *UploadApp) RunTask() {
 	ctx, cancel := context.WithTimeout(app.Ctx, time.Minute*3)
 	defer cancel()
 
-	uploaderItem := uploader.NewTokopediaUploader(ctx, &api.TokopediaApi{})
-
-	_, err = uploaderItem.RunUploader(func(eventcore uploader.EmitFunc, tokpedup *uploader.TokopediaUploader, payload *uploader.PayloadUpload, sub *common_concept.Subscriber) error {
-		return nil
-	})
+	uploaderItem := uploader.NewTokopediaUploader(ctx, api)
+	handlers := app.HandlerGenerator(akun)
+	_, err = uploaderItem.RunUploader(handlers...)
 
 	if err != nil {
 		updateinc(0, err)
