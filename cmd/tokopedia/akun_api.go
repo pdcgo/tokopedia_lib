@@ -122,7 +122,7 @@ func (api *AkunApi) List(ctx *gin.Context) {
 	if query.Search != "" {
 		tx = api.db.Where("username LIKE ?", "%"+query.Search+"%")
 	}
-	err := tx.Find(&hasil.Data).Limit(query.Limit).Offset(query.Offset).Error
+	err := tx.Offset(query.Offset).Limit(query.Limit).Find(&hasil.Data).Error
 	if err != nil {
 		hasil.Response.Err = err.Error()
 		ctx.JSON(http.StatusInternalServerError, &hasil)

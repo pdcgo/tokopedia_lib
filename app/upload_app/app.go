@@ -25,7 +25,7 @@ const (
 )
 
 type UploadAppStatus struct {
-	Status RunStatus
+	Status RunStatus `json:"status"`
 	UploadStatus
 }
 

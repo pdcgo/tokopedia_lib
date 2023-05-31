@@ -38,7 +38,6 @@ function App () {
   useEffect(() => {
     const observer = new IntersectionObserver(
       entry => {
-        console.log(entry[0].isIntersecting)
         if (!entry[0].isIntersecting) setShowFloatMenu(true)
         else setShowFloatMenu(false)
       },
@@ -95,7 +94,7 @@ function App () {
                 {menu.name}
               </span>
             ),
-            children: <menu.child />
+            children: <menu.child key={activeMenu} />
           }))}
         />
       </AppContainer2>

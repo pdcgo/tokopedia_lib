@@ -22,6 +22,15 @@ const theme: ThemeConfig = {
     },
     Pagination: {
       colorBgContainer: '#fefffece'
+    },
+    Input: {
+      fontSize: 14,
+      fontSizeLG: 13.5,
+    },
+    Button: {
+      boxShadow: 'none',
+      boxShadowSecondary: 'none',
+      boxShadowTertiary: 'none'
     }
   }
 }

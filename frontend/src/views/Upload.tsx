@@ -1,61 +1,43 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   CheckOutlined,
   DeleteOutlined,
   FilePptOutlined,
+  SaveOutlined,
   UploadOutlined
 } from '@ant-design/icons'
-import { Button, Card, Checkbox, Divider, Input, Pagination, message } from 'antd'
+import {
+  Button,
+  Card,
+  Checkbox,
+  Divider,
+  Input,
+  Pagination,
+  message
+} from 'antd'
 import React, { useEffect, useState } from 'react'
-import type { Profile } from '../components/ProfileCard'
+import { useRequest } from '../client'
 import ProfileCard from '../components/ProfileCard'
 import { Flex, FlexColumn } from '../styled_components'
 
-const profiles: Profile[] = [
-  {
-    password: '',
-    username: 'nama_toko'
-  },
-  {
-    password: '',
-    username: 'nama_toko'
-  },
-  {
-    password: '',
-    username: 'nama_toko'
-  },
-  {
-    password: '',
-    username: 'nama_toko'
-  }
-  //   {
-  //     password: '',
-  //     username: 'nama_toko'
-  //   },
-  //   {
-  //     password: '',
-  //     username: 'nama_toko'
-  //   },
-  //   {
-  //     password: '',
-  //     username: 'nama_toko'
-  //   },
-  //   {
-  //     password: '',
-  //     username: 'nama_toko'
-  //   },
-  //   {
-  //     password: '',
-  //     username: 'nama_toko'
-  //   },
-  //   {
-  //     password: '',
-  //     username: 'nama_toko'
-  //   }
-]
-
 export default function Upload (): React.ReactElement {
+  const [query, setQuery] = useState({ page: 1, limit: 1, name: '' })
   const [showBottomPagination, setShowBottomPagination] = useState(false)
   const [messageApi, ctx] = message.useMessage()
+
+  const { sender, response } = useRequest('GetTokopediaAkunList')
+
+  useEffect(() => {
+    sender({
+      method: 'get',
+      path: '/tokopedia/akun/list',
+      params: {
+        limit: query.limit,
+        offset: (query.page - 1) * query.limit,
+        search: query.name
+      }
+    })
+  }, [query.limit, query.name, query.page])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -86,16 +68,36 @@ export default function Upload (): React.ReactElement {
           }}
         >
           <Checkbox>Select All</Checkbox>
-          <Flex style={{flex: 1}}>
-            <Input allowClear placeholder='Search Profile...' style={{flex: 1}} />
+          <Flex style={{ flex: 1 }}>
+            <Input
+              allowClear
+              placeholder='Search Profile...'
+              style={{ flex: 1 }}
+              value={query.name}
+              onChange={e =>
+                setQuery(q => ({ ...q, page: 1, name: e.target.value }))
+              }
+            />
             <Button icon={<FilePptOutlined rev='paste' />}>Paste All</Button>
             <Button icon={<CheckOutlined rev='active' />}>Set Active</Button>
             <Button danger icon={<DeleteOutlined rev='remove' />}>
               Remove
             </Button>
             <Button
+              style={{
+                backgroundColor: '#f8da30',
+                boxShadow: 'none',
+                color: '#333'
+              }}
+              type='primary'
+              icon={<SaveOutlined rev='save' />}
+            >
+              Save
+            </Button>
+            <Button
               type='primary'
               icon={<UploadOutlined rev='upload' />}
+              style={{ boxShadow: 'none' }}
               onClick={() => {
                 messageApi.open({
                   type: 'loading',
@@ -116,10 +118,24 @@ export default function Upload (): React.ReactElement {
       </Card>
       <Divider dashed style={{ margin: '5px 0' }} />
       <Flex style={{ justifyContent: 'flex-start' }} id='top-pagination'>
-        <Pagination pageSize={10} total={120} />
+        {JSON.stringify(query)}
+        <Pagination
+          pageSize={query.limit}
+          total={response?.pagination.count}
+          showSizeChanger
+          pageSizeOptions={[1, 2]}
+          current={query.page}
+          onChange={(page, size) => {
+            if (query.limit !== size) {
+              setQuery(q => ({ ...q, limit: size, page: 1 }))
+            } else {
+              setQuery(q => ({ ...q, limit: size, page }))
+            }
+          }}
+        />
       </Flex>
       <div></div>
-      {profiles.map(profile => (
+      {response?.data.map(profile => (
         <ProfileCard profile={profile} />
       ))}
       <div></div>

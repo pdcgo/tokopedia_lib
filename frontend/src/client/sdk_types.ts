@@ -1,3 +1,4 @@
+
 export interface AkunListQuery {
     offset: number;
     limit: number;
@@ -43,16 +44,19 @@ export interface Response {
 export interface AkunUpdatePayload {
     data: AkunItem[];
 }
+
 export interface AkunDeletePayload {
     usernames: string[];
 }
+
+
+
 export interface UploadAppStatus {
-    Status: string;
+    status: string;
     akun_count: number;
     count_upload: number;
     limit_upload: number;
 }
-
 export type SdkConfig = { 
 
 	GetTokopediaAkunList: {

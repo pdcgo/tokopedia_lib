@@ -17,7 +17,7 @@ func SetUpTokopediaRouter(r *gin.Engine, prefix string) {
 	repo := upload_app.NewAkunRepo(db)
 
 	sdk := v2_gots_sdk.NewApiSdk(r)
-	save := sdk.GenerateSdkFunc("frontend/src/sdk.ts", true)
+	save := sdk.GenerateSdkFunc("frontend/src/client/sdk_types.ts", true)
 
 	g := sdk.Group("/tokopedia")
 	RegisterAkunApi(g, db, repo)
