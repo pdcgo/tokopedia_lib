@@ -53,7 +53,7 @@ func RegisterCommand(g *v2_gots_sdk.SdkGroup, upload *upload_app.UploadApp) {
 	command.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodGet,
 		RelativePath: "status",
-		Response:     upload_app.UploadStatus{},
+		Response:     upload_app.UploadAppStatus{},
 	}, api.Status)
 
 }

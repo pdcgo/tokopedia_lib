@@ -17,7 +17,7 @@ func SetUpTokopediaRouter(r *gin.Engine, prefix string) {
 	repo := upload_app.NewAkunRepo(db)
 
 	sdk := v2_gots_sdk.NewApiSdk(r)
-	save := sdk.GenerateSdkFunc("frontend/src/sdk.ts")
+	save := sdk.GenerateSdkFunc("frontend/src/sdk.ts", true)
 
 	g := sdk.Group("/tokopedia")
 	RegisterAkunApi(g, db, repo)
@@ -27,8 +27,26 @@ func SetUpTokopediaRouter(r *gin.Engine, prefix string) {
 	save()
 }
 
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func main() {
 	r := gin.Default()
+	r.Use(CORSMiddleware())
 	SetUpTokopediaRouter(r, "tokopedia")
 	r.Run("localhost:8080")
 }

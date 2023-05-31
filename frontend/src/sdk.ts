@@ -56,8 +56,69 @@ export interface AkunDeletePayload {
     usernames: string[];
 }
 
-export interface UploadStatus {
+
+
+export interface UploadAppStatus {
+    Status: string;
     akun_count: number;
     count_upload: number;
     limit_upload: number;
+}
+export type SdkConfig = { 
+
+	GetTokopediaAkunList: {
+		method: "get"
+		params: AkunListQuery
+		payload: undefined
+		response: AkunListResponse
+		path: "/tokopedia/akun/list"
+	},
+
+	PostTokopediaAkunBulkAdd: {
+		method: "post"
+		params: undefined
+		payload: BulkPayload
+		response: Response
+		path: "/tokopedia/akun/bulk_add"
+	},
+
+	PostTokopediaAkunUpdate: {
+		method: "post"
+		params: undefined
+		payload: AkunUpdatePayload
+		response: Response
+		path: "/tokopedia/akun/update"
+	},
+
+	PostTokopediaAkunDelete: {
+		method: "post"
+		params: undefined
+		payload: AkunDeletePayload
+		response: Response
+		path: "/tokopedia/akun/delete"
+	},
+
+	GetTokopediaUploadStart: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: Response
+		path: "/tokopedia/upload/start"
+	},
+
+	GetTokopediaUploadStop: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: Response
+		path: "/tokopedia/upload/stop"
+	},
+
+	GetTokopediaUploadStatus: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: UploadAppStatus
+		path: "/tokopedia/upload/status"
+	}
 }
