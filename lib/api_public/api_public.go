@@ -65,7 +65,7 @@ func (api *TokopediaApiPublic) SendRequest(req *http.Request, hasil any) error {
 	// return api.Session.Update(res.Cookies())
 }
 
-func NewTokopediaApiPublic(session Session) *TokopediaApiPublic {
+func NewTokopediaApiPublic() *TokopediaApiPublic {
 
 	return &TokopediaApiPublic{
 		Session: session,
