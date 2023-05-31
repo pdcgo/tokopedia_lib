@@ -117,19 +117,24 @@ func (api *AkunApi) List(ctx *gin.Context) {
 		Count:  0,
 	}
 
-	tx := api.db.Model(&upload_app.AkunItem{})
+	gentx := func() *gorm.DB {
+		tx := api.db.Model(&upload_app.AkunItem{})
 
-	if query.Search != "" {
-		tx = api.db.Where("username LIKE ?", "%"+query.Search+"%")
+		if query.Search != "" {
+			tx = tx.Where("username LIKE ?", "%"+query.Search+"%")
+		}
+
+		return tx
 	}
-	err := tx.Offset(query.Offset).Limit(query.Limit).Find(&hasil.Data).Error
+
+	err := gentx().Limit(query.Limit).Offset(query.Offset).Find(&hasil.Data).Error
 	if err != nil {
 		hasil.Response.Err = err.Error()
 		ctx.JSON(http.StatusInternalServerError, &hasil)
 		return
 	}
 
-	err = tx.Count(&hasil.Pagination.Count).Error
+	err = gentx().Count(&hasil.Pagination.Count).Error
 	if err != nil {
 		hasil.Response.Err = err.Error()
 		ctx.JSON(http.StatusInternalServerError, &hasil)

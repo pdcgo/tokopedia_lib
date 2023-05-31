@@ -118,12 +118,11 @@ export default function Upload (): React.ReactElement {
       </Card>
       <Divider dashed style={{ margin: '5px 0' }} />
       <Flex style={{ justifyContent: 'flex-start' }} id='top-pagination'>
-        {JSON.stringify(query)}
         <Pagination
           pageSize={query.limit}
           total={response?.pagination.count}
           showSizeChanger
-          pageSizeOptions={[1, 2]}
+          pageSizeOptions={[1, 2, 3]}
           current={query.page}
           onChange={(page, size) => {
             if (query.limit !== size) {
@@ -139,7 +138,22 @@ export default function Upload (): React.ReactElement {
         <ProfileCard profile={profile} />
       ))}
       <div></div>
-      {showBottomPagination && <Pagination pageSize={10} total={120} />}
+      {showBottomPagination && (
+        <Pagination
+          pageSize={query.limit}
+          total={response?.pagination.count}
+          showSizeChanger
+          pageSizeOptions={[1, 2, 3]}
+          current={query.page}
+          onChange={(page, size) => {
+            if (query.limit !== size) {
+              setQuery(q => ({ ...q, limit: size, page: 1 }))
+            } else {
+              setQuery(q => ({ ...q, limit: size, page }))
+            }
+          }}
+        />
+      )}
     </FlexColumn>
   )
 }

@@ -1,5 +1,22 @@
 package model_public
 
+import (
+	"encoding/json"
+	"log"
+)
+
+type PDPComponentName string
+
+const (
+	MediaComponentName PDPComponentName = "product_media"
+)
+
+type Component struct {
+	Name     PDPComponentName `json:"name"`
+	Type     string           `json:"type"`
+	Position string           `json:"position"`
+	Typename string           `json:"__typename"`
+}
 type Media struct {
 	Type            string `json:"type"`
 	URLOriginal     string `json:"urlOriginal"`
@@ -13,18 +30,42 @@ type Media struct {
 	Typename        string `json:"__typename"`
 }
 
-type ComponentData struct {
+type MediaComponentData struct {
 	Media    []Media       `json:"media"`
 	Videos   []interface{} `json:"videos"`
 	Typename string        `json:"__typename"`
 }
 
-type Component struct {
-	Name     string          `json:"name"`
-	Type     string          `json:"type"`
-	Position string          `json:"position"`
-	Data     []ComponentData `json:"data"`
-	Typename string          `json:"__typename"`
+type MediaComponent struct {
+	Component
+	Data []MediaComponentData
+}
+
+type ComponentParser struct {
+	Name      PDPComponentName `json:"name"`
+	Type      string           `json:"type"`
+	Component interface{}
+}
+
+func (p *ComponentParser) UnmarshalJSON(data []byte) error {
+	aux := &struct {
+		Name PDPComponentName `json:"name"`
+	}{}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	switch aux.Name {
+	case MediaComponentName:
+		component := MediaComponent{}
+		if err := json.Unmarshal(data, &component); err != nil {
+			log.Println("struct", aux.Name, err.Error(), string(data))
+			return err
+		}
+		p.Component = &component
+	}
+
+	return nil
 }
 
 type ProductTxStats struct {
@@ -98,13 +139,35 @@ type BasicInfo struct {
 	Typename         string         `json:"__typename"`
 }
 
+type PDPListComponents []interface{}
+
+func (p *PDPListComponents) UnmarshalJSON(data []byte) error {
+	aux := []*ComponentParser{}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	log.Println(aux, "asdasdasd")
+
+	fixcomponents := make([]interface{}, len(aux))
+	for ind, component := range aux {
+
+		fixcomponents[ind] = &component.Component
+
+	}
+
+	*p = fixcomponents
+
+	return nil
+}
+
 type PdpGetLayout struct {
-	RequestID  string      `json:"requestID"`
-	Name       string      `json:"name"`
-	PdpSession string      `json:"pdpSession"`
-	BasicInfo  BasicInfo   `json:"basicInfo"`
-	Components []Component `json:"components"`
-	Typename   string      `json:"__typename"`
+	RequestID  string            `json:"requestID"`
+	Name       string            `json:"name"`
+	PdpSession string            `json:"pdpSession"`
+	BasicInfo  BasicInfo         `json:"basicInfo"`
+	Components PDPListComponents `json:"components"`
+	Typename   string            `json:"__typename"`
 }
 
 type OwnerInfo struct {
