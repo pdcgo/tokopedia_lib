@@ -18,7 +18,7 @@ type GraphqlPayload struct {
 func (api *TokopediaApiPublic) graphqlDefaultHeader(req *http.Request) {
 
 	headers := map[string]string{
-		"User-Agent":   api.Session.PublicUa(),
+		"User-Agent":   api.Session.Ua,
 		"Content-Type": "application/json",
 	}
 
@@ -41,7 +41,10 @@ func (api *TokopediaApiPublic) NewGraphqlReq(payload *GraphqlPayload) *http.Requ
 		pdc_common.ReportError(err)
 	}
 	api.graphqlDefaultHeader(req)
-	api.Session.SetCookiesToReq(req)
+
+	for _, cookie := range api.Session.Cookies {
+		req.AddCookie(cookie)
+	}
 
 	return req
 }

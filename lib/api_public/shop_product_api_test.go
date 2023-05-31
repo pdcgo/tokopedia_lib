@@ -3,15 +3,14 @@ package api_public_test
 import (
 	"testing"
 
-	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestShopProducts(t *testing.T) {
-	pSession := tokopedia_lib.NewSessionPublic()
-	api := api_public.NewTokopediaApiPublic(pSession)
+
+	api := api_public.NewTokopediaApiPublic()
 
 	t.Run("test ShopProduct", func(t *testing.T) {
 		variable := model_public.ShopProductVar{

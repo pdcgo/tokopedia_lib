@@ -83,3 +83,22 @@ func (api *TokopediaApiPublic) ShopPageLayoutV2(payload *model_public.ShopPageGe
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
+
+func (api *TokopediaApiPublic) ShopSpeedQuery(payload *model_public.ShopIdStrVar) (*model_public.ShopSpeedQueryResp, error) {
+	gqlQuery := GraphqlPayload{
+		OperationName: "shopSpeedQuery",
+		Variables:     payload,
+		Query: `
+		query shopSpeedQuery($shopId: Int!) {
+		  shopSpeed: ProductShopChatSpeedQuery(shopId: $shopId) {
+			messageResponseTime
+			__typename
+		  }
+		}`,
+	}
+	req := api.NewGraphqlReq(&gqlQuery)
+
+	var hasil model_public.ShopSpeedQueryResp
+	err := api.SendRequest(req, &hasil)
+	return &hasil, err
+}

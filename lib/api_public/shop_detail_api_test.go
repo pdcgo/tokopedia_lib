@@ -3,7 +3,6 @@ package api_public_test
 import (
 	"testing"
 
-	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/stretchr/testify/assert"
@@ -11,8 +10,7 @@ import (
 
 func TestShopCoreInfo(t *testing.T) {
 
-	pSession := tokopedia_lib.NewSessionPublic()
-	api := api_public.NewTokopediaApiPublic(pSession)
+	api := api_public.NewTokopediaApiPublic()
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
 		variable := model_public.ShopCoreInfoVar{
@@ -27,8 +25,7 @@ func TestShopCoreInfo(t *testing.T) {
 
 func TestShopStatisticQuery(t *testing.T) {
 
-	pSession := tokopedia_lib.NewSessionPublic()
-	api := api_public.NewTokopediaApiPublic(pSession)
+	api := api_public.NewTokopediaApiPublic()
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
 		variable := model_public.ShopStatisticQueryVar{
@@ -43,8 +40,7 @@ func TestShopStatisticQuery(t *testing.T) {
 
 func TestGetShopOperationalHourStatus(t *testing.T) {
 
-	pSession := tokopedia_lib.NewSessionPublic()
-	api := api_public.NewTokopediaApiPublic(pSession)
+	api := api_public.NewTokopediaApiPublic()
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
 		variable := model_public.ShopIdVar{
@@ -58,8 +54,7 @@ func TestGetShopOperationalHourStatus(t *testing.T) {
 
 func TestVoucherListQuery(t *testing.T) {
 
-	pSession := tokopedia_lib.NewSessionPublic()
-	api := api_public.NewTokopediaApiPublic(pSession)
+	api := api_public.NewTokopediaApiPublic()
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
 		variable := model_public.ShopIdVarInt{
@@ -73,8 +68,7 @@ func TestVoucherListQuery(t *testing.T) {
 
 func TestShopNote(t *testing.T) {
 
-	pSession := tokopedia_lib.NewSessionPublic()
-	api := api_public.NewTokopediaApiPublic(pSession)
+	api := api_public.NewTokopediaApiPublic()
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
 		variable := model_public.ShopNoteVar{
@@ -82,6 +76,20 @@ func TestShopNote(t *testing.T) {
 			Sid: "11534215",
 		}
 		hasil, err := api.ShopNote(&variable)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil)
+	})
+}
+
+func TestSpeedShopQuery(t *testing.T) {
+
+	api := api_public.NewTokopediaApiPublic()
+
+	t.Run("test shopCoreInfo", func(t *testing.T) {
+		variable := model_public.ShopIdStrVar{
+			ShopID: "11534215",
+		}
+		hasil, err := api.ShopSpeedQuery(&variable)
 		assert.Nil(t, err)
 		assert.NotEmpty(t, hasil)
 	})
