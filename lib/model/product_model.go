@@ -81,18 +81,19 @@ type PreOrder struct {
 	Typename string `json:"__typename,omitempty"`
 }
 
+type InputPicture struct {
+	Data []Pictures `json:"data"`
+}
 type InputVariable struct {
-	Pictures struct {
-		Data []Pictures `json:"data"`
-	} `json:"pictures"`
-	ProductName   string   `json:"productName"`
-	Category      Category `json:"category"`
-	Condition     string   `json:"condition"`
-	MinOrder      int64    `json:"minOrder"`
-	PriceCurrency string   `json:"minCurrency"`
-	Weight        int64    `json:"weight"`
-	WeightUnit    string   `json:"weightUnit"`
-	MustInsurance bool     `json:"mustInsurance"`
+	Pictures      InputPicture `json:"pictures"`
+	ProductName   string       `json:"productName"`
+	Category      Category     `json:"category"`
+	Condition     string       `json:"condition"`
+	MinOrder      int64        `json:"minOrder"`
+	PriceCurrency string       `json:"minCurrency"`
+	Weight        int64        `json:"weight"`
+	WeightUnit    string       `json:"weightUnit"`
+	MustInsurance bool         `json:"mustInsurance"`
 	Menus         []struct {
 		MenuID string `json:"menuID"`
 	} `json:"menus"`

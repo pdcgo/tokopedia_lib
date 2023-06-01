@@ -404,12 +404,10 @@ func (p *PDPListComponents) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	log.Println(aux, "asdasdasd")
-
 	fixcomponents := make([]interface{}, len(aux))
 	for ind, component := range aux {
 
-		fixcomponents[ind] = &component.Component
+		fixcomponents[ind] = component.Component
 
 	}
 
