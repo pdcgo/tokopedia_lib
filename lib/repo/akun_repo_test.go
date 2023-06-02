@@ -1,9 +1,9 @@
-package upload_app_test
+package repo_test
 
 import (
 	"testing"
 
-	"github.com/pdcgo/tokopedia_lib/app/upload_app"
+	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/tokopedia_lib/scenario"
 	"github.com/stretchr/testify/assert"
 )
@@ -11,29 +11,29 @@ import (
 func TestAkunIterate(t *testing.T) {
 	db := scenario.GetDb()
 
-	status := upload_app.AkunUploadStatus{
+	status := repo.AkunUploadStatus{
 		LimitUpload: 200,
 		Active:      true,
 	}
-	db.Save(&upload_app.AkunItem{
+	db.Save(&repo.AkunItem{
 		Username:         "pucung@gmail.com",
 		AkunUploadStatus: status,
 	})
 
-	db.Save(&upload_app.AkunItem{
+	db.Save(&repo.AkunItem{
 		Username:         "kinanthi@gmail.com",
 		AkunUploadStatus: status,
 	})
-	db.Save(&upload_app.AkunItem{
+	db.Save(&repo.AkunItem{
 		Username:         "mijil@gmail.com",
 		AkunUploadStatus: status,
 	})
-	db.Save(&upload_app.AkunItem{
+	db.Save(&repo.AkunItem{
 		Username:         "gambuh@gmail.com",
 		AkunUploadStatus: status,
 	})
 
-	iter := upload_app.NewAkunUploadIterator(db)
+	iter := repo.NewAkunUploadIterator(db)
 	akun, _, _, err := iter.Get()
 	assert.NotEmpty(t, akun)
 	assert.Nil(t, err)
@@ -69,9 +69,5 @@ func TestAkunIterate(t *testing.T) {
 		t.Log("data status", data)
 		assert.NotEmpty(t, data)
 		assert.Nil(t, err)
-	})
-
-	t.Run("test loop akun tidak ada akun lagi tpi ada task", func(t *testing.T) {
-		t.Error("not implemented")
 	})
 }

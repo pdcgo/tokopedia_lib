@@ -8,9 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestVarianCombinatioNQuery(t *testing.T) {
+func TestVarianCombinationQuery(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	variable := model_public.VariantCategoryCombinationVar{
 		CategoryID:      2830,

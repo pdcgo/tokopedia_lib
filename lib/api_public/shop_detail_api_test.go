@@ -10,7 +10,8 @@ import (
 
 func TestShopCoreInfo(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
 		variable := model_public.ShopCoreInfoVar{
@@ -25,7 +26,8 @@ func TestShopCoreInfo(t *testing.T) {
 
 func TestShopStatisticQuery(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
 		variable := model_public.ShopStatisticQueryVar{
@@ -40,7 +42,8 @@ func TestShopStatisticQuery(t *testing.T) {
 
 func TestGetShopOperationalHourStatus(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
 		variable := model_public.ShopIdVar{
@@ -54,7 +57,8 @@ func TestGetShopOperationalHourStatus(t *testing.T) {
 
 func TestVoucherListQuery(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
 		variable := model_public.ShopIdVarInt{
@@ -68,7 +72,8 @@ func TestVoucherListQuery(t *testing.T) {
 
 func TestShopNote(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
 		variable := model_public.ShopNoteVar{
@@ -83,7 +88,8 @@ func TestShopNote(t *testing.T) {
 
 func TestSpeedShopQuery(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	t.Run("test shopCoreInfo", func(t *testing.T) {
 		variable := model_public.ShopIdStrVar{

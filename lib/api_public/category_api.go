@@ -21,10 +21,13 @@ func (api *TokopediaApiPublic) CategoryAllListLite() (*model_public.CategoryAllL
 }
 
 // category recom
-func (api *TokopediaApiPublic) JarvisRecommendation(payload *model_public.JarvisRecommendationVar) (*model_public.JarvisRecommendationResp, error) {
+func (api *TokopediaApiPublic) JarvisRecommendation(prodname string) (*model_public.JarvisRecommendationResp, error) {
+	variable := model_public.JarvisRecommendationVar{
+		ProductName: prodname,
+	}
 	gqlQuery := GraphqlPayload{
 		OperationName: "jarvisRecommendation",
-		Variables:     payload,
+		Variables:     variable,
 		Query:         query.JarvisRecommendation,
 	}
 	req := api.NewGraphqlReq(&gqlQuery)

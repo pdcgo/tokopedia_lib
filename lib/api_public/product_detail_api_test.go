@@ -10,7 +10,8 @@ import (
 
 func TestPdpGetlayoutQuery(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	variable := model_public.PdpGetlayoutQueryVar{
 		ShopDomain: "toko-cctv-1",
@@ -37,7 +38,8 @@ func TestPdpGetlayoutQuery(t *testing.T) {
 }
 
 func TestPdpGetDataP2(t *testing.T) {
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	variable := model_public.PdpGetDataP2Var{
 		Affiliate:  nil,
@@ -63,7 +65,8 @@ func TestPdpGetDataP2(t *testing.T) {
 
 func TestPdpShopNote(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	variable := model_public.ShopIdVar{
 		ShopID: "6218809",
@@ -75,7 +78,8 @@ func TestPdpShopNote(t *testing.T) {
 
 func TestProductRatingandTopics(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	variable := model_public.ProductIdVar{
 		ProductId: "2873462702",
@@ -87,7 +91,8 @@ func TestProductRatingandTopics(t *testing.T) {
 
 func TestPdpGetReiewImageQuery(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	variable := model_public.PdpGetReiewImageQueryVar{
 		ProductID: "2873462702",
@@ -101,7 +106,8 @@ func TestPdpGetReiewImageQuery(t *testing.T) {
 
 func TestProductReviewList(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	variable := model_public.ProductReviewListVar{
 		ProductID: "2873462702",
@@ -117,7 +123,8 @@ func TestProductReviewList(t *testing.T) {
 
 func TestRecomWidget(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	variable := model_public.RecomWidgetVar{
 		UserID:         229210063,

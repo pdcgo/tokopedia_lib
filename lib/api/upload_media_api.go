@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/textproto"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/pdcgo/common_conf/pdc_common"
@@ -31,15 +30,13 @@ func getBoundary() string {
 	return "----WebKitFormBoundary" + s
 }
 
-func headerUploadImage(fileSize int64, boundary string) map[string]string {
-	contentLength := strconv.Itoa(int(fileSize))
+func headerUploadImage(boundary string) map[string]string {
 
 	headers := map[string]string{
-		"Content-Length": contentLength,
-		"User-Agent":     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
-		"Content-Type":   "multipart/form-data; boundary=" + boundary,
-		"Accept":         "*/*",
-		"Origin":         "https://seller.tokopedia.com",
+		"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
+		"Content-Type": "multipart/form-data; boundary=" + boundary,
+		"Accept":       "*/*",
+		"Origin":       "https://seller.tokopedia.com",
 	}
 	return headers
 }
@@ -65,16 +62,21 @@ type UploadMediaResp struct {
 	} `json:"data"`
 }
 
-func (api *TokopediaApi) UploadProductImage(locfile string) (*UploadMediaResp, error) {
+func (api *TokopediaApi) UploadImageFromUrl(uri string) (*UploadMediaResp, error) {
+	res, err := ClientApi.Get(uri)
+
+	if err != nil {
+		return nil, err
+	}
+
+	data := res.Body
+	return api.UploadProductImage(data)
+
+}
+
+func (api *TokopediaApi) UploadProductImage(content io.Reader) (*UploadMediaResp, error) {
 	uri := "https://upedia.tokopedia.net/v1/upload/image/VqbcmM"
 
-	file, err := os.Open(locfile)
-	if err != nil {
-		pdc_common.ReportError(err)
-	}
-	defer file.Close()
-
-	fileStat, _ := file.Stat()
 	boundary := getBoundary()
 
 	body := &bytes.Buffer{}
@@ -82,26 +84,19 @@ func (api *TokopediaApi) UploadProductImage(locfile string) (*UploadMediaResp, e
 	writer.SetBoundary(boundary)
 
 	part, _ := CreateFormFile(writer, "file_upload", "blob")
-	_, errCopy := io.Copy(part, file)
+	_, err := io.Copy(part, content)
 	if err != nil {
-		log.Println(errCopy)
+		return nil, err
 	}
 	writer.Close()
 
 	r, _ := http.NewRequest("POST", uri, body)
-	headers := headerUploadImage(fileStat.Size(), boundary)
+	headers := headerUploadImage(boundary)
 	for key, value := range headers {
 		r.Header.Set(key, value)
 	}
 
-	client := &http.Client{
-		// Transport: &http.Transport{
-		// 	Proxy: http.ProxyURL(&url.URL{
-		// 		Scheme: "http",
-		// 		Host:   "localhost:8888",
-		// 	})},
-	}
-	res, err := client.Do(r)
+	res, err := ClientApi.Do(r)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +148,7 @@ func (api *TokopediaApi) UploadImageChat(msgId string, locfile string) (*ImageCh
 	writer.Close()
 
 	r := api.NewRequest("POST", uri, nil, body)
-	headers := headerUploadImage(fileStat.Size(), boundary)
+	headers := headerUploadImage(boundary)
 	for key, value := range headers {
 		r.Header.Set(key, value)
 	}

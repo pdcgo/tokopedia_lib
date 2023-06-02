@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pdcgo/tokopedia_lib/app/upload_app"
+	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -28,7 +28,7 @@ type BulkItem struct {
 }
 
 type AkunUpdatePayload struct {
-	Data []*upload_app.AkunItem `json:"data"`
+	Data []*repo.AkunItem `json:"data"`
 }
 
 type AkunDeletePayload struct {
@@ -41,10 +41,10 @@ type AkunResetPayload struct {
 
 type AkunApi struct {
 	db   *gorm.DB
-	repo *upload_app.AkunRepo
+	repo *repo.AkunRepo
 }
 
-func NewAkunApi(db *gorm.DB, repo *upload_app.AkunRepo) *AkunApi {
+func NewAkunApi(db *gorm.DB, repo *repo.AkunRepo) *AkunApi {
 	return &AkunApi{
 		db:   db,
 		repo: repo,
@@ -66,10 +66,10 @@ func (api *AkunApi) BulkAdd(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, &hasil)
 		return
 	}
-	akuns := make([]*upload_app.AkunItem, len(payload.Data))
+	akuns := make([]*repo.AkunItem, len(payload.Data))
 
 	for ind, bitem := range payload.Data {
-		akuns[ind] = &upload_app.AkunItem{
+		akuns[ind] = &repo.AkunItem{
 			Username: bitem.Username,
 			Password: bitem.Password,
 			Secret:   bitem.Secret,
@@ -96,14 +96,14 @@ type AkunListQuery struct {
 
 type AkunListResponse struct {
 	Response
-	Data []*upload_app.AkunItem `json:"data"`
+	Data []*repo.AkunItem `json:"data"`
 
 	Pagination Pagination `json:"pagination"`
 }
 
 func (api *AkunApi) List(ctx *gin.Context) {
 	hasil := AkunListResponse{
-		Data: []*upload_app.AkunItem{},
+		Data: []*repo.AkunItem{},
 	}
 	query := AkunListQuery{
 		Offset: 0,
@@ -118,7 +118,7 @@ func (api *AkunApi) List(ctx *gin.Context) {
 	}
 
 	gentx := func() *gorm.DB {
-		tx := api.db.Model(&upload_app.AkunItem{})
+		tx := api.db.Model(&repo.AkunItem{})
 
 		if query.Search != "" {
 			tx = tx.Where("username LIKE ?", "%"+query.Search+"%")
@@ -184,7 +184,7 @@ func (api *AkunApi) Delete(ctx *gin.Context) {
 	}
 
 	for _, data := range payload.Usernames {
-		err = api.db.Delete(&upload_app.AkunItem{}, data).Error
+		err = api.db.Delete(&repo.AkunItem{}, data).Error
 		if err != nil {
 			hasil.Msg = "error"
 			hasil.Err = err.Error()
@@ -211,7 +211,7 @@ func (api *AkunApi) Delete(ctx *gin.Context) {
 // 	ctx.JSON(http.StatusOK, &hasil)
 // }
 
-func RegisterAkunApi(g *v2_gots_sdk.SdkGroup, db *gorm.DB, repo *upload_app.AkunRepo) {
+func RegisterAkunApi(g *v2_gots_sdk.SdkGroup, db *gorm.DB, repo *repo.AkunRepo) {
 
 	api := NewAkunApi(db, repo)
 

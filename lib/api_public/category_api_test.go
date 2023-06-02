@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
-	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCategoryAllListLite(t *testing.T) {
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	hasil, err := api.CategoryAllListLite()
 	assert.NotEmpty(t, hasil)
@@ -17,12 +17,11 @@ func TestCategoryAllListLite(t *testing.T) {
 }
 
 func TestJarvisRecommendation(t *testing.T) {
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
-	variable := model_public.JarvisRecommendationVar{
-		ProductName: "sepatu",
-	}
-	hasil, err := api.JarvisRecommendation(&variable)
+	hasil, err := api.JarvisRecommendation("New Arrival Gamis Polos Simpel | Size S M L XL XXL | Dress Polos Gamis Jumbo BIg Size")
+	t.Log(hasil)
 	assert.NotEmpty(t, hasil)
 	assert.Nil(t, err)
 }

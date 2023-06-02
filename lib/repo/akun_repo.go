@@ -1,6 +1,7 @@
-package upload_app
+package repo
 
 import (
+	"sync"
 	"time"
 
 	"gorm.io/gorm"
@@ -23,12 +24,14 @@ type AkunUploadStatus struct {
 
 type AkunItem struct {
 	AkunUploadStatus
-	Username   string `json:"username" gorm:"primarykey"`
-	Password   string `json:"password"`
-	Secret     string `json:"secret"`
-	Markup     string `json:"markup"`
-	Spin       string `json:"spin"`
-	Collection string `json:"collection"`
+	Username     string `json:"username" gorm:"primarykey"`
+	Password     string `json:"password"`
+	Secret       string `json:"secret"`
+	Markup       string `json:"markup"`
+	Spin         string `json:"spin"`
+	Collection   string `json:"collection"`
+	Hastag       string `json:"hastag"`
+	TitlePattern string `json:"title_pattern"`
 }
 
 type AkunRepo struct {
@@ -46,6 +49,7 @@ func NewAkunRepo(db *gorm.DB) *AkunRepo {
 }
 
 type AkunUploadIterator struct {
+	sync.Mutex
 	db *gorm.DB
 }
 
@@ -84,6 +88,9 @@ func (iter *AkunUploadIterator) DeactiveAll() error {
 }
 
 func (iter *AkunUploadIterator) Get() (akun *AkunItem, updateinc func(count int, err error) error, finish func() error, err error) {
+	iter.Lock()
+	defer iter.Unlock()
+
 	akun = &AkunItem{}
 	updateinc = func(count int, err error) error { return nil }
 	finish = func() error { return nil }

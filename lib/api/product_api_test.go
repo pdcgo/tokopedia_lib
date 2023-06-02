@@ -4,15 +4,14 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/model"
+	"github.com/pdcgo/tokopedia_lib/scenario"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestProductApi(t *testing.T) {
-	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.DevMode = true
-	apiSession, saveSession, _ := driver.CreateApi()
+
+	apiSession, saveSession := scenario.GetTokopediaApiClient()
 	defer saveSession()
 
 	t.Run("product list meta", func(t *testing.T) {
@@ -24,10 +23,7 @@ func TestProductApi(t *testing.T) {
 }
 
 func TestProductAddApi(t *testing.T) {
-	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.DevMode = true
-	t.Log("muktar jangan test add product di otomatis. akunnya bukan milik kita")
-	// apiSession, saveSession, _ := driver.CreateApi()
+	// apiSession, saveSession := scenario.GetTokopediaApiClient()
 	// defer saveSession()
 
 	// t.Run("product add", func(t *testing.T) {
@@ -81,9 +77,8 @@ func TestProductAddApi(t *testing.T) {
 }
 
 func TestProductList(t *testing.T) {
-	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.DevMode = true
-	apiSession, saveSession, _ := driver.CreateApi()
+
+	apiSession, saveSession := scenario.GetTokopediaApiClient()
 	defer saveSession()
 
 	t.Run("test get product list", func(t *testing.T) {
@@ -121,9 +116,8 @@ func TestProductList(t *testing.T) {
 }
 
 func TestGetProductV3(t *testing.T) {
-	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.DevMode = true
-	apiSession, saveSession, _ := driver.CreateApi()
+
+	apiSession, saveSession := scenario.GetTokopediaApiClient()
 	defer saveSession()
 
 	t.Run("test getProductV3", func(t *testing.T) {

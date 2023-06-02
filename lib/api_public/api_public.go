@@ -3,8 +3,8 @@ package api_public
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/pdcgo/common_conf/pdc_common"
@@ -12,11 +12,7 @@ import (
 
 var ClientApi *http.Client = &http.Client{
 	Transport: &http.Transport{
-		MaxIdleConnsPerHost: 100,
-		Proxy: http.ProxyURL(&url.URL{
-			Scheme: "http",
-			Host:   "localhost:8888",
-		}),
+		MaxIdleConnsPerHost: 5,
 	},
 	Timeout: 30 * time.Second,
 }
@@ -58,7 +54,7 @@ func (api *TokopediaApiPublic) SendRequest(req *http.Request, hasil any) error {
 	}
 
 	body, _ := io.ReadAll(res.Body)
-	// log.Println(string(body))
+	log.Println(string(body))
 	err = json.Unmarshal(body, hasil)
 	if err != nil {
 		return pdc_common.ReportError(err)
@@ -76,18 +72,18 @@ func defaultHeader() map[string]string {
 	return headers
 }
 
-func NewTokopediaApiPublic() *TokopediaApiPublic {
+func NewTokopediaApiPublic() (*TokopediaApiPublic, error) {
 	headers := defaultHeader()
 	req, err := http.NewRequest(http.MethodGet, "https://www.tokopedia.com/", nil)
 	if err != nil {
-		pdc_common.ReportError(err)
+		return nil, err
 	}
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
 	resp, err := ClientApi.Do(req)
 	if err != nil {
-		pdc_common.ReportError(err)
+		return nil, err
 	}
 
 	pSession := SessionPublic{
@@ -97,5 +93,5 @@ func NewTokopediaApiPublic() *TokopediaApiPublic {
 
 	return &TokopediaApiPublic{
 		Session: pSession,
-	}
+	}, nil
 }

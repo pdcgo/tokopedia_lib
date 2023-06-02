@@ -2,20 +2,12 @@ package upload_app
 
 import (
 	"context"
-	"log"
 	"sync"
-	"time"
 
-	"github.com/pdcgo/common_conf/pdc_common"
-	"github.com/pdcgo/tokopedia_lib"
-	"github.com/pdcgo/tokopedia_lib/lib/api"
-	"github.com/pdcgo/tokopedia_lib/lib/uploader"
+	"github.com/pdcgo/tokopedia_lib/app/upload_app/shopee_flow"
+	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"gorm.io/gorm"
 )
-
-type UploadConfig struct {
-	Concurent int
-}
 
 type RunStatus string
 
@@ -26,25 +18,20 @@ const (
 
 type UploadAppStatus struct {
 	Status RunStatus `json:"status"`
-	UploadStatus
+	repo.UploadStatus
 }
 
 type UploadApp struct {
 	sync.Mutex
-	limitGuard       chan int
-	iterator         *AkunUploadIterator
-	Ctx              context.Context
-	Cancel           func()
-	RunStatus        RunStatus
-	HandlerGenerator func(akun *AkunItem) []uploader.UploadHandler
+	Ctx       context.Context
+	Cancel    func()
+	RunStatus RunStatus
+	flow      *shopee_flow.ShopeeToTopedFlow
 }
 
-func NewUploadApp(db *gorm.DB, config *UploadConfig) *UploadApp {
-	iterator := NewAkunUploadIterator(db)
+func NewUploadApp(db *gorm.DB) *UploadApp {
 	return &UploadApp{
-		limitGuard: make(chan int, config.Concurent),
-		iterator:   iterator,
-		Cancel:     func() {},
+		Cancel: func() {},
 	}
 }
 
@@ -57,7 +44,7 @@ func (app *UploadApp) CreateNewContext() {
 }
 
 func (app *UploadApp) Status() (*UploadAppStatus, error) {
-	stat, err := app.iterator.GetStatus()
+	stat, err := app.flow.AkunIterator.GetStatus()
 	status := UploadAppStatus{
 		Status:       app.RunStatus,
 		UploadStatus: *stat,
@@ -66,73 +53,13 @@ func (app *UploadApp) Status() (*UploadAppStatus, error) {
 
 }
 
-func (app *UploadApp) CreateApi(akun *AkunItem) (*api.TokopediaApi, func(), error) {
-	driver, err := tokopedia_lib.NewDriverAccount(akun.Username, akun.Password, akun.Secret)
-	if err != nil {
-		return nil, func() {}, err
-	}
-	return driver.CreateApi()
-}
+func (app *UploadApp) Start() {
+	app.Cancel()
+	app.CreateNewContext()
 
-func (app *UploadApp) RunTask() {
-	defer func() {
-		<-app.limitGuard
-	}()
-
-	akun, updateinc, _, err := app.iterator.Get()
-	if err != nil {
-		pdc_common.ReportError(err)
-		return
-	}
-
-	api, saveApi, err := app.CreateApi(akun)
-	defer saveApi()
-	if err != nil {
-		pdc_common.ReportError(err)
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(app.Ctx, time.Minute*3)
-	defer cancel()
-
-	uploaderItem := uploader.NewTokopediaUploader(ctx, api)
-	handlers := app.HandlerGenerator(akun)
-	_, err = uploaderItem.RunUploader(handlers...)
-
-	if err != nil {
-		updateinc(0, err)
-		pdc_common.ReportError(err)
-		return
-	} else {
-		updateinc(1, err)
-	}
-
-}
-
-func (app *UploadApp) RunUpload() {
 	app.RunStatus = RUNNING
 	defer func() {
 		app.RunStatus = STOP
 	}()
-
-MainLoop:
-	for {
-		select {
-		case app.limitGuard <- 1:
-			go app.RunTask()
-		case <-app.Ctx.Done():
-			break MainLoop
-		}
-	}
-
-}
-
-func (app *UploadApp) Start() {
-	app.Cancel()
-	app.CreateNewContext()
-	app.iterator.Reset()
-	log.Println("upload running")
-
-	go app.RunUpload()
 
 }

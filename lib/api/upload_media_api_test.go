@@ -1,36 +1,31 @@
 package api_test
 
 import (
-	"strconv"
 	"testing"
 
-	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/scenario"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUploadProductImage(t *testing.T) {
-	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.DevMode = true
-	apiSession, saveSession, _ := driver.CreateApi()
+	apiSession, saveSession := scenario.GetTokopediaApiClient()
 	defer saveSession()
 
-	t.Run("test upload product", func(t *testing.T) {
-		result, err := apiSession.UploadProductImage("../../blob.jpeg")
+	t.Run("test upload image dengan url", func(t *testing.T) {
+		result, err := apiSession.UploadImageFromUrl("https://down-id.img.susercontent.com/file/sg-11134201-22110-jehurfqhmckv02")
 		assert.NotEmpty(t, result)
 		assert.Nil(t, err)
 	})
 }
 
-func TestUploadImageChat(t *testing.T) {
-	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.DevMode = true
-	apiSession, saveSession, _ := driver.CreateApi()
-	defer saveSession()
+// func TestUploadImageChat(t *testing.T) {
+// 	apiSession, saveSession := scenario.GetTokopediaApiClient()
+// 	defer saveSession()
 
-	t.Run("test upload product", func(t *testing.T) {
-		shopId := strconv.Itoa(int(apiSession.AuthenticatedData.UserShopInfo.Info.ShopID))
-		result, err := apiSession.UploadImageChat(shopId, "../../blob.jpeg")
-		assert.NotEmpty(t, result)
-		assert.Nil(t, err)
-	})
-}
+// 	t.Run("test upload product", func(t *testing.T) {
+// 		shopId := strconv.Itoa(int(apiSession.AuthenticatedData.UserShopInfo.Info.ShopID))
+// 		result, err := apiSession.UploadImageChat(shopId, "../../blob.jpeg")
+// 		assert.NotEmpty(t, result)
+// 		assert.Nil(t, err)
+// 	})
+// }

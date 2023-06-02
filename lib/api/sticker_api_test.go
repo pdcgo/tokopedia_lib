@@ -6,9 +6,7 @@ import (
 
 // /// Cross origin is not allowed
 func TestChatGetGroupSticker(t *testing.T) {
-	// driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	// driver.DevMode = true
-	// apiSession, saveSession, _ := driver.CreateApi()
+	// apiSession, saveSession := scenario.GetTokopediaApiClient()
 	// defer saveSession()
 
 	// variable := model_public.TypeVar{
@@ -21,9 +19,7 @@ func TestChatGetGroupSticker(t *testing.T) {
 
 // /// Cross origin is not allowed
 func TestChatGetBundleSticker(t *testing.T) {
-	// driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	// driver.DevMode = true
-	// apiSession, saveSession, _ := driver.CreateApi()
+	// apiSession, saveSession := scenario.GetTokopediaApiClient()
 	// defer saveSession()
 
 	// variable := model_public.ChatGetBundleStickerVar{

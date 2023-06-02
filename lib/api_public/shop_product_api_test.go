@@ -10,7 +10,8 @@ import (
 
 func TestShopProducts(t *testing.T) {
 
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	t.Run("test ShopProduct", func(t *testing.T) {
 		variable := model_public.ShopProductVar{

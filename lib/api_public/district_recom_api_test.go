@@ -9,7 +9,8 @@ import (
 )
 
 func TestLocDisctricRecommendation(t *testing.T) {
-	api := api_public.NewTokopediaApiPublic()
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
 
 	variable := model_public.LocDisctricRecommendationVar{
 		Page:  "1",

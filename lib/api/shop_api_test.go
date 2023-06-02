@@ -3,14 +3,13 @@ package api_test
 import (
 	"testing"
 
-	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/scenario"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestShopApi(t *testing.T) {
-	driver, _ := tokopedia_lib.NewDriverAccount("bethdunn892@outlook.com", "MZT2Zk8U", "FSR3 CTR2 5ZJX XIL5 TVK6 E72R HSRA U5GW")
-	driver.DevMode = true
-	api, saveSession, _ := driver.CreateApi()
+
+	api, saveSession := scenario.GetTokopediaApiClient()
 	defer saveSession()
 
 	t.Run("test shop info api", func(t *testing.T) {

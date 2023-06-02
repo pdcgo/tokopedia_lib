@@ -16,7 +16,10 @@ import (
 // otp : IULIWGH6TIK3CZBKHGE27DBRLQ5LR5WQ
 
 func CreateCloneHandler(uri string) []uploader.UploadHandler {
-	publicApi := api_public.NewTokopediaApiPublic()
+	publicApi, err := api_public.NewTokopediaApiPublic()
+	if err != nil {
+		panic(err)
+	}
 
 	handlers := []uploader.UploadHandler{}
 
