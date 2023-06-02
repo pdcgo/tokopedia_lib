@@ -19,5 +19,15 @@ func TestParsingPDPLayout(t *testing.T) {
 
 	err = json.Unmarshal(data, &hasil)
 	assert.Nil(t, err)
-	t.Log(hasil.Components)
+
+	var foundmedia bool
+	for _, comp := range hasil.Components {
+		switch component := comp.(type) {
+		case *model_public.MediaComponent:
+			t.Log(component)
+			foundmedia = true
+		}
+	}
+	assert.True(t, foundmedia)
+
 }

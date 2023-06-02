@@ -6,6 +6,7 @@ import (
 
 	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
+	"github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/pdcgo/tokopedia_lib/lib/uploader"
 )
@@ -18,12 +19,32 @@ func CreateCloneHandler(uri string) []uploader.UploadHandler {
 	publicApi := api_public.NewTokopediaApiPublic()
 
 	handlers := []uploader.UploadHandler{}
+
+	handlers = append(handlers, func(eventcore uploader.EmitFunc, tokpedup *uploader.TokopediaUploader, payload *uploader.PayloadUpload, sub *common_concept.Subscriber) error {
+
+		// semua image ada di component basic
+
+		return nil
+	})
+
 	handlers = append(handlers, func(eventcore uploader.EmitFunc, tokpedup *uploader.TokopediaUploader, payload *uploader.PayloadUpload, sub *common_concept.Subscriber) error {
 		dataurl := NewPublicUrl(uri)
 
 		_, err := publicApi.PdpGetlayoutQuery(dataurl.LayoutVar)
 		if err != nil {
 			return err
+		}
+
+		payload.Lock()
+		defer payload.Unlock()
+
+		payload.Input.Pictures = model.InputPicture{
+			Data: []model.Pictures{
+				model.Pictures{
+					UploadIds: "asd",
+				},
+				model.Pictures{},
+			},
 		}
 
 		return nil

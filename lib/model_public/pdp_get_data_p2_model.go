@@ -8,7 +8,30 @@ import (
 type PDPComponentName string
 
 const (
-	MediaComponentName PDPComponentName = "product_media"
+	MediaComponentName               PDPComponentName = "product_media"
+	TickerInfoComponentName          PDPComponentName = "ticker_info"
+	VariantOptionsComponentName      PDPComponentName = "variant_options"
+	ProductContentComponentName      PDPComponentName = "product_content"
+	NewVariantOptionsComponentName   PDPComponentName = "new_variant_options"
+	ProductDetailComponentName       PDPComponentName = "product_detail"
+	ObatKerasComponentName           PDPComponentName = "obat_keras"
+	ShopCredibilityComponentName     PDPComponentName = "shop_credibility"
+	ShipmentComponentName            PDPComponentName = "shipment"
+	ShippingComponentName            PDPComponentName = "shipping"
+	ShopVoucerComponentName          PDPComponentName = "shop_voucher"
+	OfferingComponentName            PDPComponentName = "offerings"
+	InstallmentPaylaterComponentName PDPComponentName = "installment_paylater"
+	QRCodeComponentName              PDPComponentName = "QRCode"
+	WholesaleComponentName           PDPComponentName = "wholesale"
+	ProtectionComponentName          PDPComponentName = "protection"
+	ReportComponentName              PDPComponentName = "report"
+	ReviewComponentName              PDPComponentName = "review"
+	TdnTopadsComponentName           PDPComponentName = "tdn_topads"
+	DiscussionFaqComponentName       PDPComponentName = "discussion_faq"
+	Pdp1ComponentName                PDPComponentName = "pdp_1"
+	Pdp2ComponentName                PDPComponentName = "pdp_2"
+	Pdp3ComponentName                PDPComponentName = "pdp_3"
+	Pdp4ComponentName                PDPComponentName = "pdp_4"
 )
 
 type Component struct {
@@ -38,7 +61,206 @@ type MediaComponentData struct {
 
 type MediaComponent struct {
 	Component
-	Data []MediaComponentData
+	Data     []MediaComponentData `json:"data"`
+	Typename string               `json:"__typename"`
+}
+
+type InterfaceDataComp struct {
+	Component
+	Data     []interface{} `json:"data"`
+	Typename string        `json:"__typename"`
+}
+
+type GlobalDataComponent struct {
+	Icon      string        `json:"icon"`
+	Title     string        `json:"title"`
+	IsApplink bool          `json:"isApplink"`
+	Applink   string        `json:"applink"`
+	Content   []interface{} `json:"content"`
+	Typename  string        `json:"__typename"`
+}
+
+type ProductDetailContent struct {
+	Title        string `json:"title"`
+	Subtitle     string `json:"subtitle"`
+	Applink      string `json:"applink"`
+	ShowAtFront  bool   `json:"showAtFront"`
+	IsAnnotation bool   `json:"isAnnotation"`
+	Typename     string `json:"__typename"`
+}
+
+type ProductDetailData struct {
+	Content  []ProductDetailContent `json:"content"`
+	Typename string                 `json:"__typename"`
+}
+
+type Preorder struct {
+	Duration       int    `json:"duration"`
+	TimeUnit       string `json:"timeUnit"`
+	IsActive       bool   `json:"isActive"`
+	PreorderInDays int    `json:"preorderInDays"`
+	Typename       string `json:"__typename"`
+}
+
+type ProductCampaign struct {
+	CampaignID          string `json:"campaignID"`
+	CampaignType        string `json:"campaignType"`
+	CampaignTypeName    string `json:"campaignTypeName"`
+	CampaignIdentifier  int    `json:"campaignIdentifier"`
+	Background          string `json:"background"`
+	OriginalPrice       int    `json:"originalPrice"`
+	Stock               int    `json:"stock"`
+	StockSoldPercentage int    `json:"stockSoldPercentage"`
+	StartDate           string `json:"startDate"`
+	EndDate             string `json:"endDate"`
+	EndDateUnix         string `json:"endDateUnix"`
+	AppLinks            string `json:"appLinks"`
+	IsAppsOnly          bool   `json:"isAppsOnly"`
+	IsActive            bool   `json:"isActive"`
+	HideGimmick         bool   `json:"hideGimmick"`
+	PercentageAmount    int    `json:"percentageAmount"`
+	DiscountedPrice     int    `json:"discountedPrice"`
+	OriginalStock       int    `json:"originalStock"`
+	Threshold           int    `json:"threshold"`
+	IsCheckImei         bool   `json:"isCheckImei,omitempty"`
+	DiscountPercentage  int    `json:"discountPercentage,omitempty"`
+	DiscountPrice       int    `json:"discountPrice,omitempty"`
+	MinOrder            int    `json:"minOrder,omitempty"`
+	Typename            string `json:"__typename"`
+}
+
+type ThematicCampaign struct {
+	AdditionalInfo string `json:"additionalInfo"`
+	Background     string `json:"background"`
+	CampaignName   string `json:"campaignName"`
+	Icon           string `json:"icon"`
+	Typename       string `json:"__typename"`
+}
+
+type ProductStock struct {
+	UseStock     bool   `json:"useStock"`
+	Value        string `json:"value"`
+	StockWording string `json:"stockWording"`
+	Typename     string `json:"__typename"`
+}
+type IsCashback struct {
+	Percentage int    `json:"percentage"`
+	Typename   string `json:"__typename"`
+}
+
+type ProductPrice struct {
+	Value    int    `json:"value"`
+	Currency string `json:"currency"`
+	Typename string `json:"__typename"`
+}
+
+type ProductVariant struct {
+	IsVariant bool   `json:"isVariant"`
+	ParentID  string `json:"parentID"`
+	Typename  string `json:"__typename"`
+}
+
+type ProductContentData struct {
+	Name             string           `json:"name"`
+	Price            ProductPrice     `json:"price"`
+	Campaign         ProductCampaign  `json:"campaign"`
+	ThematicCampaign ThematicCampaign `json:"thematicCampaign"`
+	Stock            ProductStock     `json:"stock"`
+	Variant          ProductVariant   `json:"variant"`
+	Wholesale        []interface{}    `json:"wholesale"`
+	IsCashback       IsCashback       `json:"isCashback"`
+	IsTradeIn        bool             `json:"isTradeIn"`
+	IsOS             bool             `json:"isOS"`
+	IsPowerMerchant  bool             `json:"isPowerMerchant"`
+	IsWishlist       bool             `json:"isWishlist"`
+	IsCOD            bool             `json:"isCOD"`
+	Preorder         Preorder         `json:"preorder"`
+	Typename         string           `json:"__typename"`
+}
+
+type VariantStock struct {
+	Stock            string `json:"stock"`
+	IsBuyable        bool   `json:"isBuyable"`
+	StockWordingHTML string `json:"stockWordingHTML"`
+	MinimumOrder     string `json:"minimumOrder"`
+	MaximumOrder     string `json:"maximumOrder"`
+	Typename         string `json:"__typename"`
+}
+
+type Picture struct {
+	URLOriginal  string `json:"urlOriginal"`
+	URLThumbnail string `json:"urlThumbnail"`
+	Typename     string `json:"__typename"`
+}
+
+type VariantOption struct {
+	Picture                Picture `json:"picture"`
+	ProductVariantOptionID string  `json:"productVariantOptionID"`
+	VariantUnitValueID     string  `json:"variantUnitValueID"`
+	Value                  string  `json:"value"`
+	Hex                    string  `json:"hex"`
+	Stock                  string  `json:"stock"`
+	Typename               string  `json:"__typename"`
+}
+
+type Variant struct {
+	ProductVariantID string          `json:"productVariantID"`
+	VariantID        string          `json:"variantID"`
+	Name             string          `json:"name"`
+	Identifier       string          `json:"identifier"`
+	Option           []VariantOption `json:"option"`
+	Typename         string          `json:"__typename"`
+}
+
+type NewVariantChild struct {
+	ProductID        string           `json:"productID"`
+	Price            int              `json:"price"`
+	PriceFmt         string           `json:"priceFmt"`
+	OptionID         []int            `json:"optionID"`
+	OptionName       []string         `json:"optionName"`
+	ProductName      string           `json:"productName"`
+	ProductURL       string           `json:"productURL"`
+	Picture          Picture          `json:"picture"`
+	Stock            VariantStock     `json:"stock"`
+	IsCOD            bool             `json:"isCOD"`
+	IsWishlist       bool             `json:"isWishlist"`
+	CampaignInfo     ProductCampaign  `json:"campaignInfo"`
+	ThematicCampaign ThematicCampaign `json:"thematicCampaign"`
+	Typename         string           `json:"__typename"`
+}
+type NewVariantOptionData struct {
+	ErrorCode     int               `json:"errorCode"`
+	ParentID      string            `json:"parentID"`
+	DefaultChild  string            `json:"defaultChild"`
+	SizeChart     string            `json:"sizeChart"`
+	TotalStockFmt string            `json:"totalStockFmt"`
+	Variants      []Variant         `json:"variants"`
+	Children      []NewVariantChild `json:"children"`
+	Typename      string            `json:"__typename"`
+}
+
+type NewVariantOptionsComponent struct {
+	Component
+	Data     []NewVariantOptionData `json:"data"`
+	Typename string                 `json:"__typename"`
+}
+
+type ProductContentComponent struct {
+	Component
+	Data     []ProductContentData `json:"data"`
+	Typename string               `json:"__typename"`
+}
+
+type GlobalComponent struct {
+	Component
+	Data     []GlobalDataComponent `json:"data"`
+	Typename string                `json:"__typename"`
+}
+
+type ProductDetailComponent struct {
+	Component
+	Data     []ProductDetailData `json:"data"`
+	Typename string              `json:"__typename"`
 }
 
 type ComponentParser struct {
@@ -58,6 +280,41 @@ func (p *ComponentParser) UnmarshalJSON(data []byte) error {
 	switch aux.Name {
 	case MediaComponentName:
 		component := MediaComponent{}
+		if err := json.Unmarshal(data, &component); err != nil {
+			log.Println("struct", aux.Name, err.Error(), string(data))
+			return err
+		}
+		p.Component = &component
+	case ProductContentComponentName:
+		component := ProductContentComponent{}
+		if err := json.Unmarshal(data, &component); err != nil {
+			log.Println("struct", aux.Name, err.Error(), string(data))
+			return err
+		}
+		p.Component = &component
+	case NewVariantOptionsComponentName:
+		component := NewVariantOptionsComponent{}
+		if err := json.Unmarshal(data, &component); err != nil {
+			log.Println("struct", aux.Name, err.Error(), string(data))
+			return err
+		}
+		p.Component = &component
+	case ProductDetailComponentName:
+		component := ProductDetailComponent{}
+		if err := json.Unmarshal(data, &component); err != nil {
+			log.Println("struct", aux.Name, err.Error(), string(data))
+			return err
+		}
+		p.Component = &component
+	case ShippingComponentName, InstallmentPaylaterComponentName, WholesaleComponentName, ProtectionComponentName:
+		component := GlobalComponent{}
+		if err := json.Unmarshal(data, &component); err != nil {
+			log.Println("struct", aux.Name, err.Error(), string(data))
+			return err
+		}
+		p.Component = &component
+	default:
+		component := InterfaceDataComp{}
 		if err := json.Unmarshal(data, &component); err != nil {
 			log.Println("struct", aux.Name, err.Error(), string(data))
 			return err
@@ -89,19 +346,19 @@ type CategoryDetail []struct {
 	ID            string `json:"id"`
 	Name          string `json:"name"`
 	BreadcrumbURL string `json:"breadcrumbURL"`
-	IsAdult       bool   `json:"isAdult,omitempty"`
+	IsAdult       bool   `json:"isAdult"`
 	Typename      string `json:"__typename"`
 }
 
 type Category struct {
 	ID            string          `json:"id"`
-	Name          string          `json:"name,omitempty"`
-	Title         string          `json:"title,omitempty"`
-	Detail        *CategoryDetail `json:"detail,omitempty"`
-	BreadcrumbURL string          `json:"breadcrumbURL,omitempty"`
-	IsAdult       bool            `json:"isAdult,omitempty"`
-	IsKyc         bool            `json:"isKyc,omitempty"`
-	MinAge        int             `json:"minAge,omitempty"`
+	Name          string          `json:"name"`
+	Title         string          `json:"title"`
+	Detail        *CategoryDetail `json:"detail"`
+	BreadcrumbURL string          `json:"breadcrumbURL"`
+	IsAdult       bool            `json:"isAdult"`
+	IsKyc         bool            `json:"isKyc"`
+	MinAge        int             `json:"minAge"`
 	Typename      string          `json:"__typename"`
 }
 
@@ -147,12 +404,10 @@ func (p *PDPListComponents) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	log.Println(aux, "asdasdasd")
-
 	fixcomponents := make([]interface{}, len(aux))
 	for ind, component := range aux {
 
-		fixcomponents[ind] = &component.Component
+		fixcomponents[ind] = component.Component
 
 	}
 

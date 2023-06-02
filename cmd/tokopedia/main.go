@@ -1,12 +1,16 @@
 package main
 
 import (
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
 	"github.com/pdcgo/tokopedia_lib/app/web"
 	"github.com/pdcgo/tokopedia_lib/lib/datasource"
 	"github.com/pdcgo/v2_gots_sdk"
 )
+
+var devmode = os.Getenv("DEV_MODE") != ""
 
 func SetUpTokopediaRouter(r *gin.Engine, prefix string) {
 	db := datasource.NewSqliteDatabase("tokopedia_data.db")
@@ -17,7 +21,11 @@ func SetUpTokopediaRouter(r *gin.Engine, prefix string) {
 	repo := upload_app.NewAkunRepo(db)
 
 	sdk := v2_gots_sdk.NewApiSdk(r)
-	save := sdk.GenerateSdkFunc("frontend/src/client/sdk_types.ts", true)
+
+	save := func() {}
+	if devmode {
+		save = sdk.GenerateSdkFunc("frontend/src/client/sdk_types.ts", true)
+	}
 
 	g := sdk.Group("/tokopedia")
 	RegisterAkunApi(g, db, repo)
@@ -45,6 +53,9 @@ func CORSMiddleware() gin.HandlerFunc {
 }
 
 func main() {
+	if !devmode {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 	r.Use(CORSMiddleware())
 	SetUpTokopediaRouter(r, "tokopedia")

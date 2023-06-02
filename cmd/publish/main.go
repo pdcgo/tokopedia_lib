@@ -41,6 +41,7 @@ func main() {
 				},
 				Action: func(ctx *cli.Context) error {
 					buildFrontendAsset()
+					BuildBynaryCmd("./dist", "./cmd/tokopedia", "tokopedia.exe")
 					return nil
 				},
 			},
