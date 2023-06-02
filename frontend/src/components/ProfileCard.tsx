@@ -6,7 +6,6 @@ import {
   FilePptOutlined
 } from '@ant-design/icons'
 import { Card, Checkbox, Input, Select, Tooltip, Typography } from 'antd'
-import React from 'react'
 import { Flex, FlexColumn } from '../styled_components'
 
 export type Profile = {
@@ -32,31 +31,31 @@ export default function ProfileCard (props: {
       actions={[
         <Tooltip title='Upload' placement='bottom' showArrow={false}>
           <UploadOutlined
-            style={{ color: '#058b3d' }}
+            style={{ color: '#FFA559' }}
             rev={'upload'}
             key='upload'
           />
         </Tooltip>,
         <Tooltip title='Copy' placement='bottom' showArrow={false}>
-          <CopyOutlined style={{ color: '#db17cb' }} rev={'copy'} key='copy' />
+          <CopyOutlined style={{ color: '#FFA559' }} rev={'copy'} key='copy' />
         </Tooltip>,
         <Tooltip title='Paste' placement='bottom' showArrow={false}>
           <FilePptOutlined
-            style={{ color: '#172bdb' }}
+            style={{ color: '#FFA559' }}
             rev={'paste'}
             key='paste'
           />
         </Tooltip>,
         <Tooltip title='Reset' placement='bottom' showArrow={false}>
           <ReloadOutlined
-            style={{ color: '#707070' }}
+            style={{ color: '#FFA559' }}
             rev={'reset'}
             key='reset'
           />
         </Tooltip>,
         <Tooltip title='Remove' placement='bottom' showArrow={false}>
           <DeleteOutlined
-            style={{ color: '#f2113a' }}
+            style={{ color: '#FFA559' }}
             rev={'delete'}
             key='delete'
           />

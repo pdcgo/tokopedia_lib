@@ -12,13 +12,18 @@ export const FlexColumn = styled.div`
 `
 
 export type FloatingMenuProps = {
-    show?: boolean
+  show?: boolean
 }
 
 export const FloatingMenu = styled.div<FloatingMenuProps>`
     position: absolute;
     top: 0;
-    left: -175px;
+    left: -62px;
+
+    @media (min-width: 1400px) {
+      left: -67px;
+    }
+
     z-index: 99;
     transition: 0.3s ease all;
     ${props => props.show ? 'top: 20px;' : 'top: -300px;'}
@@ -27,14 +32,13 @@ export const FloatingMenu = styled.div<FloatingMenuProps>`
         background-color: #fff;
         position: fixed;
         border-radius: 6px;
-        box-shadow: 0 0 20px 1px #dfdfdf;
     }
 `
 
 export const AppContainer = styled.main`
   width: 100%;
   height: 100vh;
-  background-color: #faf9f8;
+  background-color: #eee;
   display: flex;
   justify-content: center;
   overflow: auto;
@@ -78,4 +82,5 @@ export const AppContainer2 = styled.div`
   min-height: 100vh;
   box-shadow: 0 0 50px 3px #edebe9;
   position: relative;
+  border: 1px solid #e1dfdd;
 `
