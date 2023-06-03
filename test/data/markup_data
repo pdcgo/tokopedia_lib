@@ -1,0 +1,1338 @@
+{
+    "use_price_discount": false,
+    "list_markups": [
+        {
+            "data": [
+                {
+                    "mark": ">",
+                    "type": "percent",
+                    "range": 0,
+                    "up": [
+                        "20%",
+                        "30%"
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "default"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "5ed6f1ff-831b-4fbf-b1fc-3fa448a37fd3"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "7f17acd0-701b-45aa-9826-bfa932785d40"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "91e68d58-7346-49bc-9aac-9a43bd8f20d5"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "30826b62-ecd0-40e3-8009-c09558640834"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "a1727cdb-aad9-4afb-ad8b-0d55c1b76902"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "e0385182-d0b0-428e-a1ab-4ed67c5b8896"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "2e628396-b502-45c4-95d4-f4976634660c"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "ba43e736-db6e-411f-a20f-46fbafd3c321"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "b7c4d7d5-da43-462e-9187-d2511eb8c711"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "b3afff9b-2829-4795-b359-cdfa82eb5513"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "8a221726-c2ec-4342-bc9b-5015181fc582"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "5cdf2d2d-adcb-4e1e-addc-0068160a9b79"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "97b6c016-f7db-400b-9805-c2509bd971ff"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "303bc4d6-72f7-4d5b-838a-7a605d8b6925"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "3f604c2d-7116-4594-89c9-8d774dfea697"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "98786863-ecb0-4ac9-aaf6-32f84fb48581"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "a8c1acb7-0c03-423d-9055-a40f0fee448f"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "98b802f5-a8fd-411d-803b-5cdc2041a379"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "d1fdcb74-ac19-41fb-81b0-b7eaa89e60fd"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "53281eb1-5873-47e1-b0bd-2fec45f1a348"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "5d9a498d-f58d-4b4b-98b7-b7ce807a6120"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "fb88f133-ab7f-418f-ba5f-c25029a0c6e2"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "e9f4d8b7-06ac-4eb5-ac63-dfcbe087a547"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "19539ca4-9612-41a9-8979-347c847eae24"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "ccb1c388-4a5d-44a8-8f25-1eb7579f26f5"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "dd4fb245-823c-48ca-81be-6e06da79bbeb"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "346f7ab7-75aa-4492-8719-ca0a40139c1d"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "269e10f0-a737-4eb5-b1ff-37a07097a3ca"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "a44fe4ee-080a-42d4-b362-68c713467dbc"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "ff9376dd-8453-4973-953c-5c63449bca24"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "fe9557bd-118d-4568-9ae5-6ed61c3dc4bd"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "23598521-e562-4d62-9b05-a145376ab651"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "48fcf867-7ee5-4d43-ba0a-ee8e1e5ae193"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "0b5b0e2d-ee6d-4fa9-8f9b-e200c0999de4"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "f7de5797-080d-4292-8f97-18d46711fae6"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "42d5e568-94b4-4f65-aab1-3fffe180cca9"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "cd94a349-81a8-4bc4-b120-b1eddb5e6f4b"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "8f19b476-f512-421d-8a3a-6936912c37d5"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "606dad80-7ba4-4268-8642-ae22cef651e9"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "5a554988-b861-4fbc-b1a3-b83c508f9f20"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "f779cb82-cb07-48ef-94e6-a6177c1a71a0"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "f9dc6323-26b5-4e07-b2d8-0fc7856169ee"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "d00b9e77-a6dd-4fed-a610-d86eab161e21"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "e7f94462-cd1f-4510-b703-6fa371874929"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "74c3427a-27ef-4356-bb44-1a2349830f91"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "19a73b17-05d1-44c7-9493-6cd8dc1e62b4"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "b30af1d3-6856-41f6-a0b9-64e21bab7e21"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "c0481987-ab7f-4e64-8077-35954af66e17"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "6ff5672e-b25d-4a50-8a22-8c65016da64d"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "4bc3d3c2-68bd-42cb-861e-ad095a5c71a2"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "cf6feb67-7a91-49b1-b820-6650a15f0313"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "b6fb6a08-fa64-4e1b-82ec-b4cc7986fb9e"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "ef00c252-b9d4-40a8-8415-87937ab28265"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "633cb1d6-c1e5-4275-8ac5-76cd46aba02d"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "677d9366-62f5-4d10-85df-181ee5231ec1"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "d5777d32-8cb2-418d-b1d3-2833b74622f6"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "aa9f1c4e-0fa4-4124-8f0d-152038f78b61"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "62ed85eb-aae7-45b6-85e4-16a7c6b3c892"
+        },
+        {
+            "data": [],
+            "fix_mark": 0,
+            "name": "6d4d673a-06e0-41ed-a49e-e482f7c1e6b7"
+        },
+        {
+            "data": [
+                {
+                    "mark": ">=",
+                    "type": "number",
+                    "range": 123,
+                    "up": [
+                        0,
+                        0
+                    ]
+                }
+            ],
+            "fix_mark": 0,
+            "name": "0ca3bab5-0b35-4487-9985-0cc318c9fd32"
+        }
+    ]
+}

@@ -22,6 +22,8 @@ export interface AkunItem {
     markup: string;
     spin: string;
     collection: string;
+    hastag: string;
+    title_pattern: string;
 }
 export interface AkunListResponse {
     msg: string;
@@ -64,7 +66,7 @@ export type SdkConfig = {
 		params: AkunListQuery
 		payload: undefined
 		response: AkunListResponse
-		path: "/tokopedia/akun/list"
+		path: "tokopedia/akun/list"
 	},
 
 	PostTokopediaAkunBulkAdd: {
@@ -72,7 +74,7 @@ export type SdkConfig = {
 		params: undefined
 		payload: BulkPayload
 		response: Response
-		path: "/tokopedia/akun/bulk_add"
+		path: "tokopedia/akun/bulk_add"
 	},
 
 	PostTokopediaAkunUpdate: {
@@ -80,7 +82,7 @@ export type SdkConfig = {
 		params: undefined
 		payload: AkunUpdatePayload
 		response: Response
-		path: "/tokopedia/akun/update"
+		path: "tokopedia/akun/update"
 	},
 
 	PostTokopediaAkunDelete: {
@@ -88,7 +90,7 @@ export type SdkConfig = {
 		params: undefined
 		payload: AkunDeletePayload
 		response: Response
-		path: "/tokopedia/akun/delete"
+		path: "tokopedia/akun/delete"
 	},
 
 	GetTokopediaUploadStart: {
@@ -96,7 +98,7 @@ export type SdkConfig = {
 		params: undefined
 		payload: undefined
 		response: Response
-		path: "/tokopedia/upload/start"
+		path: "tokopedia/upload/start"
 	},
 
 	GetTokopediaUploadStop: {
@@ -104,7 +106,7 @@ export type SdkConfig = {
 		params: undefined
 		payload: undefined
 		response: Response
-		path: "/tokopedia/upload/stop"
+		path: "tokopedia/upload/stop"
 	},
 
 	GetTokopediaUploadStatus: {
@@ -112,6 +114,6 @@ export type SdkConfig = {
 		params: undefined
 		payload: undefined
 		response: UploadAppStatus
-		path: "/tokopedia/upload/status"
+		path: "tokopedia/upload/status"
 	}
 }

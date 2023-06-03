@@ -1,0 +1,9 @@
+{
+    "concurent_akun_upload": 9,
+    "item_from": "shopee",
+    "upload_delay": [
+        12,
+        20
+    ],
+    "predict_weight": 0.07196234010047252
+}

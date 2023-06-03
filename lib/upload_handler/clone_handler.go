@@ -46,7 +46,6 @@ func CreateCloneHandler(uri string) []uploader.UploadHandler {
 				model.Pictures{
 					UploadIds: "asd",
 				},
-				model.Pictures{},
 			},
 		}
 

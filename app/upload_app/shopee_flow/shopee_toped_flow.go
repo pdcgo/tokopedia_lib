@@ -89,6 +89,7 @@ func (flow *ShopeeToTopedFlow) RunTask() {
 			if count == 0 {
 				log.Println("akun yang diproses habis...")
 				flow.CancelCtx()
+				return
 			}
 
 		} else {

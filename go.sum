@@ -299,6 +299,8 @@ github.com/pdcgo/go_v2_shopeelib v1.0.2 h1:SHCqDf8gCQSblFhslaPVZeM7qB4nWL2fyxOY9
 github.com/pdcgo/go_v2_shopeelib v1.0.2/go.mod h1:ZdUsJxPBnuTfMOKaPP43xkXMAbEhamqx6Nmq3Hp56Lk=
 github.com/pdcgo/go_v2_shopeelib v1.0.3 h1:IG2UiBPbm18l68eQLsFQLcQjG2b91G2AE1xrEPtoWyw=
 github.com/pdcgo/go_v2_shopeelib v1.0.3/go.mod h1:ZdUsJxPBnuTfMOKaPP43xkXMAbEhamqx6Nmq3Hp56Lk=
+github.com/pdcgo/go_v2_shopeelib v1.0.4 h1:1qzz83S6yIWPO16myY0vzjNpqGqrsy69L1Uqlxijhvs=
+github.com/pdcgo/go_v2_shopeelib v1.0.4/go.mod h1:ZdUsJxPBnuTfMOKaPP43xkXMAbEhamqx6Nmq3Hp56Lk=
 github.com/pdcgo/v2_gots_sdk v1.2.2 h1:PbsVYdJuWq9qfGrV2MX2AAqnZOg/BDf0K7gwPn72ty4=
 github.com/pdcgo/v2_gots_sdk v1.2.2/go.mod h1:5BAAOs/jCBPp3TuLroZyZ69MIbXo6E1YzwH+gyeAocc=
 github.com/pelletier/go-toml/v2 v2.0.8 h1:0ctb6s9mE31h0/lhu+J6OPmVeDxJn+kYnJc2jZR9tGQ=

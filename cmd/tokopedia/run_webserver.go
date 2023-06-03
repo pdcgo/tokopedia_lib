@@ -1,11 +1,17 @@
 package main
 
 import (
+	"context"
 	"log"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
+	"github.com/pdcgo/go_v2_shopeelib/controller"
+	mongolib "github.com/pdcgo/go_v2_shopeelib/lib/mongo"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
+	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/app/web"
 	"github.com/pdcgo/tokopedia_lib/lib/datasource"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
@@ -37,6 +43,16 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 
 	web.RegisterTokopediaFrontend(r, prefix)
 	save()
+
+	// bagian hendra
+	validate := validator.New()
+	cfg := config.NewUploadConfigBase(webtoped.Base)
+	mdb := mongolib.NewDatabase(context.Background(), cfg.Database.DbURI, cfg.Database.DbName)
+	base := controller.NewBaseController(validate, &legacy_source.BaseConfig{
+		BaseData: webtoped.Base,
+	}, nil, mdb)
+	controller.RegisterSpinController(r, base)
+	controller.RegisterMarkupController(r, base)
 
 	return nil
 }
