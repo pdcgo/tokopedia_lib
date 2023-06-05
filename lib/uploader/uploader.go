@@ -2,6 +2,7 @@ package uploader
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"sync"
 
@@ -50,7 +51,9 @@ func (upload *TokopediaUploader) UploadProduct(payload *PayloadUpload) (*model.P
 		paydata.Input = data
 
 	}
+	data, _ := json.MarshalIndent(paydata, "", "\t")
 
+	log.Println(string(data))
 	return upload.Api.ProductAdd(&paydata)
 
 }
@@ -59,7 +62,16 @@ func (upload *TokopediaUploader) RunUploader(handlers ...UploadHandler) (*model.
 	event := common_concept.NewCoreEvent()
 	defer event.Close()
 
-	payload := PayloadUpload{}
+	payload := PayloadUpload{
+		Input: &model.InputVariable{
+			Condition:     model.NewCondition,
+			Annotations:   []string{},
+			MinOrder:      1,
+			MustInsurance: true,
+			PriceCurrency: "IDR",
+		},
+		NovariantStockPrice: &model.NoVariantStockPrice{},
+	}
 	handlerLen := len(handlers)
 	waitchan := make(chan error, handlerLen)
 

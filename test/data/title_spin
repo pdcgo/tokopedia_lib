@@ -1,0 +1,12 @@
+{
+    "data": [
+        {
+            "key": "default",
+            "spin": "[title] asdasdas asdasdasdsdfasdsads"
+        },
+        {
+            "key": "test",
+            "spin": "{murah|berkualitas} [title] test"
+        }
+    ]
+}

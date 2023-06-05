@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"mime/multipart"
 	"net/http"
@@ -48,15 +47,22 @@ func CreateFormFile(w *multipart.Writer, name string, filename string) (io.Write
 	return w.CreatePart(h)
 }
 
+type UpImageHeader struct {
+	ProcessTime float64  `json:"process_time"`
+	Reason      string   `json:"reason"`
+	ErrorCode   string   `json:"error_code"`
+	IsSuccess   bool     `json:"is_success"`
+	Messages    []string `json:"messages"`
+}
+
+func (head *UpImageHeader) Error() string {
+	return strings.Join(head.Messages, "|")
+
+}
+
 type UploadMediaResp struct {
-	Header struct {
-		ProcessTime float64       `json:"process_time"`
-		Reason      string        `json:"reason"`
-		ErrorCode   string        `json:"error_code"`
-		IsSuccess   bool          `json:"is_success"`
-		Messages    []interface{} `json:"messages"`
-	} `json:"header"`
-	Data struct {
+	Header *UpImageHeader `json:"header"`
+	Data   struct {
 		UploadID string `json:"upload_id"`
 		ImageURL string `json:"image_url"`
 	} `json:"data"`
@@ -103,7 +109,14 @@ func (api *TokopediaApi) UploadProductImage(content io.Reader) (*UploadMediaResp
 	resBody, _ := io.ReadAll(res.Body)
 	var hasil UploadMediaResp
 
-	json.Unmarshal(resBody, &hasil)
+	err = json.Unmarshal(resBody, &hasil)
+	if err != nil {
+		return nil, err
+	}
+
+	if !hasil.Header.IsSuccess {
+		return &hasil, hasil.Header
+	}
 	return &hasil, nil
 }
 
@@ -137,7 +150,6 @@ func (api *TokopediaApi) UploadImageChat(msgId string, locfile string) (*ImageCh
 
 	// file
 	part, _ := CreateFormFile(writer, "file", fileStat.Name())
-	log.Println(boundary)
 	_, errCopy := io.Copy(part, file)
 	if err != nil {
 		pdc_common.ReportError(errCopy)

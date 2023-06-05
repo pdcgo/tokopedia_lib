@@ -80,6 +80,7 @@ func (flow *ShopeeToTopedFlow) RunTask() {
 	if err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+
 			count, err := flow.AkunIterator.InProcessCount()
 			if err != nil {
 				pdc_common.ReportError(err)
@@ -92,11 +93,21 @@ func (flow *ShopeeToTopedFlow) RunTask() {
 				return
 			}
 
+			log.Println("semua akun masih diproses")
+			time.Sleep(time.Second * 5)
+			return
+
 		} else {
 			pdc_common.ReportError(err)
 			return
 		}
 
+	}
+
+	sleep := func() {
+		sl := flow.ConfigFlow.GenSleep()
+		log.Println(akun.Username, " delay for ", sl)
+		time.Sleep(time.Second * time.Duration(sl))
 	}
 
 	api, saveApi, err := flow.CacheApi.Get(akun)
@@ -114,13 +125,23 @@ func (flow *ShopeeToTopedFlow) RunTask() {
 	_, err = uploaderItem.RunUploader(handlers...)
 
 	if err != nil {
-		updateinc(0, err)
 		pdc_common.ReportError(err)
+		go func() {
+			updateinc(0, err)
+			sleep()
+		}()
+
 		return
 	} else {
-		updateinc(1, err)
-		log.Println(akun.CountUpload, "/", akun.LimitUpload, api.AuthenticatedData.User.Email, "uploaded...")
+		go func() {
+			log.Println(akun.CountUpload+1, "/", akun.LimitUpload, api.AuthenticatedData.User.Email, "uploaded...")
+			sleep()
+			updateinc(1, err)
+		}()
+
 	}
+
+	// sleeping account
 
 }
 
@@ -173,7 +194,7 @@ func (flow *ShopeeToTopedFlow) GenerateHandler(akun *repo.AkunItem, spin shopeeu
 		flow.createAnnotationHandler(),
 		flow.createImageHandler(),
 		flow.createCategoryHandler(),
-		flow.createVariantHandler(),
+		flow.createVariantHandler(spin),
 	}
 	return handlers
 }

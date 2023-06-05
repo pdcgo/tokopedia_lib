@@ -27,20 +27,27 @@ func (flow *ShopeeToTopedFlow) createImageHandler() uploader.UploadHandler {
 			}
 		}
 
-		pictures := model.InputPicture{
-			Data: make([]model.Pictures, len(source.Images)),
-		}
-
 		errChan := make(chan error)
 		var waitup sync.WaitGroup
 		api := tokpedup.Api
 
-		for ind, imguri := range source.Images {
+		imagedatas := source.Images
+
+		if len(source.Images) > 5 {
+			imagedatas = source.Images[:5]
+		}
+
+		pictures := model.InputPicture{
+			Data: make([]model.Pictures, len(imagedatas)),
+		}
+
+		for ind, imguri := range imagedatas {
 			uri := imguri
 			idex := ind
 			waitup.Add(1)
 			go func() {
 				defer waitup.Done()
+				log.Println(api.AuthenticatedData.User.Email, "uploading image", uri)
 				imgdata, err := public_api.GetShopeeImageFromID(uri)
 				if err != nil {
 					errChan <- err

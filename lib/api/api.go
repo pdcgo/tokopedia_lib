@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -52,15 +53,14 @@ func (api *TokopediaApi) NewRequest(method, ur string, query any, body io.Reader
 func (api *TokopediaApi) SendRequest(req *http.Request, hasil any) error {
 	res, err := ClientApi.Do(req)
 	if err != nil {
-		pdc_common.ReportError(err)
 		return err
 	}
 
 	body, _ := io.ReadAll(res.Body)
-	// log.Println(string(body))
+	log.Println(string(body))
 	err = json.Unmarshal(body, hasil)
 	if err != nil {
-		return pdc_common.ReportError(err)
+		return err
 	}
 
 	return api.Session.Update(res.Cookies())

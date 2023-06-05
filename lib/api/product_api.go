@@ -146,10 +146,17 @@ func (api *TokopediaApi) ProductAdd(variables *model.ProductAddVar) (*model.Prod
 
 	req := api.NewGraphqlReq(&gqlQuery)
 
-	var hasil *model.ProductAddResp
+	var hasil model.ProductAddResp
 	err := api.SendRequest(req, &hasil)
+	if err != nil {
+		return &hasil, err
+	}
 
-	return hasil, err
+	if !hasil.Data.ProductAddV3.IsSuccess {
+		return &hasil, hasil.Data.ProductAddV3.Header
+	}
+
+	return &hasil, nil
 }
 
 func (api *TokopediaApi) ProductList(payload *model.ProductListVar) (*model.ProductListResp, error) {

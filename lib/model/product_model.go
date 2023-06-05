@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type Options struct {
 	Basic       bool `json:"basic"`
@@ -59,7 +61,7 @@ type Category struct {
 	IsAdult       bool            `json:"isAdult,omitempty"`
 	IsKyc         bool            `json:"isKyc,omitempty"`
 	MinAge        int             `json:"minAge,omitempty"`
-	Typename      string          `json:"__typename"`
+	Typename      string          `json:"__typename,omitempty"`
 }
 
 type Dimension struct {
@@ -84,31 +86,46 @@ type PreOrder struct {
 type InputPicture struct {
 	Data []Pictures `json:"data"`
 }
-type InputVariable struct {
-	Pictures      InputPicture `json:"pictures"`
-	ProductName   string       `json:"productName"`
-	Category      Category     `json:"category"`
-	Condition     string       `json:"condition"`
-	MinOrder      int64        `json:"minOrder"`
-	PriceCurrency string       `json:"minCurrency"`
-	Weight        int64        `json:"weight"`
-	WeightUnit    string       `json:"weightUnit"`
-	MustInsurance bool         `json:"mustInsurance"`
-	Menus         []struct {
-		MenuID string `json:"menuID"`
-	} `json:"menus"`
-	Annotations []string  `json:"annotations"`
-	Description string    `json:"description"`
-	Dimention   Dimension `json:"dimension"`
-	Catalog     *Catalog  `json:"catalog,omitempty"`
-	PreOrder    PreOrder  `json:"preorder,omitempty"`
+
+type ConditionStatus string
+
+const (
+	NewCondition ConditionStatus = "NEW"
+)
+
+type MenuInput struct {
+	MenuID string `json:"menuID"`
 }
 
+type InputVariable struct {
+	Pictures      InputPicture    `json:"pictures"`
+	ProductName   string          `json:"productName"`
+	Category      Category        `json:"category"`
+	Condition     ConditionStatus `json:"condition"`
+	MinOrder      int64           `json:"minOrder"`
+	PriceCurrency string          `json:"minCurrency"`
+	Weight        int64           `json:"weight"`
+	WeightUnit    WeightUnit      `json:"weightUnit"`
+	MustInsurance bool            `json:"mustInsurance"`
+	Menus         []*MenuInput    `json:"menus,omitempty"`
+	Annotations   []string        `json:"annotations,omitempty"`
+	Description   string          `json:"description"`
+	Dimention     *Dimension      `json:"dimension,omitempty"`
+	Catalog       *Catalog        `json:"catalog,omitempty"`
+	PreOrder      *PreOrder       `json:"preorder,omitempty"`
+}
+
+type ProductStatus string
+
+const (
+	LimitedStatus ProductStatus = "LIMITED"
+)
+
 type NoVariantStockPrice struct {
-	Sku    string `json:"sku"`
-	Stock  int64  `json:"stock"`
-	Price  int64  `json:"price"`
-	Status string `json:"status"`
+	Sku    string        `json:"sku"`
+	Stock  int64         `json:"stock"`
+	Price  int64         `json:"price"`
+	Status ProductStatus `json:"status"`
 }
 
 type InputNoVariant struct {
@@ -116,16 +133,22 @@ type InputNoVariant struct {
 	*NoVariantStockPrice
 }
 
+type WeightUnit string
+
+const (
+	GramUnit WeightUnit = "GR"
+)
+
 type ProductVariant struct {
-	Combination []int      `json:"combination"`
-	IsPrimary   bool       `json:"isPrimary"`
-	Price       int        `json:"price"`
-	Sku         string     `json:"sku"`
-	Status      string     `json:"status"`
-	Stock       int        `json:"stock"`
-	Pictures    []Pictures `json:"pictures"`
-	Weight      int        `json:"weight"`
-	WeightUnit  string     `json:"weightUnit"`
+	Combination []int         `json:"combination"`
+	IsPrimary   bool          `json:"isPrimary"`
+	Price       int           `json:"price"`
+	Sku         string        `json:"sku"`
+	Status      ProductStatus `json:"status"`
+	Stock       int           `json:"stock"`
+	Pictures    []Pictures    `json:"pictures"`
+	Weight      int           `json:"weight"`
+	WeightUnit  WeightUnit    `json:"weightUnit"`
 }
 
 type SelectionsOptions struct {
@@ -151,14 +174,6 @@ type Variant struct {
 type InputVariant struct {
 	*InputVariable
 	Variant *Variant `json:"variant"`
-}
-
-type Header struct {
-	ProcessTime float64       `json:"processTime,omitempty"`
-	Messages    []interface{} `json:"messages"`
-	Reason      string        `json:"reason"`
-	ErrorCode   string        `json:"errorCode"`
-	Typename    string        `json:"__typename"`
 }
 
 type Price struct {
@@ -196,7 +211,7 @@ type ManageProductData struct {
 }
 
 type ProductList struct {
-	Header Header `json:"header"`
+	Header *Header `json:"header"`
 	Data   []struct {
 		ID               string     `json:"id"`
 		Name             string     `json:"name"`
@@ -336,15 +351,19 @@ type ProductAddVar struct {
 	Input interface{} `json:"input"`
 }
 
+type ProductAddV3 struct {
+	Header    *Header `json:"header"`
+	IsSuccess bool    `json:"isSuccess"`
+	ProductId string  `json:"productID"`
+	TypeName  string  `json:"__typename"`
+}
+
+type ProductAddData struct {
+	ProductAddV3 *ProductAddV3 `json:"ProductAddV3"`
+}
+
 type ProductAddResp struct {
-	Data struct {
-		ProductAddV3 struct {
-			Header    Header `json:"header"`
-			IsSuccess bool   `json:"isSuccess"`
-			ProductId string `json:"productID"`
-			TypeName  string `json:"__typename"`
-		} `json:"ProductAddV3"`
-	} `json:"data"`
+	Data *ProductAddData `json:"data"`
 }
 
 type GetProductV3Var struct {

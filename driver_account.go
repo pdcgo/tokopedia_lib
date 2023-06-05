@@ -225,22 +225,31 @@ func (d *DriverAccount) Run(headless bool, actionCallback func(dctx *DriverConte
 }
 
 func (d *DriverAccount) CreateApi() (*api.TokopediaApi, func(), error) {
-	err := d.Session.Load()
-	if errors.Is(err, ErrSessionNotFound) {
+
+	loginBrowser := func() error {
 		err := d.Run(false, func(dctx *DriverContext) error {
 			return d.SellerLogin(dctx)
 		})
 
 		if err != nil {
-			return nil, func() {}, err
+			return err
 		}
-		d.Session.Load()
+		return d.Session.Load()
+	}
+
+	err := d.Session.Load()
+	if errors.Is(err, ErrSessionNotFound) {
+		loginBrowser()
 	}
 
 	acapi := api.NewTokopediaApi(d.Session)
 	_, err = acapi.IsAutheticated()
 	if err != nil {
 		d.Session.DeleteSession()
+		err = loginBrowser()
+	}
+
+	if err != nil {
 		return nil, func() {}, err
 	}
 
@@ -256,6 +265,10 @@ func (d *DriverAccount) CreateApi() (*api.TokopediaApi, func(), error) {
 func NewDriverAccount(username string, password string, secret string) (*DriverAccount, error) {
 	sess := NewSession(username)
 	err := sess.Load()
+
+	if errors.Is(err, ErrSessionNotFound) {
+		err = nil
+	}
 
 	return &DriverAccount{
 		Username: username,

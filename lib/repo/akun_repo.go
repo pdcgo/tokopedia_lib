@@ -60,7 +60,7 @@ func NewAkunUploadIterator(db *gorm.DB) *AkunUploadIterator {
 }
 
 func (iter *AkunUploadIterator) Reset() error {
-	return iter.db.Model(&AkunItem{}).Updates(AkunItem{AkunUploadStatus: AkunUploadStatus{InUpload: false}}).Error
+	return iter.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Model(&AkunItem{}).Updates(map[string]interface{}{"InUpload": false}).Error
 }
 
 func (iter *AkunUploadIterator) GetStatus() (*UploadStatus, error) {
@@ -95,12 +95,15 @@ func (iter *AkunUploadIterator) Get() (akun *AkunItem, updateinc func(count int,
 	updateinc = func(count int, err error) error { return nil }
 	finish = func() error { return nil }
 	err = iter.db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Model(&AkunItem{}).Where(&AkunItem{
+
+		query := tx.Model(&AkunItem{}).Where(AkunItem{
 			AkunUploadStatus: AkunUploadStatus{
 				Active:   true,
 				InUpload: false,
 			},
-		}).Order("lastup asc").First(akun).Error
+		}, "Active", "InUpload").Order("lastup asc")
+
+		err := query.First(akun).Error
 
 		if err != nil {
 			return err

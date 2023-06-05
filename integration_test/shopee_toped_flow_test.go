@@ -15,18 +15,19 @@ import (
 	"gorm.io/gorm"
 )
 
-func addAccount(db *gorm.DB) {
+func addAccount(db *gorm.DB) error {
 	akun := repo.AkunItem{
-		Username: "pdcthoni@gmail.com",
-		Password: "SilentIsMyMantra",
-		Secret:   "IULIWGH6TIK3CZBKHGE27DBRLQ5LR5WQ",
+		Username:   "pdcthoni@gmail.com",
+		Password:   "SilentIsMyMantra",
+		Secret:     "IULIWGH6TIK3CZBKHGE27DBRLQ5LR5WQ",
+		Collection: "default",
 		AkunUploadStatus: repo.AkunUploadStatus{
 			LimitUpload: 100,
 			Active:      true,
 		},
 	}
 
-	db.Save(&akun)
+	return db.Save(&akun).Error
 }
 
 func TestUploadFlow(t *testing.T) {
@@ -40,9 +41,11 @@ func TestUploadFlow(t *testing.T) {
 	sqlitedb := datasource.NewSqliteDatabase(sqlpath)
 	sqlitedb.AutoMigrate(repo.AkunItem{})
 
+	err := addAccount(sqlitedb)
+	assert.Nil(t, err)
 	concurent := shopeeupapp.UploadConcurencyConfig{
 		AccountConcurency: 1,
-		ProductPerAccount: 100,
+		ProductPerAccount: 2,
 	}
 
 	mdb := mongolib.NewDatabase(context.Background(), cfg.MongoUri, "kampretcode2")
@@ -51,7 +54,15 @@ func TestUploadFlow(t *testing.T) {
 
 	assert.Nil(t, err)
 	flow := shopee_flow.NewShopeeToTopedFlow(rootBase, context.Background(), mdb, sqlitedb, &concurent, publicapi)
+	flow.AkunIterator.Reset()
+	t.Run("test getting double account", func(t *testing.T) {
+		akun, _, _, _ := flow.AkunIterator.Get()
+		akun2, _, _, _ := flow.AkunIterator.Get()
+
+		assert.NotEqual(t, akun.Username, akun2.Username)
+	})
 
 	err = flow.Run()
+
 	assert.Nil(t, err)
 }
