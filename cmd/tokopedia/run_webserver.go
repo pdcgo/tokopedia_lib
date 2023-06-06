@@ -34,7 +34,7 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 
 	save := func() {}
 	if devmode {
-		save = sdk.GenerateSdkFunc("frontend/src/client/sdk_types.ts", true)
+		save = sdk.GenerateSdkFunc("frontend/src/client/sdk_types_test.ts", true)
 	}
 
 	g := sdk.Group(prefix)

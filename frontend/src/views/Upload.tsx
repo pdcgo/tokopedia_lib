@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable react-hooks/exhaustive-deps */
+
 import {
     CheckOutlined,
     DeleteOutlined,
@@ -21,16 +23,42 @@ import { useRequest } from "../client"
 import ProfileCard from "../components/ProfileCard"
 import { Flex, FlexColumn } from "../styled_components"
 import { scroller } from "../utils/topScroller"
+import { AkunItem } from "../client/sdk_types"
 
 export default function Upload(props: {
     activePage?: string
 }): React.ReactElement {
     const [query, setQuery] = useState({ page: 1, limit: 10, name: "" })
     const [showBottomPagination, setShowBottomPagination] = useState(false)
+    const [payload, setPayload] = useState<AkunItem[]>([])
+    const [selectedAccounts, setSelectedAccounts] = useState<Array<string>>([])
+
     const [messageApi, ctx] = message.useMessage()
 
     const { sender, response, pending, error } = useRequest(
-        "GetTokopediaAkunList"
+        "GetTokopediaAkunList",
+        {
+            onSuccess(data) {
+                setPayload([...data.data])
+            },
+        }
+    )
+    const { sender: spinGetter, response: spinData } = useRequest("GetSpinList")
+    const { sender: markupGetter, response: markupData } =
+        useRequest("GetMarkupList")
+
+    const { sender: accountUpdater, pending: pendingUpdateAccount } =
+        useRequest("PostTokopediaAkunUpdate", {
+            onSuccess: () => message.success("Account list updated :)"),
+            onError: (e) => message.error(JSON.stringify(e)),
+        })
+
+    const { sender: uploadStarter, pending: pendingUploadStarter } = useRequest(
+        "GetTokopediaUploadStart",
+        {
+            onSuccess: () => message.success("Account list upload start :)"),
+            onError: (e) => message.error(JSON.stringify(e)),
+        }
     )
 
     useEffect(() => {
@@ -48,13 +76,15 @@ export default function Upload(props: {
         if (props.activePage == "upload") {
             sender({
                 method: "get",
-                path: "/tokopedia/akun/list",
+                path: "tokopedia/akun/list",
                 params: {
                     limit: query.limit,
                     offset: (query.page - 1) * query.limit,
                     search: query.name,
                 },
             })
+            spinGetter({ method: "get", path: "api/settingSpin" })
+            markupGetter({ method: "get", path: "api/listMarkup" })
         }
     }, [query.limit, query.name, query.page, props.activePage])
 
@@ -67,11 +97,9 @@ export default function Upload(props: {
             { threshold: [0] }
         )
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         observer.observe(document.getElementById("top-pagination")!)
 
         return () => {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             observer.unobserve(document.getElementById("top-pagination")!)
         }
     }, [])
@@ -96,6 +124,21 @@ export default function Upload(props: {
         }
     }
 
+    function updateAccount() {
+        accountUpdater({
+            method: "post",
+            path: "tokopedia/akun/update",
+            payload: { data: payload },
+        })
+    }
+
+    function uploadAccount() {
+        uploadStarter({
+            method: "get",
+            path: "tokopedia/upload/start",
+        })
+    }
+
     return (
         <FlexColumn>
             {ctx}
@@ -110,7 +153,20 @@ export default function Upload(props: {
                         alignItems: "center",
                     }}
                 >
-                    <Checkbox>Select All</Checkbox>
+                    <Checkbox
+                        checked={payload.length === selectedAccounts.length}
+                        onChange={(e) => {
+                            if (e.target.checked) {
+                                setSelectedAccounts([
+                                    ...payload.map((p) => p.username),
+                                ])
+                            } else {
+                                setSelectedAccounts([])
+                            }
+                        }}
+                    >
+                        Select All
+                    </Checkbox>
                     <Flex style={{ flex: 1 }}>
                         <Input
                             allowClear
@@ -128,7 +184,24 @@ export default function Upload(props: {
                         <Button icon={<FilePptOutlined rev="paste" />}>
                             Paste All
                         </Button>
-                        <Button icon={<CheckOutlined rev="active" />}>
+                        <Button
+                            onClick={() => {
+                                setPayload((p) =>
+                                    p.map((payload) => {
+                                        if (
+                                            selectedAccounts.includes(
+                                                payload.username
+                                            )
+                                        ) {
+                                            payload.active_upload = true
+                                        }
+
+                                        return payload
+                                    })
+                                )
+                            }}
+                            icon={<CheckOutlined rev="active" />}
+                        >
                             Set Active
                         </Button>
                         <Button danger icon={<DeleteOutlined rev="remove" />}>
@@ -142,6 +215,8 @@ export default function Upload(props: {
                             }}
                             type="primary"
                             icon={<SaveOutlined rev="save" />}
+                            onClick={updateAccount}
+                            loading={pendingUpdateAccount}
                         >
                             Save
                         </Button>
@@ -149,18 +224,8 @@ export default function Upload(props: {
                             type="primary"
                             icon={<UploadOutlined rev="upload" />}
                             style={{ boxShadow: "none" }}
-                            onClick={() => {
-                                messageApi.open({
-                                    type: "loading",
-                                    content: "Running process, please wait...",
-                                    duration: 0,
-                                    key: "loading",
-                                })
-
-                                setTimeout(() => {
-                                    messageApi.destroy("loading")
-                                }, 5000)
-                            }}
+                            onClick={uploadAccount}
+                            loading={pendingUploadStarter}
                         >
                             Start Upload
                         </Button>
@@ -199,11 +264,62 @@ export default function Upload(props: {
                     gridTemplateColumns: "1fr 1fr",
                 }}
             >
-                {response?.data.map((profile, index) => (
+                {payload.map((profile, index) => (
                     <ProfileCard
                         profile={profile}
                         key={profile.username}
                         number={index + 1 + (query.page - 1) * query.limit}
+                        spins={spinData?.titlePool}
+                        markups={markupData?.data}
+                        isActice={profile.active_upload}
+                        onChangeIsActive={(ck) => {
+                            setPayload((p) =>
+                                p.map((payload) => {
+                                    if (payload.username == profile.username) {
+                                        payload.active_upload = ck
+                                    }
+
+                                    return payload
+                                })
+                            )
+                        }}
+                        markup={profile.markup}
+                        onChangeMarkup={(mk) => {
+                            setPayload((p) =>
+                                p.map((payload) => {
+                                    if (payload.username == profile.username) {
+                                        payload.markup = mk
+                                    }
+
+                                    return payload
+                                })
+                            )
+                        }}
+                        spin={profile.spin}
+                        onChangeSpin={(sp) => {
+                            setPayload((p) =>
+                                p.map((payload) => {
+                                    if (payload.username == profile.username) {
+                                        payload.spin = sp
+                                    }
+
+                                    return payload
+                                })
+                            )
+                        }}
+                        selected={selectedAccounts.includes(profile.username)}
+                        onChangeSelected={(sl) => {
+                            if (sl) {
+                                setSelectedAccounts((acc) => [
+                                    ...acc,
+                                    profile.username,
+                                ])
+                            } else {
+                                setSelectedAccounts((acc) =>
+                                    acc.filter((ac) => ac !== profile.username)
+                                )
+                            }
+                        }}
                     />
                 ))}
             </div>
