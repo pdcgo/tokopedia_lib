@@ -77,7 +77,7 @@ export default function AddAccount(): React.ReactElement {
 
         sender({
             method: "post",
-            path: "/tokopedia/akun/bulk_add",
+            path: "tokopedia/akun/bulk_add",
             payload: payload,
         })
     }

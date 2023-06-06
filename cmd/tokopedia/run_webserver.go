@@ -37,12 +37,13 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 		save = sdk.GenerateSdkFunc("frontend/src/client/sdk_types_test.ts", true)
 	}
 
+	defer save()
+
 	g := sdk.Group(prefix)
 	RegisterAkunApi(g, db, repo)
 	RegisterCommand(g, app)
 
 	web.RegisterTokopediaFrontend(r, prefix)
-	save()
 
 	// bagian hendra
 	validate := validator.New()
@@ -51,8 +52,8 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	base := controller.NewBaseController(validate, &legacy_source.BaseConfig{
 		BaseData: webtoped.Base,
 	}, nil, mdb)
-	controller.RegisterSpinController(r, base)
-	controller.RegisterMarkupController(r, base)
+	controller.RegisterSpinController(sdk, base)
+	controller.RegisterMarkupController(sdk, base)
 
 	return nil
 }
