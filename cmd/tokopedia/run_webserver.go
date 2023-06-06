@@ -54,6 +54,7 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	}, nil, mdb)
 	controller.RegisterSpinController(sdk, base)
 	controller.RegisterMarkupController(sdk, base)
+	controller.RegisterProductController(sdk, base)
 
 	return nil
 }

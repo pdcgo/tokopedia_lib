@@ -99,6 +99,44 @@ export interface SettingSpinConfigUpdatePayload {
     name: string;
     titlePool: SettingSpinTitlePool[];
 }
+export interface ProductAggQuery {
+    marketplace: string;
+    namespace: string;
+}
+export interface ProductNamespaceAgg {
+    count: number;
+    price_min: number;
+    price_max: number;
+    name: string;
+}
+export interface ProductPriceRangeAggQuery {
+    marketplace: string;
+    namespace: string;
+    range_price: number;
+}
+export interface ProductPriceRangeAgg {
+    _id: number[];
+    count: number;
+}
+export interface ProductCategoryAggQuery {
+    marketplace: string;
+    namespace: string;
+    is_public: boolean;
+}
+export interface ProductCategoryAgg {
+    _id: number;
+    price_min: number;
+    price_max: number;
+    count: number;
+    name: any[];
+}
+
+export interface ProductCityAgg {
+    _id: string;
+    price_min: number;
+    price_max: number;
+    count: number;
+}
 export type SdkConfig = { 
 
 	GetTokopediaAkunList: {
@@ -211,5 +249,37 @@ export type SdkConfig = {
 		payload: undefined
 		response: string[]
 		path: "api/listMarkup"
+	},
+
+	GetV1ProductNamespaceAll: {
+		method: "get"
+		params: ProductAggQuery
+		payload: undefined
+		response: ProductNamespaceAgg[]
+		path: "v1/product/namespace_all"
+	},
+
+	GetV1ProductPriceRange: {
+		method: "get"
+		params: ProductPriceRangeAggQuery
+		payload: undefined
+		response: ProductPriceRangeAgg[]
+		path: "v1/product/price_range"
+	},
+
+	GetV1ProductCategory: {
+		method: "get"
+		params: ProductCategoryAggQuery
+		payload: undefined
+		response: ProductCategoryAgg[]
+		path: "v1/product/category"
+	},
+
+	GetV1ProductKota: {
+		method: "get"
+		params: ProductAggQuery
+		payload: undefined
+		response: ProductCityAgg[]
+		path: "v1/product/kota"
 	}
 }
