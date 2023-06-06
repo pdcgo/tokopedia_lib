@@ -9,7 +9,26 @@ import (
 	"path/filepath"
 )
 
+func installDependendAsset() {
+	log.Println("installing dependencies frontend with npm..")
+	var outb, errb bytes.Buffer
+
+	cmdBuild := exec.Command("npm", "install", "--save-dev")
+	cmdBuild.Dir = "./frontend"
+	cmdBuild.Stdout = &outb
+	cmdBuild.Stderr = &errb
+
+	err := cmdBuild.Run()
+
+	fmt.Println("out:", outb.String(), "err:", errb.String())
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func buildFrontendAsset() {
+	installDependendAsset()
+
 	var outb, errb bytes.Buffer
 
 	cmdBuild := exec.Command("npm", "run", "build", "--prefix", "./frontend")
