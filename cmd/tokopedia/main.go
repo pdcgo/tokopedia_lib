@@ -3,13 +3,21 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/urfave/cli/v2"
 )
 
-var devmode = os.Getenv("DEV_MODE") != ""
+func catch() {
+	if r := recover(); r != nil {
+		log.Println(r)
+
+		time.Sleep(time.Minute)
+	}
+}
 
 func main() {
+	defer catch()
 
 	app := &cli.App{
 		Name:  "Tokopedia Server Tool",

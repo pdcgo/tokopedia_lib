@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/pdcgo/tokopedia_lib/lib/app_builder"
 	"github.com/urfave/cli/v2"
 )
 
@@ -41,7 +42,7 @@ func main() {
 				},
 				Action: func(ctx *cli.Context) error {
 					buildFrontendAsset()
-					BuildBynaryCmd("./dist", "./cmd/tokopedia", "tokopedia.exe")
+					app_builder.BuildBynaryCmd("./dist", "./cmd/tokopedia", "tokopedia.exe")
 					return nil
 				},
 			},

@@ -2,18 +2,34 @@ package main
 
 import (
 	"net/http"
+	"os/exec"
+	"syscall"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
 	"github.com/pdcgo/v2_gots_sdk"
 )
 
+const (
+	CREATE_NEW_CONSOLE = 0x10
+)
+
 type UploadApi struct {
 	upload *upload_app.UploadApp
+	Base   string
 }
 
 func (api *UploadApi) Start(ctx *gin.Context) {
-	api.upload.Start()
+
+	cmd := exec.Command("bin/tokopedia.exe", "shopee_toped", "-b", "./")
+	cmd.Dir = api.Base
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		CreationFlags:    CREATE_NEW_CONSOLE,
+		NoInheritHandles: true,
+	}
+
+	cmd.Start()
+
 	ctx.JSON(http.StatusOK, Response{
 		Msg: "success",
 	})
@@ -30,10 +46,11 @@ func (api *UploadApi) Status(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, status)
 }
 
-func RegisterCommand(g *v2_gots_sdk.SdkGroup, upload *upload_app.UploadApp) {
+func RegisterCommand(g *v2_gots_sdk.SdkGroup, upload *upload_app.UploadApp, base string) {
 
 	api := UploadApi{
 		upload: upload,
+		Base:   base,
 	}
 
 	command := g.Group("upload")

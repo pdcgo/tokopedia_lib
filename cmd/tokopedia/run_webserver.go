@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/app/web"
+	"github.com/pdcgo/tokopedia_lib/lib/app_builder"
 	"github.com/pdcgo/tokopedia_lib/lib/datasource"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
@@ -20,10 +22,12 @@ import (
 )
 
 type TokopediaWebServer struct {
-	Base string
+	Base    string
+	DevMode bool
 }
 
 func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) error {
+
 	dbpath := filepath.Join(webtoped.Base, "tokopedia_data.db")
 	db := datasource.NewSqliteDatabase(dbpath)
 
@@ -33,7 +37,8 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	sdk := v2_gots_sdk.NewApiSdk(r)
 
 	save := func() {}
-	if devmode {
+	if webtoped.DevMode {
+		BuildExeOnDev(webtoped.Base)
 		save = sdk.GenerateSdkFunc("frontend/src/client/sdk_types_test.ts", true)
 	}
 
@@ -41,7 +46,7 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 
 	g := sdk.Group(prefix)
 	RegisterAkunApi(g, db, repo)
-	RegisterCommand(g, app)
+	RegisterCommand(g, app, webtoped.Base)
 
 	web.RegisterTokopediaFrontend(r, prefix)
 
@@ -76,7 +81,17 @@ func CORSMiddleware() gin.HandlerFunc {
 	}
 }
 
+func BuildExeOnDev(base string) {
+	basebin := filepath.Join(base, "./bin")
+	base, err := app_builder.BuildBynaryCmd(basebin, "./cmd/tokopedia", "tokopedia.exe")
+	log.Println("bin created on ", base)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func runWebServer(ctx *cli.Context) error {
+	var devmode = os.Getenv("DEV_MODE") != ""
 
 	roopAplicationPath := ctx.String("b")
 	log.Println("using root aplication path..", roopAplicationPath)
@@ -88,7 +103,8 @@ func runWebServer(ctx *cli.Context) error {
 	r.Use(CORSMiddleware())
 
 	server := TokopediaWebServer{
-		Base: roopAplicationPath,
+		Base:    roopAplicationPath,
+		DevMode: devmode,
 	}
 
 	server.SetupRouter(r, "tokopedia")

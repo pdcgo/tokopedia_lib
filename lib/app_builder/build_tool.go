@@ -1,4 +1,4 @@
-package main
+package app_builder
 
 import (
 	"bytes"
