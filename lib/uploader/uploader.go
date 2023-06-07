@@ -2,7 +2,6 @@ package uploader
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"sync"
 
@@ -51,9 +50,8 @@ func (upload *TokopediaUploader) UploadProduct(payload *PayloadUpload) (*model.P
 		paydata.Input = data
 
 	}
-	data, _ := json.MarshalIndent(paydata, "", "\t")
-
-	log.Println(string(data))
+	// data, _ := json.MarshalIndent(paydata, "", "\t")
+	// log.Println(string(data))
 	return upload.Api.ProductAdd(&paydata)
 
 }
