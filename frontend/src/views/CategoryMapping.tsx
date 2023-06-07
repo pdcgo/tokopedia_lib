@@ -57,14 +57,41 @@ export default function CategoryMapping(): React.ReactElement {
                         />
                     </FlexColumn>
                     <Flex style={{ rowGap: "5px", justifyContent: "flex-end" }}>
-                        <Button type="primary">Reset All</Button>
+                        <Button
+                            style={{ backgroundColor: "#005246" }}
+                            type="primary"
+                        >
+                            Reset All
+                        </Button>
                         <Button type="primary">Save Mapping</Button>
                     </Flex>
                 </Flex>
             </Card>
             <Divider dashed style={{ marginBlock: "5px" }} />
-            <Flex id={topPaginationId} style={{ justifyContent: "flex-start" }}>
+            <Flex
+                id={topPaginationId}
+                style={{
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                }}
+            >
                 <Pagination total={12} pageSize={2} showSizeChanger />
+                <Flex>
+                    <Typography.Text>
+                        Total Category:{" "}
+                        <Typography.Text style={{ fontWeight: 600 }}>
+                            0
+                        </Typography.Text>
+                    </Typography.Text>
+                    <Typography.Text>
+                        Already Mapped:{" "}
+                        <Typography.Text
+                            style={{ fontWeight: 600, color: "green" }}
+                        >
+                            0
+                        </Typography.Text>
+                    </Typography.Text>
+                </Flex>
             </Flex>
             <div></div>
             <div
@@ -78,6 +105,7 @@ export default function CategoryMapping(): React.ReactElement {
                 <MapCard />
                 <MapCard />
                 <MapCard />
+                {/* <MapCard />
                 <MapCard />
                 <MapCard />
                 <MapCard />
@@ -89,8 +117,7 @@ export default function CategoryMapping(): React.ReactElement {
                 <MapCard />
                 <MapCard />
                 <MapCard />
-                <MapCard />
-                <MapCard />
+                <MapCard /> */}
             </div>
             <div></div>
             {showBottomPagination && (

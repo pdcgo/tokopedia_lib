@@ -16,17 +16,12 @@ import {
 } from "antd"
 import { Flex, FlexColumn } from "../styled_components"
 
-export type Profile = {
-    readonly username: string
-    readonly password: string
-}
-
 export type ProfileCardProps = {
-    profile: Profile
     number: number
     spins?: Array<{ data: string; name: string }>
     markups?: Array<string>
     collections?: Array<string>
+    uploadCount?: number
 
     isActice?: boolean
     onChangeIsActive?: (v: boolean) => void
@@ -46,6 +41,12 @@ export type ProfileCardProps = {
     collection?: string
     onChangeCollection?: (v: string) => void
 
+    username?: string
+    onChangeUsername?: (username: string) => void
+
+    password?: string
+    onChangePassword?: (pass: string) => void
+
     onCopy?: () => void
     onPaste?: () => void
 }
@@ -62,7 +63,7 @@ export default function ProfileCard(
                     style={{ userSelect: "none" }}
                 >
                     {props.number + ". "}
-                    {props.profile.username}
+                    {props.username}
                 </Checkbox>
             }
             hoverable
@@ -108,32 +109,106 @@ export default function ProfileCard(
                 </Tooltip>,
             ]}
         >
-            <Flex style={{ width: "100%" }}>
-                <FlexColumn style={{ flex: 1 }}>
-                    <FlexColumn style={{ rowGap: "5px" }}>
-                        <Typography.Text>Username :</Typography.Text>
-                        <Input
-                            value={props.profile.username}
-                            placeholder="username"
-                        />
+            <FlexColumn>
+                <Flex style={{ width: "100%" }}>
+                    <FlexColumn style={{ flex: 1 }}>
+                        <FlexColumn style={{ rowGap: "5px" }}>
+                            <Typography.Text>Username :</Typography.Text>
+                            <Input
+                                value={props.username}
+                                onChange={(e) =>
+                                    props.onChangeUsername?.(e.target.value)
+                                }
+                                placeholder="username"
+                            />
+                        </FlexColumn>
+                        <FlexColumn style={{ rowGap: "5px" }}>
+                            <Typography.Text>Password :</Typography.Text>
+                            <Input.Password
+                                value={props.password}
+                                onChange={(e) =>
+                                    props.onChangePassword?.(e.target.value)
+                                }
+                                placeholder="⁎⁎⁎⁎⁎⁎⁎⁎"
+                            />
+                        </FlexColumn>
+                        <FlexColumn style={{ rowGap: "5px" }}>
+                            <Typography.Text>Upload Limit :</Typography.Text>
+                            <InputNumber
+                                value={props.limitUpload}
+                                onChange={props.onChangeLimitUpload}
+                                placeholder="1000"
+                                style={{ width: "100%" }}
+                            />
+                        </FlexColumn>
+                        <div></div>
                     </FlexColumn>
-                    <FlexColumn style={{ rowGap: "5px" }}>
-                        <Typography.Text>Password :</Typography.Text>
-                        <Input.Password
-                            value={props.profile.password}
-                            placeholder="⁎⁎⁎⁎⁎⁎⁎⁎"
-                        />
+                    <FlexColumn style={{ flex: 1 }}>
+                        <FlexColumn style={{ rowGap: "5px" }}>
+                            <Typography.Text>Markup :</Typography.Text>
+                            <Select
+                                value={props.markup}
+                                onChange={(v) => props.onChangeMarkup?.(v)}
+                                placeholder="Choose Markup Data"
+                            >
+                                <Select.Option disabled value="">
+                                    Markup Select
+                                </Select.Option>
+                                {props.markups?.map((markup) => (
+                                    <Select.Option value={markup} key={markup}>
+                                        {markup}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </FlexColumn>
+                        <FlexColumn style={{ rowGap: "5px" }}>
+                            <Typography.Text>Spin :</Typography.Text>
+                            <Select
+                                value={props.spin}
+                                onChange={(v) => props.onChangeSpin?.(v)}
+                                placeholder="Choose Spin Data"
+                            >
+                                <Select.Option disabled value="">
+                                    Spin Select
+                                </Select.Option>
+                                {props.spins?.map((spin) => (
+                                    <Select.Option
+                                        value={spin.name}
+                                        key={spin.data + spin.name}
+                                    >
+                                        {spin.name}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </FlexColumn>
+                        <FlexColumn style={{ rowGap: "5px" }}>
+                            <Typography.Text>Collection :</Typography.Text>
+                            <Select
+                                value={props.collection}
+                                onChange={props.onChangeCollection}
+                                placeholder="Choose Collection Data"
+                            >
+                                <Select.Option value="" disabled>
+                                    Choose Collection
+                                </Select.Option>
+                                {props.collections?.map((collection) => (
+                                    <Select.Option
+                                        key={collection}
+                                        value={collection}
+                                    >
+                                        {collection}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </FlexColumn>
                     </FlexColumn>
-                    <FlexColumn style={{ rowGap: "5px" }}>
-                        <Typography.Text>Upload Limit :</Typography.Text>
-                        <InputNumber
-                            value={props.limitUpload}
-                            onChange={props.onChangeLimitUpload}
-                            placeholder="1000"
-                            style={{ width: "100%" }}
-                        />
-                    </FlexColumn>
-                    <div></div>
+                </Flex>
+                <Flex
+                    style={{
+                        justifyContent: "space-between",
+                        width: "100%",
+                    }}
+                >
                     <Checkbox
                         checked={props.isActice}
                         onChange={(v) =>
@@ -143,67 +218,10 @@ export default function ProfileCard(
                     >
                         Active
                     </Checkbox>
-                </FlexColumn>
-                <FlexColumn style={{ flex: 1 }}>
-                    <FlexColumn style={{ rowGap: "5px" }}>
-                        <Typography.Text>Markup :</Typography.Text>
-                        <Select
-                            value={props.markup}
-                            onChange={(v) => props.onChangeMarkup?.(v)}
-                            placeholder="Choose Markup Data"
-                        >
-                            <Select.Option disabled value="">
-                                Markup Select
-                            </Select.Option>
-                            {props.markups?.map((markup) => (
-                                <Select.Option value={markup} key={markup}>
-                                    {markup}
-                                </Select.Option>
-                            ))}
-                        </Select>
-                    </FlexColumn>
-                    <FlexColumn style={{ rowGap: "5px" }}>
-                        <Typography.Text>Spin :</Typography.Text>
-                        <Select
-                            value={props.spin}
-                            onChange={(v) => props.onChangeSpin?.(v)}
-                            placeholder="Choose Spin Data"
-                        >
-                            <Select.Option disabled value="">
-                                Spin Select
-                            </Select.Option>
-                            {props.spins?.map((spin) => (
-                                <Select.Option
-                                    value={spin.name}
-                                    key={spin.data + spin.name}
-                                >
-                                    {spin.name}
-                                </Select.Option>
-                            ))}
-                        </Select>
-                    </FlexColumn>
-                    <FlexColumn style={{ rowGap: "5px" }}>
-                        <Typography.Text>Collection :</Typography.Text>
-                        <Select
-                            value={props.collection}
-                            onChange={props.onChangeCollection}
-                            placeholder="Choose Collection Data"
-                        >
-                            <Select.Option value="" disabled>
-                                Choose Collection
-                            </Select.Option>
-                            {props.collections?.map((collection) => (
-                                <Select.Option
-                                    key={collection}
-                                    value={collection}
-                                >
-                                    {collection}
-                                </Select.Option>
-                            ))}
-                        </Select>
-                    </FlexColumn>
-                </FlexColumn>
-            </Flex>
+                    
+                    <Typography.Text>Product Uploaded Count: {props.uploadCount || 0}</Typography.Text>
+                </Flex>
+            </FlexColumn>
         </Card>
     )
 }

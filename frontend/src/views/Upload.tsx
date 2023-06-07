@@ -173,14 +173,14 @@ export default function Upload(props: {
                 onClickStartUpload={uploadAccount}
                 onClickPasteAll={() => {
                     if (accountClip) {
-                        messageApi.success('Paste to All')
+                        messageApi.success("Paste to All")
                         setPayload((p) =>
                             p.map((payload) => ({
                                 ...payload,
                                 limit_upload: accountClip.limit_upload,
                                 markup: accountClip.markup,
                                 spin: accountClip.spin,
-                                collection: accountClip.collection
+                                collection: accountClip.collection,
                             }))
                         )
                     }
@@ -220,7 +220,6 @@ export default function Upload(props: {
             >
                 {payload.map((profile, index) => (
                     <ProfileCard
-                        profile={profile}
                         key={profile.username}
                         number={index + 1 + (query.page - 1) * query.limit}
                         spins={spinData?.titlePool}
@@ -229,6 +228,7 @@ export default function Upload(props: {
                             (collection) => collection.name
                         )}
                         isActice={profile.active_upload}
+                        uploadCount={profile.count_upload}
                         onChangeIsActive={(ck) => {
                             setPayload((p) =>
                                 p.map((payload) => {
@@ -295,6 +295,30 @@ export default function Upload(props: {
                                 p.map((payload) => {
                                     if (payload.username == profile.username) {
                                         payload.collection = cl
+                                    }
+
+                                    return payload
+                                })
+                            )
+                        }}
+                        username={profile.username}
+                        onChangeUsername={(username_) => {
+                            setPayload((p) =>
+                                p.map((payload) => {
+                                    if (payload.username == profile.username) {
+                                        payload.username = username_
+                                    }
+
+                                    return payload
+                                })
+                            )
+                        }}
+                        password={profile.password}
+                        onChangePassword={(password_) => {
+                            setPayload((p) =>
+                                p.map((payload) => {
+                                    if (payload.username == profile.username) {
+                                        payload.password = password_
                                     }
 
                                     return payload

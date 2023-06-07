@@ -4,6 +4,7 @@ import {
     CheckOutlined,
     DeleteOutlined,
     FilePptOutlined,
+    RobotOutlined,
     SaveOutlined,
     UploadOutlined,
 } from "@ant-design/icons"
@@ -61,23 +62,35 @@ export default function UploadHeader(props: UploadHeaderProps) {
                         onClick={props.onClickSetActive}
                         icon={<CheckOutlined rev="active" />}
                     >
-                        Set Active
+                        Active
                     </Button>
-                    <Button danger icon={<DeleteOutlined rev="remove" />}>
+                    <Button icon={<DeleteOutlined rev="remove" />}>
                         Remove
                     </Button>
                     <Button
-                        style={{
-                            backgroundColor: "#FFA559",
-                            boxShadow: "none",
-                            color: "#454545",
-                        }}
                         type="primary"
                         icon={<SaveOutlined rev="save" />}
                         onClick={props.onClickSave}
                         loading={props.loadingSave}
+                        style={{
+                            backgroundColor: "#C2418D",
+                            boxShadow: "none",
+                            color: "#fff",
+                        }}
                     >
                         Save
+                    </Button>
+                    <Button
+                        style={{
+                            backgroundColor: "#005246",
+                            boxShadow: "none",
+                            color: "#fff",
+                        }}
+                        type="primary"
+                        icon={<RobotOutlined rev="check-bot" />}
+                        // style={{ boxShadow: "none" }}
+                    >
+                        Check Bot
                     </Button>
                     <Button
                         type="primary"
