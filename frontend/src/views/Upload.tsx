@@ -1,29 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable react-hooks/exhaustive-deps */
 
-import {
-    CheckOutlined,
-    DeleteOutlined,
-    FilePptOutlined,
-    SaveOutlined,
-    UploadOutlined,
-} from "@ant-design/icons"
-import {
-    Button,
-    Card,
-    Checkbox,
-    Divider,
-    Input,
-    Pagination,
-    Result,
-    message,
-} from "antd"
+import { Divider, Pagination, Result, message } from "antd"
 import React, { useEffect, useState } from "react"
 import { useRequest } from "../client"
-import ProfileCard from "../components/ProfileCard"
+import { AkunItem } from "../client/sdk_types"
 import { Flex, FlexColumn } from "../styled_components"
 import { scroller } from "../utils/topScroller"
-import { AkunItem } from "../client/sdk_types"
+import UploadHeader from "../component_sections/UploadHeader"
+import ProfileCard from "../components/ProfileCard"
 
 export default function Upload(props: {
     activePage?: string
@@ -32,6 +17,8 @@ export default function Upload(props: {
     const [showBottomPagination, setShowBottomPagination] = useState(false)
     const [payload, setPayload] = useState<AkunItem[]>([])
     const [selectedAccounts, setSelectedAccounts] = useState<Array<string>>([])
+
+    const [accountClip, setAccountClip] = useState<AkunItem | null>(null)
 
     const [messageApi, ctx] = message.useMessage()
 
@@ -43,9 +30,10 @@ export default function Upload(props: {
             },
         }
     )
-    const { sender: spinGetter, response: spinData } = useRequest("GetSpinList")
+    const { sender: spinGetter, response: spinData } =
+        useRequest("GetApiSettingSpin")
     const { sender: markupGetter, response: markupData } =
-        useRequest("GetMarkupList")
+        useRequest("GetApiListMarkup")
 
     const { sender: accountUpdater, pending: pendingUpdateAccount } =
         useRequest("PostTokopediaAkunUpdate", {
@@ -61,6 +49,10 @@ export default function Upload(props: {
         }
     )
 
+    const { sender: collectionGetter, response: collections } = useRequest(
+        "GetV1ProductNamespaceAll"
+    )
+
     useEffect(() => {
         if (pending) {
             messageApi.loading({
@@ -74,6 +66,7 @@ export default function Upload(props: {
 
     useEffect(() => {
         if (props.activePage == "upload") {
+            setSelectedAccounts([])
             sender({
                 method: "get",
                 path: "tokopedia/akun/list",
@@ -85,6 +78,10 @@ export default function Upload(props: {
             })
             spinGetter({ method: "get", path: "api/settingSpin" })
             markupGetter({ method: "get", path: "api/listMarkup" })
+            collectionGetter({
+                method: "get",
+                path: "v1/product/namespace_all",
+            })
         }
     }, [query.limit, query.name, query.page, props.activePage])
 
@@ -142,96 +139,53 @@ export default function Upload(props: {
     return (
         <FlexColumn>
             {ctx}
-            <Card
-                size="small"
-                style={{ backgroundColor: "#fff6ea3e" }}
-                title="Setting Tokopedia Upload"
-            >
-                <Flex
-                    style={{
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                    }}
-                >
-                    <Checkbox
-                        checked={payload.length === selectedAccounts.length}
-                        onChange={(e) => {
-                            if (e.target.checked) {
-                                setSelectedAccounts([
-                                    ...payload.map((p) => p.username),
-                                ])
-                            } else {
-                                setSelectedAccounts([])
+            <UploadHeader
+                checkedAll={payload.length === selectedAccounts.length}
+                onChangeCheckedAll={(e) => {
+                    if (e) {
+                        setSelectedAccounts([...payload.map((p) => p.username)])
+                    } else {
+                        setSelectedAccounts([])
+                    }
+                }}
+                nameQuery={query.name}
+                onChangeNameQuery={(e) =>
+                    setQuery((q) => ({
+                        ...q,
+                        page: 1,
+                        name: e,
+                    }))
+                }
+                onClickSetActive={() =>
+                    setPayload((p) =>
+                        p.map((payload) => {
+                            if (selectedAccounts.includes(payload.username)) {
+                                payload.active_upload = true
                             }
-                        }}
-                    >
-                        Select All
-                    </Checkbox>
-                    <Flex style={{ flex: 1 }}>
-                        <Input
-                            allowClear
-                            placeholder="Search Profile..."
-                            style={{ flex: 1 }}
-                            value={query.name}
-                            onChange={(e) =>
-                                setQuery((q) => ({
-                                    ...q,
-                                    page: 1,
-                                    name: e.target.value,
-                                }))
-                            }
-                        />
-                        <Button icon={<FilePptOutlined rev="paste" />}>
-                            Paste All
-                        </Button>
-                        <Button
-                            onClick={() => {
-                                setPayload((p) =>
-                                    p.map((payload) => {
-                                        if (
-                                            selectedAccounts.includes(
-                                                payload.username
-                                            )
-                                        ) {
-                                            payload.active_upload = true
-                                        }
 
-                                        return payload
-                                    })
-                                )
-                            }}
-                            icon={<CheckOutlined rev="active" />}
-                        >
-                            Set Active
-                        </Button>
-                        <Button danger icon={<DeleteOutlined rev="remove" />}>
-                            Remove
-                        </Button>
-                        <Button
-                            style={{
-                                backgroundColor: "#FFA559",
-                                boxShadow: "none",
-                                color: "#454545",
-                            }}
-                            type="primary"
-                            icon={<SaveOutlined rev="save" />}
-                            onClick={updateAccount}
-                            loading={pendingUpdateAccount}
-                        >
-                            Save
-                        </Button>
-                        <Button
-                            type="primary"
-                            icon={<UploadOutlined rev="upload" />}
-                            style={{ boxShadow: "none" }}
-                            onClick={uploadAccount}
-                            loading={pendingUploadStarter}
-                        >
-                            Start Upload
-                        </Button>
-                    </Flex>
-                </Flex>
-            </Card>
+                            return payload
+                        })
+                    )
+                }
+                onClickSave={updateAccount}
+                loadingSave={pendingUpdateAccount}
+                loadingStartUpload={pendingUploadStarter}
+                onClickStartUpload={uploadAccount}
+                onClickPasteAll={() => {
+                    if (accountClip) {
+                        messageApi.success('Paste to All')
+                        setPayload((p) =>
+                            p.map((payload) => ({
+                                ...payload,
+                                limit_upload: accountClip.limit_upload,
+                                markup: accountClip.markup,
+                                spin: accountClip.spin,
+                                collection: accountClip.collection
+                            }))
+                        )
+                    }
+                }}
+            />
             <Divider dashed style={{ margin: "5px 0" }} />
             {render()}
             <Flex style={{ justifyContent: "flex-start" }} id="top-pagination">
@@ -271,6 +225,9 @@ export default function Upload(props: {
                         number={index + 1 + (query.page - 1) * query.limit}
                         spins={spinData?.titlePool}
                         markups={markupData?.data}
+                        collections={collections?.map(
+                            (collection) => collection.name
+                        )}
                         isActice={profile.active_upload}
                         onChangeIsActive={(ck) => {
                             setPayload((p) =>
@@ -317,6 +274,59 @@ export default function Upload(props: {
                             } else {
                                 setSelectedAccounts((acc) =>
                                     acc.filter((ac) => ac !== profile.username)
+                                )
+                            }
+                        }}
+                        limitUpload={profile.limit_upload}
+                        onChangeLimitUpload={(lm) => {
+                            setPayload((p) =>
+                                p.map((payload) => {
+                                    if (payload.username == profile.username) {
+                                        payload.limit_upload = lm || 0
+                                    }
+
+                                    return payload
+                                })
+                            )
+                        }}
+                        collection={profile.collection}
+                        onChangeCollection={(cl) => {
+                            setPayload((p) =>
+                                p.map((payload) => {
+                                    if (payload.username == profile.username) {
+                                        payload.collection = cl
+                                    }
+
+                                    return payload
+                                })
+                            )
+                        }}
+                        onCopy={() => {
+                            setAccountClip(profile)
+                            messageApi.destroy("copiedprofile")
+                            messageApi.success({
+                                content: "Profile Copied",
+                                key: "copiedprofile",
+                                duration: 1.5,
+                            })
+                        }}
+                        onPaste={() => {
+                            if (accountClip) {
+                                setPayload((py) =>
+                                    py.map((payload) => {
+                                        if (
+                                            payload.username == profile.username
+                                        ) {
+                                            payload.collection =
+                                                accountClip.collection
+                                            payload.markup = accountClip.markup
+                                            payload.spin = accountClip.spin
+                                            payload.limit_upload =
+                                                accountClip.limit_upload
+                                        }
+
+                                        return payload
+                                    })
                                 )
                             }
                         }}

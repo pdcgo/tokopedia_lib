@@ -36,7 +36,6 @@ export default function CategoryMapping(): React.ReactElement {
     return (
         <FlexColumn>
             <Card
-                style={{ backgroundColor: "#fff6ea3e" }}
                 size="small"
                 title={
                     <Typography.Text>

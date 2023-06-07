@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface AkunListQuery {
 	offset: number;
@@ -31,6 +32,10 @@ export interface AkunListResponse {
 	data: AkunItem[];
 	pagination: Pagination;
 }
+export interface Response {
+	msg: string;
+	error: string;
+}
 export interface BulkItem {
 	username: string;
 	password: string;
@@ -39,10 +44,7 @@ export interface BulkItem {
 export interface BulkPayload {
 	data: BulkItem[];
 }
-export interface Response {
-	msg: string;
-	error: string;
-}
+
 export interface AkunUpdatePayload {
 	data: AkunItem[];
 }
@@ -51,52 +53,92 @@ export interface AkunDeletePayload {
 	usernames: string[];
 }
 
+
 export interface UploadAppStatus {
 	status: string;
 	akun_count: number;
 	count_upload: number;
 	limit_upload: number;
 }
+export interface DataSpinQuery {
+	name: string;
+}
+export interface DataSpinItemResponse {
+	name: string;
+	data: string[];
+}
+export interface BaseResponse {
+	data?: any;
+	errcode: number;
+	message?: string;
+	status?: string;
+}
+export interface SettingSpinData {
+	smin: number;
+	smax: number;
+	merek_ins_t: boolean;
+	title: string;
+	desc: string;
+}
+export interface DataSpinDeleteQuery {
+	name: string;
+}
 
+export interface SettingSpinTitlePool {
+	name: string;
+	data: string;
+}
 export interface SettingSpinResponse {
-	data: Data
-	errcode: number
-	titlePool: TitlePool[]
+	data?: SettingSpinData;
+	errcode: number;
+	titlePool: SettingSpinTitlePool[];
 }
 
-export interface Data {
-	smin: number
-	smax: number
-	merek_ins_t: boolean
-	title: string
-	desc: string
+
+
+export interface SettingSpinConfigUpdatePayload {
+	name: string;
+	titlePool: SettingSpinTitlePool[];
+}
+export interface ProductAggQuery {
+	marketplace: string;
+	namespace: string;
+}
+export interface ProductNamespaceAgg {
+	count: number;
+	price_min: number;
+	price_max: number;
+	name: string;
+}
+export interface ProductPriceRangeAggQuery {
+	marketplace: string;
+	namespace: string;
+	range_price: number;
+}
+export interface ProductPriceRangeAgg {
+	_id: number[];
+	count: number;
+}
+export interface ProductCategoryAggQuery {
+	marketplace: string;
+	namespace: string;
+	is_public: boolean;
+}
+export interface ProductCategoryAgg {
+	_id: number;
+	price_min: number;
+	price_max: number;
+	count: number;
+	name: any[];
 }
 
-export interface TitlePool {
-	name: string
-	data: string
+export interface ProductCityAgg {
+	_id: string;
+	price_min: number;
+	price_max: number;
+	count: number;
 }
-
 export type SdkConfig = {
-
-	GetMarkupList: {
-		method: "get"
-		params: undefined
-		payload: undefined
-		response: {
-			data: Array<string>,
-			errcode: number
-		}
-		path: "api/listMarkup"
-	}
-
-	GetSpinList: {
-		method: "get"
-		params: undefined
-		payload: undefined
-		response: SettingSpinResponse
-		path: "api/settingSpin"
-	}
 
 	GetTokopediaAkunList: {
 		method: "get"
@@ -152,5 +194,93 @@ export type SdkConfig = {
 		payload: undefined
 		response: UploadAppStatus
 		path: "tokopedia/upload/status"
+	},
+
+	GetApiDataspin: {
+		method: "get"
+		params: DataSpinQuery
+		payload: undefined
+		response: DataSpinItemResponse[]
+		path: "api/dataspin"
+	},
+
+	PostApiDataspin: {
+		method: "post"
+		params: undefined
+		payload: SettingSpinData
+		response: BaseResponse
+		path: "api/dataspin"
+	},
+
+	DeleteApiDataspin: {
+		method: "delete"
+		params: DataSpinDeleteQuery
+		payload: undefined
+		response: BaseResponse
+		path: "api/dataspin"
+	},
+
+	GetApiSettingSpin: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: SettingSpinResponse
+		path: "api/settingSpin"
+	},
+
+	PostApiSettingSpin: {
+		method: "post"
+		params: undefined
+		payload: SettingSpinData
+		response: BaseResponse
+		path: "api/settingSpin"
+	},
+
+	PostApiConfigSettingSpin: {
+		method: "post"
+		params: undefined
+		payload: SettingSpinConfigUpdatePayload
+		response: BaseResponse
+		path: "api/config/settingSpin"
+	},
+
+	GetApiListMarkup: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: { data: string[] }
+		path: "api/listMarkup"
+	},
+
+	GetV1ProductNamespaceAll: {
+		method: "get"
+		params: ProductAggQuery
+		payload: undefined
+		response: ProductNamespaceAgg[]
+		path: "v1/product/namespace_all"
+	},
+
+	GetV1ProductPriceRange: {
+		method: "get"
+		params: ProductPriceRangeAggQuery
+		payload: undefined
+		response: ProductPriceRangeAgg[]
+		path: "v1/product/price_range"
+	},
+
+	GetV1ProductCategory: {
+		method: "get"
+		params: ProductCategoryAggQuery
+		payload: undefined
+		response: ProductCategoryAgg[]
+		path: "v1/product/category"
+	},
+
+	GetV1ProductKota: {
+		method: "get"
+		params: ProductAggQuery
+		payload: undefined
+		response: ProductCityAgg[]
+		path: "v1/product/kota"
 	}
 }

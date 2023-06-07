@@ -5,7 +5,15 @@ import {
     CopyOutlined,
     FilePptOutlined,
 } from "@ant-design/icons"
-import { Card, Checkbox, Input, Select, Tooltip, Typography } from "antd"
+import {
+    Card,
+    Checkbox,
+    Input,
+    InputNumber,
+    Select,
+    Tooltip,
+    Typography,
+} from "antd"
 import { Flex, FlexColumn } from "../styled_components"
 
 export type Profile = {
@@ -18,6 +26,7 @@ export type ProfileCardProps = {
     number: number
     spins?: Array<{ data: string; name: string }>
     markups?: Array<string>
+    collections?: Array<string>
 
     isActice?: boolean
     onChangeIsActive?: (v: boolean) => void
@@ -30,6 +39,15 @@ export type ProfileCardProps = {
 
     selected?: boolean
     onChangeSelected?: (v: boolean) => void
+
+    limitUpload?: number
+    onChangeLimitUpload?: (v: number | null) => void
+
+    collection?: string
+    onChangeCollection?: (v: string) => void
+
+    onCopy?: () => void
+    onPaste?: () => void
 }
 
 export default function ProfileCard(
@@ -63,6 +81,7 @@ export default function ProfileCard(
                         style={{ color: "#FFA559" }}
                         rev={"copy"}
                         key="copy"
+                        onClick={props.onCopy}
                     />
                 </Tooltip>,
                 <Tooltip title="Paste" placement="bottom" showArrow={false}>
@@ -70,6 +89,7 @@ export default function ProfileCard(
                         style={{ color: "#FFA559" }}
                         rev={"paste"}
                         key="paste"
+                        onClick={props.onPaste}
                     />
                 </Tooltip>,
                 <Tooltip title="Reset" placement="bottom" showArrow={false}>
@@ -106,7 +126,12 @@ export default function ProfileCard(
                     </FlexColumn>
                     <FlexColumn style={{ rowGap: "5px" }}>
                         <Typography.Text>Upload Limit :</Typography.Text>
-                        <Input placeholder="1000" />
+                        <InputNumber
+                            value={props.limitUpload}
+                            onChange={props.onChangeLimitUpload}
+                            placeholder="1000"
+                            style={{ width: "100%" }}
+                        />
                     </FlexColumn>
                     <div></div>
                     <Checkbox
@@ -127,13 +152,13 @@ export default function ProfileCard(
                             onChange={(v) => props.onChangeMarkup?.(v)}
                             placeholder="Choose Markup Data"
                         >
-                            <option disabled value="">
+                            <Select.Option disabled value="">
                                 Markup Select
-                            </option>
+                            </Select.Option>
                             {props.markups?.map((markup) => (
-                                <option value={markup} key={markup}>
+                                <Select.Option value={markup} key={markup}>
                                     {markup}
-                                </option>
+                                </Select.Option>
                             ))}
                         </Select>
                     </FlexColumn>
@@ -144,22 +169,38 @@ export default function ProfileCard(
                             onChange={(v) => props.onChangeSpin?.(v)}
                             placeholder="Choose Spin Data"
                         >
-                            <option disabled value="">
+                            <Select.Option disabled value="">
                                 Spin Select
-                            </option>
+                            </Select.Option>
                             {props.spins?.map((spin) => (
-                                <option
+                                <Select.Option
                                     value={spin.name}
                                     key={spin.data + spin.name}
                                 >
                                     {spin.name}
-                                </option>
+                                </Select.Option>
                             ))}
                         </Select>
                     </FlexColumn>
                     <FlexColumn style={{ rowGap: "5px" }}>
                         <Typography.Text>Collection :</Typography.Text>
-                        <Select placeholder="Choose Collection Data" />
+                        <Select
+                            value={props.collection}
+                            onChange={props.onChangeCollection}
+                            placeholder="Choose Collection Data"
+                        >
+                            <Select.Option value="" disabled>
+                                Choose Collection
+                            </Select.Option>
+                            {props.collections?.map((collection) => (
+                                <Select.Option
+                                    key={collection}
+                                    value={collection}
+                                >
+                                    {collection}
+                                </Select.Option>
+                            ))}
+                        </Select>
                     </FlexColumn>
                 </FlexColumn>
             </Flex>
