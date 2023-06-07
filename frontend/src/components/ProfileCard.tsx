@@ -113,7 +113,9 @@ export default function ProfileCard(
                 <Flex style={{ width: "100%" }}>
                     <FlexColumn style={{ flex: 1 }}>
                         <FlexColumn style={{ rowGap: "5px" }}>
-                            <Typography.Text>Username :</Typography.Text>
+                            <Typography.Text type="secondary">
+                                Username :
+                            </Typography.Text>
                             <Input
                                 value={props.username}
                                 onChange={(e) =>
@@ -123,7 +125,9 @@ export default function ProfileCard(
                             />
                         </FlexColumn>
                         <FlexColumn style={{ rowGap: "5px" }}>
-                            <Typography.Text>Password :</Typography.Text>
+                            <Typography.Text type="secondary">
+                                Password :
+                            </Typography.Text>
                             <Input.Password
                                 value={props.password}
                                 onChange={(e) =>
@@ -133,7 +137,9 @@ export default function ProfileCard(
                             />
                         </FlexColumn>
                         <FlexColumn style={{ rowGap: "5px" }}>
-                            <Typography.Text>Upload Limit :</Typography.Text>
+                            <Typography.Text type="secondary">
+                                Upload Limit :
+                            </Typography.Text>
                             <InputNumber
                                 value={props.limitUpload}
                                 onChange={props.onChangeLimitUpload}
@@ -145,7 +151,9 @@ export default function ProfileCard(
                     </FlexColumn>
                     <FlexColumn style={{ flex: 1 }}>
                         <FlexColumn style={{ rowGap: "5px" }}>
-                            <Typography.Text>Markup :</Typography.Text>
+                            <Typography.Text type="secondary">
+                                Markup :
+                            </Typography.Text>
                             <Select
                                 value={props.markup}
                                 onChange={(v) => props.onChangeMarkup?.(v)}
@@ -162,7 +170,9 @@ export default function ProfileCard(
                             </Select>
                         </FlexColumn>
                         <FlexColumn style={{ rowGap: "5px" }}>
-                            <Typography.Text>Spin :</Typography.Text>
+                            <Typography.Text type="secondary">
+                                Spin :
+                            </Typography.Text>
                             <Select
                                 value={props.spin}
                                 onChange={(v) => props.onChangeSpin?.(v)}
@@ -182,7 +192,9 @@ export default function ProfileCard(
                             </Select>
                         </FlexColumn>
                         <FlexColumn style={{ rowGap: "5px" }}>
-                            <Typography.Text>Collection :</Typography.Text>
+                            <Typography.Text type="secondary">
+                                Collection :
+                            </Typography.Text>
                             <Select
                                 value={props.collection}
                                 onChange={props.onChangeCollection}
@@ -218,8 +230,10 @@ export default function ProfileCard(
                     >
                         Active
                     </Checkbox>
-                    
-                    <Typography.Text>Product Uploaded Count: {props.uploadCount || 0}</Typography.Text>
+
+                    <Typography.Text>
+                        Product Uploaded Count: {props.uploadCount || 0}
+                    </Typography.Text>
                 </Flex>
             </FlexColumn>
         </Card>
