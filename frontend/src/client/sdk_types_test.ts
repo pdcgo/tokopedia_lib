@@ -137,6 +137,40 @@ export interface ProductCityAgg {
     price_max: number;
     count: number;
 }
+
+export interface MapItem {
+    shopee_id: number;
+    tokopedia_id: number;
+}
+export interface GetMapQuery {
+    collection: string;
+}
+export interface ShopeeTopedMapResponse {
+    data: MapItem[];
+}
+export interface Category {
+    id: number;
+    name: string;
+    url: string;
+    children: Category[];
+    __typename: string;
+}
+export interface CategoryAllListLite {
+    categories: Category[];
+    __typename: string;
+}
+export interface CategoryAllListLiteData {
+    categoryAllListLite?: CategoryAllListLite;
+}
+export interface CategoryAllListLiteRes {
+    data: CategoryAllListLiteData;
+}
+
+export interface UpdateTopedCategoryPayload {
+    username: string;
+    password: string;
+    secret: string;
+}
 export type SdkConfig = { 
 
 	GetTokopediaAkunList: {
@@ -281,5 +315,45 @@ export type SdkConfig = {
 		payload: undefined
 		response: ProductCityAgg[]
 		path: "v1/product/kota"
+	},
+
+	PutTokopediaMapperMap: {
+		method: "put"
+		params: undefined
+		payload: MapItem[]
+		response: Response
+		path: "tokopedia/mapper/map"
+	},
+
+	GetTokopediaMapperMap: {
+		method: "get"
+		params: GetMapQuery
+		payload: undefined
+		response: ShopeeTopedMapResponse
+		path: "tokopedia/mapper/map"
+	},
+
+	PutTokopediaMapperAutosuggest: {
+		method: "put"
+		params: undefined
+		payload: undefined
+		response: undefined
+		path: "tokopedia/mapper/autosuggest"
+	},
+
+	GetTokopediaCategoryList: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: CategoryAllListLiteRes
+		path: "tokopedia/category/list"
+	},
+
+	PutTokopediaCategoryUpdateCategory: {
+		method: "put"
+		params: undefined
+		payload: UpdateTopedCategoryPayload
+		response: Response
+		path: "tokopedia/category/update_category"
 	}
 }

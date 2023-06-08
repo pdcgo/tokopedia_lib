@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/pdcgo/common_conf v1.1.0
-	github.com/pdcgo/go_v2_shopeelib v1.0.5
+	github.com/pdcgo/go_v2_shopeelib v1.0.6
 	github.com/pdcgo/v2_gots_sdk v1.2.3
 	go.mongodb.org/mongo-driver v1.11.3
 	gorm.io/gorm v1.25.1
@@ -108,7 +108,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.2.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.10.0 // indirect
 	github.com/gorilla/schema v1.2.0
 	github.com/josharian/intern v1.0.0 // indirect

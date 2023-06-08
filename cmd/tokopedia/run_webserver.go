@@ -14,6 +14,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/app/web"
+	"github.com/pdcgo/tokopedia_lib/app/web/api"
 	"github.com/pdcgo/tokopedia_lib/lib/app_builder"
 	"github.com/pdcgo/tokopedia_lib/lib/datasource"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
@@ -48,18 +49,24 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	RegisterAkunApi(g, db, repo)
 	RegisterCommand(g, app, webtoped.Base)
 
-	web.RegisterTokopediaFrontend(r, prefix)
-
 	// bagian hendra
 	validate := validator.New()
+	baseData := &legacy_source.BaseConfig{
+		BaseData: webtoped.Base,
+	}
+
 	cfg := config.NewUploadConfigBase(webtoped.Base)
 	mdb := mongolib.NewDatabase(context.Background(), cfg.Database.DbURI, cfg.Database.DbName)
-	base := controller.NewBaseController(validate, &legacy_source.BaseConfig{
-		BaseData: webtoped.Base,
-	}, nil, mdb)
+	base := controller.NewBaseController(validate, baseData, nil, mdb)
 	controller.RegisterSpinController(sdk, base)
 	controller.RegisterMarkupController(sdk, base)
 	controller.RegisterProductController(sdk, base)
+
+	productRepo := mongolib.NewProductRepo(context.TODO(), mdb)
+	api.RegisterShopeeTopedMap(g, db, productRepo)
+	api.RegisterCategoryApi(g, baseData)
+
+	web.RegisterTokopediaFrontend(r, prefix)
 
 	return nil
 }

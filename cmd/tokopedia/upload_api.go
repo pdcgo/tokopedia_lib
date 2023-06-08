@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
+	"github.com/pdcgo/tokopedia_lib/app/web/api"
 	"github.com/pdcgo/v2_gots_sdk"
 )
 
@@ -19,10 +20,10 @@ type UploadApi struct {
 	Base   string
 }
 
-func (api *UploadApi) Start(ctx *gin.Context) {
+func (upapi *UploadApi) Start(ctx *gin.Context) {
 
 	cmd := exec.Command("bin/tokopedia.exe", "shopee_toped", "-b", "./")
-	cmd.Dir = api.Base
+	cmd.Dir = upapi.Base
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		CreationFlags:    CREATE_NEW_CONSOLE,
 		NoInheritHandles: true,
@@ -30,13 +31,13 @@ func (api *UploadApi) Start(ctx *gin.Context) {
 
 	cmd.Start()
 
-	ctx.JSON(http.StatusOK, Response{
+	ctx.JSON(http.StatusOK, api.Response{
 		Msg: "success",
 	})
 }
-func (api *UploadApi) Stop(ctx *gin.Context) {
-	api.upload.Cancel()
-	ctx.JSON(http.StatusOK, Response{
+func (upapi *UploadApi) Stop(ctx *gin.Context) {
+	upapi.upload.Cancel()
+	ctx.JSON(http.StatusOK, api.Response{
 		Msg: "success",
 	})
 }
@@ -48,7 +49,7 @@ func (api *UploadApi) Status(ctx *gin.Context) {
 
 func RegisterCommand(g *v2_gots_sdk.SdkGroup, upload *upload_app.UploadApp, base string) {
 
-	api := UploadApi{
+	upapi := UploadApi{
 		upload: upload,
 		Base:   base,
 	}
@@ -58,19 +59,19 @@ func RegisterCommand(g *v2_gots_sdk.SdkGroup, upload *upload_app.UploadApp, base
 	command.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodGet,
 		RelativePath: "start",
-		Response:     Response{},
-	}, api.Start)
+		Response:     api.Response{},
+	}, upapi.Start)
 
 	command.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodGet,
 		RelativePath: "stop",
-		Response:     Response{},
-	}, api.Stop)
+		Response:     api.Response{},
+	}, upapi.Stop)
 
 	command.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodGet,
 		RelativePath: "status",
 		Response:     upload_app.UploadAppStatus{},
-	}, api.Status)
+	}, upapi.Status)
 
 }

@@ -4,16 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pdcgo/tokopedia_lib/app/web/api"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
-
-type Response struct {
-	Msg string `json:"msg"`
-	Err string `json:"error"`
-}
 
 type Pagination struct {
 	Offset int   `json:"offset"`
@@ -55,9 +51,9 @@ type BulkPayload struct {
 	Data []*BulkItem `json:"data"`
 }
 
-func (api *AkunApi) BulkAdd(ctx *gin.Context) {
+func (akapi *AkunApi) BulkAdd(ctx *gin.Context) {
 	payload := BulkPayload{}
-	hasil := Response{}
+	hasil := api.Response{}
 
 	err := ctx.BindJSON(&payload)
 	if err != nil {
@@ -76,7 +72,7 @@ func (api *AkunApi) BulkAdd(ctx *gin.Context) {
 		}
 	}
 
-	err = api.db.Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(akuns, 50).Error
+	err = akapi.db.Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(akuns, 50).Error
 	if err != nil {
 		hasil.Msg = "error"
 		hasil.Err = err.Error()
@@ -95,7 +91,7 @@ type AkunListQuery struct {
 }
 
 type AkunListResponse struct {
-	Response
+	api.Response
 	Data []*repo.AkunItem `json:"data"`
 
 	Pagination Pagination `json:"pagination"`
@@ -144,8 +140,8 @@ func (api *AkunApi) List(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &hasil)
 }
 
-func (api *AkunApi) Update(ctx *gin.Context) {
-	hasil := Response{
+func (akapi *AkunApi) Update(ctx *gin.Context) {
+	hasil := api.Response{
 		Msg: "success",
 	}
 	payload := AkunUpdatePayload{}
@@ -157,7 +153,7 @@ func (api *AkunApi) Update(ctx *gin.Context) {
 		return
 	}
 	for _, data := range payload.Data {
-		err = api.db.Save(data).Error
+		err = akapi.db.Save(data).Error
 		if err != nil {
 			hasil.Msg = "error"
 			hasil.Err = err.Error()
@@ -170,8 +166,8 @@ func (api *AkunApi) Update(ctx *gin.Context) {
 
 }
 
-func (api *AkunApi) Delete(ctx *gin.Context) {
-	hasil := Response{
+func (akapi *AkunApi) Delete(ctx *gin.Context) {
+	hasil := api.Response{
 		Msg: "success",
 	}
 	payload := AkunDeletePayload{}
@@ -184,7 +180,7 @@ func (api *AkunApi) Delete(ctx *gin.Context) {
 	}
 
 	for _, data := range payload.Usernames {
-		err = api.db.Delete(&repo.AkunItem{}, data).Error
+		err = akapi.db.Delete(&repo.AkunItem{}, data).Error
 		if err != nil {
 			hasil.Msg = "error"
 			hasil.Err = err.Error()
@@ -213,7 +209,7 @@ func (api *AkunApi) Delete(ctx *gin.Context) {
 
 func RegisterAkunApi(g *v2_gots_sdk.SdkGroup, db *gorm.DB, repo *repo.AkunRepo) {
 
-	api := NewAkunApi(db, repo)
+	akapi := NewAkunApi(db, repo)
 
 	akun := g.Group("akun")
 
@@ -222,28 +218,28 @@ func RegisterAkunApi(g *v2_gots_sdk.SdkGroup, db *gorm.DB, repo *repo.AkunRepo) 
 		RelativePath: "list",
 		Query:        AkunListQuery{},
 		Response:     AkunListResponse{},
-	}, api.List)
+	}, akapi.List)
 
 	akun.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodPost,
 		RelativePath: "bulk_add",
 		Payload:      BulkPayload{},
-		Response:     Response{},
-	}, api.BulkAdd)
+		Response:     api.Response{},
+	}, akapi.BulkAdd)
 
 	akun.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodPost,
 		RelativePath: "update",
 		Payload:      AkunUpdatePayload{},
-		Response:     Response{},
-	}, api.Update)
+		Response:     api.Response{},
+	}, akapi.Update)
 
 	akun.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodPost,
 		RelativePath: "delete",
 		Payload:      AkunDeletePayload{},
-		Response:     Response{},
-	}, api.Delete)
+		Response:     api.Response{},
+	}, akapi.Delete)
 
 	// akun.Register(&v2_gots_sdk.Api{
 	// 	Method:       http.MethodPost,

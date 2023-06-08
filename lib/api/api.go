@@ -56,6 +56,7 @@ func (api *TokopediaApi) SendRequest(req *http.Request, hasil any) error {
 	}
 
 	body, _ := io.ReadAll(res.Body)
+	// log.Println(string(body))
 	err = json.Unmarshal(body, hasil)
 	if err != nil {
 		return err
