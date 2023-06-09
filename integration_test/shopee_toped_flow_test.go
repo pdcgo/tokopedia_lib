@@ -22,7 +22,7 @@ func addAccount(db *gorm.DB) error {
 		Secret:     "IULIWGH6TIK3CZBKHGE27DBRLQ5LR5WQ",
 		Collection: "default",
 		AkunUploadStatus: repo.AkunUploadStatus{
-			LimitUpload: 100,
+			LimitUpload: 2,
 			Active:      true,
 		},
 	}

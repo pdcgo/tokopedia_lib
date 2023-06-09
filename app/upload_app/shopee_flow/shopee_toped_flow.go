@@ -13,6 +13,7 @@ import (
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/spin"
 	libmongo "github.com/pdcgo/go_v2_shopeelib/lib/mongo"
 	shopeeuploader "github.com/pdcgo/go_v2_shopeelib/lib/uploader"
+	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/tokopedia_lib/lib/uploader"
@@ -38,6 +39,8 @@ func CreateConfigConcurencyFromCmd() *shopee_upapp.UploadConcurencyConfig {
 }
 
 type ShopeeToTopedFlow struct {
+	configrepo     *config.ConfigRepo
+	mapper         *config.ShopeeMapper
 	Ctx            context.Context
 	CancelCtx      func()
 	limitGuard     chan int
@@ -58,8 +61,13 @@ func NewShopeeToTopedFlow(rootBase string, ctx context.Context, db *mongo.Databa
 	productRepo := libmongo.NewProductRepo(ctx, db)
 
 	iterator := repo.NewAkunUploadIterator(sqlitedb)
+	shopeemapper := config.NewShopeeMapper(sqlitedb)
+
+	configrepo := config.NewConfigRepo(sqlitedb)
 
 	return &ShopeeToTopedFlow{
+		configrepo:     configrepo,
+		mapper:         shopeemapper,
 		limitGuard:     make(chan int, configFlow.UploadConcurencyConfig.AccountConcurency),
 		ConfigFlow:     configFlow,
 		productRepo:    productRepo,
