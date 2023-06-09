@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/controller"
 	mongolib "github.com/pdcgo/go_v2_shopeelib/lib/mongo"
@@ -15,7 +16,9 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/app/web"
 	"github.com/pdcgo/tokopedia_lib/app/web/api"
+	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/app_builder"
+	"github.com/pdcgo/tokopedia_lib/lib/category_mapper"
 	"github.com/pdcgo/tokopedia_lib/lib/datasource"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
@@ -63,7 +66,14 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	controller.RegisterProductController(sdk, base)
 
 	productRepo := mongolib.NewProductRepo(context.TODO(), mdb)
-	api.RegisterShopeeTopedMap(g, db, productRepo)
+	pubapi, err := api_public.NewTokopediaApiPublic()
+
+	if err != nil {
+		pdc_common.ReportError(err)
+	}
+
+	mapperdata := category_mapper.NewMapper(pubapi)
+	api.RegisterShopeeTopedMap(g, db, productRepo, mapperdata)
 	api.RegisterCategoryApi(g, baseData)
 
 	web.RegisterTokopediaFrontend(r, prefix)
