@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Flex, FlexColumn } from "../styled_components"
 import { Button, Card, Divider, Pagination, Select, Typography } from "antd"
@@ -5,11 +6,13 @@ import MapCard from "../components/MapCard"
 import { nanoid } from "nanoid"
 import { useEffect, useState } from "react"
 import { scroller } from "../utils/topScroller"
+import { useRequest } from "../client"
 
 const topPaginationId = nanoid(7)
 
 export default function CategoryMapping(): React.ReactElement {
     const [showBottomPagination, setShowBottomPagination] = useState(false)
+    const { sender } = useRequest("GetTokopediaCategoryList")
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -31,6 +34,10 @@ export default function CategoryMapping(): React.ReactElement {
                 observer.unobserve(el)
             }
         }
+    }, [])
+
+    useEffect(() => {
+        sender({ method: "get", path: "tokopedia/category/list" })
     }, [])
 
     return (
