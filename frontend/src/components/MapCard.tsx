@@ -1,9 +1,9 @@
-import { Breadcrumb, Button, Card, Cascader, Tooltip, Typography } from "antd"
 import {
     CopyOutlined,
-    ReloadOutlined,
     FilePptOutlined,
+    ReloadOutlined,
 } from "@ant-design/icons"
+import { Breadcrumb, Card, Cascader, Tooltip, Typography } from "antd"
 import { Flex, FlexColumn } from "../styled_components"
 
 export default function MapCard(): React.ReactElement {
@@ -61,7 +61,6 @@ export default function MapCard(): React.ReactElement {
                 <Typography.Text>Map to :</Typography.Text>
                 <Flex style={{ columnGap: "7px" }}>
                     <Cascader showSearch style={{ width: "100%" }} />
-                    <Button>Use Suggest</Button>
                 </Flex>
             </FlexColumn>
         </Card>

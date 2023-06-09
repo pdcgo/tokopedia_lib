@@ -1,44 +1,55 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Flex, FlexColumn } from "../styled_components"
-import { Button, Card, Divider, Pagination, Select, Typography } from "antd"
-import MapCard from "../components/MapCard"
-import { nanoid } from "nanoid"
-import { useEffect, useState } from "react"
-import { scroller } from "../utils/topScroller"
+import { Button, Card, Divider, Select, Typography } from "antd"
+import { useEffect, useMemo, useState } from "react"
 import { useRequest } from "../client"
-
-const topPaginationId = nanoid(7)
+import { Flex, FlexColumn } from "../styled_components"
+import MapCard from "../components/MapCard"
 
 export default function CategoryMapping(): React.ReactElement {
-    const [showBottomPagination, setShowBottomPagination] = useState(false)
     const { sender } = useRequest("GetTokopediaCategoryList")
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entry) => {
-                if (!entry[0].isIntersecting) setShowBottomPagination(true)
-                else setShowBottomPagination(false)
+    const { sender: namespaceGetter, response } = useRequest(
+        "GetV1ProductNamespaceAll",
+        {
+            onSuccess(data) {
+                data.forEach((nm) => {
+                    if (nm.name !== "default") {
+                        setSelectedNamespace(nm.name)
+                    }
+                })
             },
-            { threshold: [0] }
-        )
-
-        const el = document.getElementById(topPaginationId)
-
-        if (el) {
-            observer.observe(el)
         }
+    )
+    const { sender: mapGetter } = useRequest("GetTokopediaMapperMap")
 
-        return () => {
-            if (el) {
-                observer.unobserve(el)
-            }
-        }
-    }, [])
+    const [selectedNamespacem, setSelectedNamespace] = useState<string | null>(
+        null
+    )
 
     useEffect(() => {
         sender({ method: "get", path: "tokopedia/category/list" })
+        namespaceGetter({ method: "get", path: "v1/product/namespace_all" })
     }, [])
+
+    useEffect(() => {
+        if (selectedNamespacem) {
+            mapGetter({
+                method: "get",
+                path: "tokopedia/mapper/map",
+                params: { collection: selectedNamespacem },
+            })
+        }
+    }, [selectedNamespacem])
+
+    const namespaces = useMemo(() => {
+        if (response) {
+            return response.map((namespace) => ({
+                label: namespace.name,
+                value: namespace.name,
+            }))
+        }
+        return []
+    }, [response])
 
     return (
         <FlexColumn>
@@ -61,9 +72,13 @@ export default function CategoryMapping(): React.ReactElement {
                         <Select
                             style={{ width: "300px" }}
                             placeholder="Choose Collection"
+                            value={selectedNamespacem}
+                            onChange={setSelectedNamespace}
+                            options={namespaces}
                         />
                     </FlexColumn>
                     <Flex style={{ rowGap: "5px", justifyContent: "flex-end" }}>
+                        <Button>Use Suggest</Button>
                         <Button
                             style={{ backgroundColor: "#005246" }}
                             type="primary"
@@ -75,14 +90,12 @@ export default function CategoryMapping(): React.ReactElement {
                 </Flex>
             </Card>
             <Divider dashed style={{ marginBlock: "5px" }} />
-            <Flex
-                id={topPaginationId}
+            {/* <Flex
                 style={{
                     justifyContent: "space-between",
                     alignItems: "center",
                 }}
             >
-                <Pagination total={12} pageSize={2} showSizeChanger />
                 <Flex>
                     <Typography.Text>
                         Total Category:{" "}
@@ -100,7 +113,7 @@ export default function CategoryMapping(): React.ReactElement {
                     </Typography.Text>
                 </Flex>
             </Flex>
-            <div></div>
+            <div></div> */}
             <div
                 style={{
                     display: "grid",
@@ -112,33 +125,7 @@ export default function CategoryMapping(): React.ReactElement {
                 <MapCard />
                 <MapCard />
                 <MapCard />
-                {/* <MapCard />
-                <MapCard />
-                <MapCard />
-                <MapCard />
-                <MapCard />
-                <MapCard />
-                <MapCard />
-                <MapCard />
-                <MapCard />
-                <MapCard />
-                <MapCard />
-                <MapCard />
-                <MapCard /> */}
             </div>
-            <div></div>
-            {showBottomPagination && (
-                <Flex style={{ justifyContent: "flex-start" }}>
-                    <Pagination
-                        onChange={() => {
-                            scroller(true)
-                        }}
-                        total={12}
-                        pageSize={2}
-                        showSizeChanger
-                    />
-                </Flex>
-            )}
         </FlexColumn>
     )
 }
