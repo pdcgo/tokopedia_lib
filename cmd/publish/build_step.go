@@ -9,7 +9,7 @@ import (
 
 	"github.com/pdcgo/autoupdater"
 	"github.com/pdcgo/common_conf/pdc_common"
-	"github.com/pdcgo/tokopedia_lib/app/web"
+	"github.com/pdcgo/tokopedia_lib/app/cek_bot"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
@@ -71,7 +71,7 @@ func buildBinary(outputdir string) (string, error) {
 func publishCekAkun(ctx *cli.Context) error {
 
 	up := autoupdater.Publiser{
-		Version:       web.Version,
+		Version:       cek_bot.Version,
 		Storage:       storage,
 		Variant:       variant,
 		OutputDir:     "dist",
