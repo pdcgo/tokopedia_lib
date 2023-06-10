@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/pdcgo/common_conf v1.1.0
-	github.com/pdcgo/go_v2_shopeelib v1.0.8
+	github.com/pdcgo/go_v2_shopeelib v1.0.9
 	github.com/pdcgo/v2_gots_sdk v1.2.3
 	go.mongodb.org/mongo-driver v1.11.3
 	gorm.io/gorm v1.25.2-0.20230530020048-26663ab9bf55

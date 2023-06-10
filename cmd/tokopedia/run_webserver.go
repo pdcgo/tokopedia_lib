@@ -64,6 +64,8 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	controller.RegisterSpinController(sdk, base)
 	controller.RegisterMarkupController(sdk, base)
 	controller.RegisterProductController(sdk, base)
+	controller.RegisterPredictWeightController(sdk, base)
+	controller.RegisterLegacyController(sdk, base)
 
 	productRepo := mongolib.NewProductRepo(context.TODO(), mdb)
 	pubapi, err := api_public.NewTokopediaApiPublic()
