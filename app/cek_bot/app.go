@@ -1,4 +1,4 @@
-package web
+package cek_bot
 
 import (
 	_ "embed"

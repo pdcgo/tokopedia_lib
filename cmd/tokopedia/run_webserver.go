@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -12,6 +13,8 @@ import (
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/controller"
 	mongolib "github.com/pdcgo/go_v2_shopeelib/lib/mongo"
+	sapi_public "github.com/pdcgo/go_v2_shopeelib/lib/public_api"
+	"github.com/pdcgo/go_v2_shopeelib/lib/shopee_dp"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/app/web"
@@ -28,6 +31,14 @@ import (
 type TokopediaWebServer struct {
 	Base    string
 	DevMode bool
+}
+
+func runProxyBrowser(base *legacy_source.BaseConfig) *shopee_dp.ShopeeBrowser {
+	browser := shopee_dp.InitializeShopeeBrowser(base, context.Background(), "localhost:5002", time.Minute*2)
+	go browser.Proxy.RunProxy()
+	browser.Run()
+
+	return browser
 }
 
 func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) error {
@@ -60,7 +71,12 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 
 	cfg := config.NewUploadConfigBase(webtoped.Base)
 	mdb := mongolib.NewDatabase(context.Background(), cfg.Database.DbURI, cfg.Database.DbName)
-	base := controller.NewBaseController(validate, baseData, nil, mdb)
+
+	// [HENDRA]: running sementara
+	browser := runProxyBrowser(baseData)
+	shopeepubapi := sapi_public.NewPublicApi(browser)
+
+	base := controller.NewBaseController(validate, baseData, shopeepubapi, mdb)
 	controller.RegisterSpinController(sdk, base)
 	controller.RegisterMarkupController(sdk, base)
 	controller.RegisterProductController(sdk, base)
