@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pdcgo/common_conf/pdc_common"
@@ -12,11 +13,24 @@ import (
 	"gorm.io/gorm"
 )
 
+type SuggestStatusType string
+
+const (
+	SUGGEST_RUN  SuggestStatusType = "RUNNING"
+	SUGGEST_STOP SuggestStatusType = "STOPPED"
+)
+
+type AutoSuggestStatus struct {
+	sync.Mutex
+	Status SuggestStatusType `json:"status"`
+}
+
 type ShopeeTopedMapApi struct {
-	db         *gorm.DB
-	prodRepo   *mongolib.ProductRepo
-	mapper     *category_mapper.Mapper
-	configRepo *config.ConfigRepo
+	db            *gorm.DB
+	prodRepo      *mongolib.ProductRepo
+	mapper        *category_mapper.Mapper
+	configRepo    *config.ConfigRepo
+	SuggestStatus *AutoSuggestStatus
 }
 
 func (mapi *ShopeeTopedMapApi) UpdateMap(c *gin.Context) {
@@ -108,6 +122,10 @@ func (item *ShopeeMapSuggestItem) GetName() string {
 	return data
 }
 
+func (mapi *ShopeeTopedMapApi) StatusAutoSuggest(c *gin.Context) {
+	c.JSON(http.StatusOK, mapi.SuggestStatus)
+}
+
 func (mapi *ShopeeTopedMapApi) AutoSuggest(c *gin.Context) {
 	aggre, err := mapi.GetCollectionCategories(c)
 	if err != nil {
@@ -118,15 +136,24 @@ func (mapi *ShopeeTopedMapApi) AutoSuggest(c *gin.Context) {
 		return
 	}
 
-	hasil := make([]category_mapper.ItemMap, len(aggre))
-	for ind, agg := range aggre {
-		hasil[ind] = &ShopeeMapSuggestItem{
-			data: &agg,
-			db:   mapi.db,
+	if !mapi.SuggestStatus.TryLock() {
+		mapi.SuggestStatus.Status = SUGGEST_RUN
+		hasil := make([]category_mapper.ItemMap, len(aggre))
+		for ind, agg := range aggre {
+			hasil[ind] = &ShopeeMapSuggestItem{
+				data: &agg,
+				db:   mapi.db,
+			}
 		}
+		go func() {
+			defer func() {
+				mapi.SuggestStatus.Status = SUGGEST_STOP
+			}()
+			mapi.mapper.RunMapper(hasil)
+		}()
+
 	}
 
-	mapi.mapper.RunMapper(hasil)
 	c.JSON(http.StatusOK, &Response{})
 }
 
@@ -185,6 +212,12 @@ func RegisterShopeeTopedMap(
 		RelativePath: "autosuggest",
 		Query:        GetMapQuery{},
 	}, mapapi.AutoSuggest)
+
+	grp.Register(&v2_gots_sdk.Api{
+		Method:       http.MethodGet,
+		RelativePath: "autosuggest",
+		Response:     AutoSuggestStatus{},
+	}, mapapi.StatusAutoSuggest)
 
 	grp.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodGet,

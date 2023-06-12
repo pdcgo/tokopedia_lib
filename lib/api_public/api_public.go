@@ -64,8 +64,8 @@ func (api *TokopediaApiPublic) SendRequest(req *http.Request, hasil any) error {
 
 func defaultHeader() map[string]string {
 	headers := map[string]string{
-		"content-type": "application/json",
-		"origin":       "https://www.tokopedia.com",
+		"Content-type": "application/json",
+		"Origin":       "https://www.tokopedia.com",
 		"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
 	}
 	return headers

@@ -43,8 +43,7 @@ func (api *TokopediaApi) IsAutheticated() (*IsAuthenticatedRes, error) {
 	query := GraphqlPayload{
 		OperationName: "isAuthenticatedQuery",
 		Variables:     variable,
-		Query: `
-		query isAuthenticatedQuery {
+		Query: `query isAuthenticatedQuery {
 			isAuthenticated
 			userShopInfo {
 			  info {
@@ -77,15 +76,29 @@ func (api *TokopediaApi) IsAutheticated() (*IsAuthenticatedRes, error) {
 	}
 
 	req := api.NewGraphqlReq(&query)
+	headers := map[string]string{
+		"Content-Type":                     "application/json",
+		"Access-Control-Allow-Headers":     "Content-type, Fingerprint-Data, Fingerprint-Hash, x-user-id, Webview-App-Version, Redirect, Access-Control-Allow-Origin, Content-MD5, Tkpd-UserId, X-Tkpd-UserId, Tkpd-SessionId, X-Device, X-Source, X-Method, X-Date, Authorization, Accounts-Authorization, flight-thirdparty, x-origin, Cshld-SessionID, X-Mitra-Device, x-tkpd-akamai, x-tkpd-lite-service, x-ga-id, x-device, Akamai-Bot, x-tkpd-app-name, x-tkpd-clc, x-return-hmac-md5, queryhash, Event, X-Element-ID, sid_intools, sonic_access_token, Referer, x-tkpd-ht, x-tkpd-htt, X-Auth-Signature, X-Auth-Timestamp, X-Auth-Hash, X-NewRelic-Id, newrelic, tracestate, traceparent",
+		"Access-Control-Allow-Methods":     "GET, HEAD, PUT, PATCH, POST, DELETE",
+		"x-tkpd-gql-dc":                    "gcp",
+		"x-tkpd-srv-go":                    "go-graphql",
+		"Access-Control-Allow-Origin":      "https://seller.tokopedia.com",
+		"Access-Control-Allow-Credentials": "true",
+		"Access-Control-Expose-Headers":    "queryhash",
+	}
 
-	var hasil *IsAuthenticatedRes
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	var hasil IsAuthenticatedRes
 	err := api.SendRequest(req, &hasil)
 
 	if err != nil {
-		return hasil, err
+		return &hasil, err
 	}
 
 	api.AuthenticatedData = &hasil.Data
 
-	return hasil, err
+	return &hasil, err
 }
