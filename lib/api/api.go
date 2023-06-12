@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -56,7 +57,7 @@ func (api *TokopediaApi) SendRequest(req *http.Request, hasil any) error {
 	}
 
 	body, _ := io.ReadAll(res.Body)
-	// log.Println(string(body))
+	log.Println(string(body))
 	err = json.Unmarshal(body, hasil)
 	if err != nil {
 		return err

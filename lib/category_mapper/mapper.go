@@ -2,6 +2,7 @@ package category_mapper
 
 import (
 	"log"
+	"sync"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -25,14 +26,17 @@ func NewMapper(papi *api_public.TokopediaApiPublic) *Mapper {
 }
 
 func (mapi *Mapper) RunMapper(datas []ItemMap) {
-
+	var wg sync.WaitGroup
 	for _, item := range datas {
 		mapi.limitGuard <- 1
 
 		shopee := item
+
+		wg.Add(1)
 		go func() {
 			defer func() {
 				<-mapi.limitGuard
+				wg.Done()
 			}()
 			name := shopee.GetName()
 			res, err := mapi.papi.JarvisRecommendation(name)
@@ -50,4 +54,6 @@ func (mapi *Mapper) RunMapper(datas []ItemMap) {
 			shopee.SetTokopediaID(tokped.ID)
 		}()
 	}
+
+	wg.Wait()
 }
