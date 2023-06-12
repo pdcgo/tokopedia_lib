@@ -38,7 +38,7 @@ func (erh *ErrorHandler) SetError(err error) {
 	}
 }
 
-func IterateProduct(ctx context.Context, sellerapi *api.TokopediaApi) error {
+func IterateProduct(sellerapi *api.TokopediaApi, handleItem func(page int, product *model.SellerProductItem) error) error {
 	// errorHelp := NewErrorHandler(ctx)
 
 	sID := sellerapi.AuthenticatedData.UserShopInfo.Info.ShopID
@@ -84,6 +84,12 @@ func IterateProduct(ctx context.Context, sellerapi *api.TokopediaApi) error {
 
 		if len(hasilList.Data.ProductList.Data) == 0 {
 			break
+		}
+		for _, item := range hasilList.Data.ProductList.Data {
+			err := handleItem(page, item)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
