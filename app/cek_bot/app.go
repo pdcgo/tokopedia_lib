@@ -10,6 +10,7 @@ import (
 	"github.com/pdcgo/common_conf/auth"
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/report"
+	"github.com/urfave/cli/v2"
 )
 
 var concurent = make(chan int, 50)
@@ -153,7 +154,7 @@ func cekbot(driver *report.CekReport) {
 
 }
 
-func RunCheckAkun() {
+func runCheckAkun(cCtx *cli.Context) error {
 	setupPdcLogger()
 	// proxy := tokpedproxy.NewInspectProxy("localhost:8082", context.Background())
 	// go proxy.RunProxy()
@@ -172,7 +173,7 @@ func RunCheckAkun() {
 	if err != nil {
 		pdc_common.ReportError(err)
 		time.Sleep(time.Minute)
-		return
+		return nil
 	}
 
 	for _, driver := range akuns {
@@ -184,4 +185,22 @@ func RunCheckAkun() {
 
 	waitallakun.Wait()
 	log.Println("cekbot selesai..")
+
+	return nil
+}
+
+func CreateCheckbotCommand() *cli.Command {
+	command := cli.Command{
+		Name:    "cekbot",
+		Aliases: []string{"cb"},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "base",
+				Aliases: []string{"b"},
+				Value:   "../",
+			},
+		},
+		Action: runCheckAkun,
+	}
+	return &command
 }

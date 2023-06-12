@@ -250,6 +250,9 @@ export interface UpdateTopedCategoryPayload {
     password: string;
     secret: string;
 }
+export interface RunCheckbotPayload {
+    fname: string;
+}
 export type SdkConfig = { 
 
 	GetTokopediaAkunList: {
@@ -490,5 +493,13 @@ export type SdkConfig = {
 		payload: UpdateTopedCategoryPayload
 		response: Response
 		path: "tokopedia/category/update_category"
+	},
+
+	PutTokopediaCekbotRun: {
+		method: "put"
+		params: undefined
+		payload: RunCheckbotPayload
+		response: undefined
+		path: "tokopedia/cekbot/run"
 	}
 }

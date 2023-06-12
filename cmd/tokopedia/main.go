@@ -5,6 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/tokopedia_lib/app/cek_bot"
 	"github.com/urfave/cli/v2"
 )
 
@@ -19,6 +21,7 @@ func catch() {
 func main() {
 	defer catch()
 
+	checkbotCommand := cek_bot.CreateCheckbotCommand()
 	app := &cli.App{
 		Name:  "Tokopedia Server Tool",
 		Usage: "Binary Tokopedia Server Tool",
@@ -43,10 +46,12 @@ func main() {
 				},
 				Action: runUploadShopeeToped,
 			},
+			checkbotCommand,
 		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
+		pdc_common.ReportError(err)
 		log.Fatal(err)
 	}
 

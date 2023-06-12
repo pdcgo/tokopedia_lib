@@ -93,6 +93,8 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	mapperdata := category_mapper.NewMapper(pubapi)
 	api.RegisterShopeeTopedMap(g, db, productRepo, mapperdata)
 	api.RegisterCategoryApi(g, baseData)
+	cekbotgrp := g.Group("cekbot")
+	api.RegisterCekbotApi(cekbotgrp, baseData)
 
 	web.RegisterTokopediaFrontend(r, prefix)
 

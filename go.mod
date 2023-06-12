@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/pdcgo/common_conf v1.1.0
-	github.com/pdcgo/go_v2_shopeelib v1.0.11
+	github.com/pdcgo/go_v2_shopeelib v1.0.12
 	github.com/pdcgo/v2_gots_sdk v1.2.3
 	go.mongodb.org/mongo-driver v1.11.3
 	gorm.io/gorm v1.25.2-0.20230530020048-26663ab9bf55
@@ -96,7 +96,7 @@ require (
 	cloud.google.com/go/longrunning v0.5.0 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
-	github.com/chromedp/cdproto v0.0.0-20230605001715-1e95ea08ffe6
+	github.com/chromedp/cdproto v0.0.0-20230611221135-4cd95c996604
 	github.com/chromedp/chromedp v0.9.1
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
