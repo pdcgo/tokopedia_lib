@@ -34,12 +34,12 @@ type DriverSession interface {
 }
 
 type DriverAccount struct {
-	Username string
-	Password string
-	Secret   string
-	DevMode  bool
-	Proxy    string
-	Session  DriverSession
+	Username string        `json:"username"`
+	Password string        `json:"password"`
+	Secret   string        `json:"secret"`
+	DevMode  bool          `json:"-"`
+	Proxy    string        `json:"-"`
+	Session  DriverSession `json:"-"`
 }
 
 type BrowserClosed struct {

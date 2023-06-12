@@ -146,6 +146,13 @@ export interface PredictWeightResponse {
     harga: number;
     jarak: number;
 }
+export interface PredictWeightPayload {
+    itemid: number;
+    shopid: number;
+}
+export interface PredictWeightSaveQuery {
+    predict: number;
+}
 
 export interface PredictWeightLoadResponse {
     predict_weight: number;
@@ -158,24 +165,6 @@ export interface SearchFilterDynamicShipping {
     item_tag_ids: number[];
 }
 
-export interface ShopeePublicCategoryRegionSetting {
-    enable_size_chart: boolean;
-    low_stock_value: number;
-    dimension_mandatory: boolean;
-}
-export interface ShopeePublicCategory {
-    id: number;
-    name: string;
-    display_name: string;
-    parent_id: number;
-    has_active_children: boolean;
-    has_children: boolean;
-    children?: any[];
-    region_setting: ShopeePublicCategoryRegionSetting;
-    is_prohibit: boolean;
-    chain_name: string[];
-    chain_ids: number[];
-}
 export interface CategorySubSub {
     catid: number;
     display_name: string;
@@ -207,9 +196,27 @@ export interface CategoryItem {
     main: CategoryMain;
     sub: CategorySub[];
 }
+export interface ShopeeCategoryRegionSetting {
+    enable_size_chart: boolean;
+    low_stock_value: number;
+    dimension_mandatory: boolean;
+}
+export interface ShopeeCategory {
+    id: number;
+    name: string;
+    display_name: string;
+    parent_id: number;
+    has_active_children: boolean;
+    has_children: boolean;
+    children?: any[];
+    region_setting: ShopeeCategoryRegionSetting;
+    is_prohibit: boolean;
+    chain_name: string[];
+    chain_ids: number[];
+}
 export interface ManifestResponse {
-    category: CategoryItem[];
-    public_category_repo: ShopeePublicCategory[];
+    category: ShopeeCategory[];
+    public_category_repo: CategoryItem[];
 }
 
 export interface ShopeeMapItem {
@@ -250,8 +257,14 @@ export interface UpdateTopedCategoryPayload {
     password: string;
     secret: string;
 }
+export interface DriverAccount {
+    username: string;
+    password: string;
+    secret: string;
+}
 export interface RunCheckbotPayload {
     fname: string;
+    Akuns: DriverAccount[];
 }
 export type SdkConfig = { 
 
@@ -402,14 +415,14 @@ export type SdkConfig = {
 	PostV4ShopeeWeightPredict: {
 		method: "post"
 		params: undefined
-		payload: undefined
+		payload: PredictWeightPayload
 		response: PredictWeightResponse
 		path: "v4/shopee/weight/predict"
 	},
 
 	GetV3PredictweightSave: {
 		method: "get"
-		params: undefined
+		params: PredictWeightSaveQuery
 		payload: undefined
 		response: BaseResponse
 		path: "v3/predictweight/save"

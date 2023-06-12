@@ -168,7 +168,9 @@ func runCheckAkun(cCtx *cli.Context) error {
 
 	// driver.Proxy = proxy.Addr
 
-	akuns, save, err := report.NewCekReport("cekbot.txt")
+	fname := cCtx.String("fname")
+
+	akuns, save, err := report.NewCekReport(fname)
 	defer save()
 	if err != nil {
 		pdc_common.ReportError(err)
@@ -198,6 +200,11 @@ func CreateCheckbotCommand() *cli.Command {
 				Name:    "base",
 				Aliases: []string{"b"},
 				Value:   "../",
+			},
+			&cli.StringFlag{
+				Name:    "fname",
+				Aliases: []string{"f"},
+				Value:   "cekbot.txt",
 			},
 		},
 		Action: runCheckAkun,
