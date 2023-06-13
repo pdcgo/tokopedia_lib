@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -119,6 +120,7 @@ type ProductStatus string
 
 const (
 	LimitedStatus ProductStatus = "LIMITED"
+	DeletedStatus ProductStatus = "DELETED"
 )
 
 type NoVariantStockPrice struct {
@@ -327,12 +329,14 @@ type GetProductV3 struct {
 	Typename      string        `json:"__typename"`
 }
 
+type BulkProductEditShop struct {
+	ID string `json:"id"`
+}
+
 type BulkProductEditV3Input struct {
-	ProductID string `json:"productID"`
-	Shop      struct {
-		ID string `json:"id"`
-	} `json:"shop"`
-	Status string `json:"status"`
+	ProductID string              `json:"productID"`
+	Shop      BulkProductEditShop `json:"shop"`
+	Status    ProductStatus       `json:"status"`
 }
 
 ///////////////////////////////////////////////////////
@@ -419,19 +423,25 @@ type ProductUpdateResp struct {
 }
 
 type BulkProductEditV3Var struct {
-	Input []BulkProductEditV3Input `json:"input"`
+	Input []*BulkProductEditV3Input `json:"input"`
+}
+
+type BulkProductEditV3Item struct {
+	ProductID string `json:"productID"`
+	Result    struct {
+		Header    Header `json:"header"`
+		IsSuccess bool   `json:"isSuccess"`
+		Typename  string `json:"__typename"`
+	} `json:"result"`
+	Typename string `json:"__typename"`
+}
+
+func (item *BulkProductEditV3Item) Error() string {
+	return fmt.Sprintf("gagal delete product %s", item.ProductID)
 }
 
 type BulkProductEditV3Resp struct {
 	Data struct {
-		BulkProductEditV3 []struct {
-			ProductID string `json:"productID"`
-			Result    struct {
-				Header    Header `json:"header"`
-				IsSuccess bool   `json:"isSuccess"`
-				Typename  string `json:"__typename"`
-			} `json:"result"`
-			Typename string `json:"__typename"`
-		} `json:"BulkProductEditV3"`
+		BulkProductEditV3 []*BulkProductEditV3Item `json:"BulkProductEditV3"`
 	} `json:"data"`
 }

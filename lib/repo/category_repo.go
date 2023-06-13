@@ -2,8 +2,10 @@ package repo
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 )
@@ -19,10 +21,36 @@ type CategoryRepo struct {
 }
 
 func NewCategoryRepo(base BaseInterface) *CategoryRepo {
-	return &CategoryRepo{
+	repo := CategoryRepo{
 		fname: "data/tokopedia_categories.json",
 		base:  base,
 	}
+
+	repo.load()
+
+	return &repo
+}
+
+func (repo *CategoryRepo) load() {
+	fname := repo.base.Path(repo.fname)
+	if _, err := os.Stat(fname); errors.Is(err, os.ErrNotExist) {
+		return
+	}
+
+	data, err := os.ReadFile(fname)
+	if err != nil {
+		pdc_common.ReportError(err)
+		return
+	}
+
+	var hasil api.CategoryAllListLiteRes
+	err = json.Unmarshal(data, &hasil)
+	if err != nil {
+		pdc_common.ReportError(err)
+		return
+	}
+
+	repo.Data = &hasil
 }
 
 func (repo *CategoryRepo) Get() *api.CategoryAllListLiteRes {
