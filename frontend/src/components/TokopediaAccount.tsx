@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
     Button,
     Card,
@@ -8,12 +9,15 @@ import {
     Typography,
 } from "antd"
 import { FlexColumn } from "../styled_components"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRequest } from "../client"
+import { cacheStorage } from "../utils/cacheStorage"
 
 export default function TokopediaAccount(
     props: ModalProps & { onFinish: () => void }
 ) {
+    const { getCache, setCache } = cacheStorage()
+
     const [accountTarget, setAccountTarget] = useState({
         email: "",
         password: "",
@@ -22,9 +26,23 @@ export default function TokopediaAccount(
 
     const { sender } = useRequest("PutTokopediaCategoryUpdateCategory", {
         onSuccess() {
+            setCache({
+                email: accountTarget.email,
+                password: accountTarget.password,
+                secret: accountTarget.otp,
+            })
             props.onFinish()
         },
     })
+
+    useEffect(() => {
+        const cache = getCache()
+
+        if (cache) {
+            const { email, password, secret } = cache
+            setAccountTarget((s) => ({ ...s, email, password, otp: secret }))
+        }
+    }, [])
 
     function onOk() {
         sender({

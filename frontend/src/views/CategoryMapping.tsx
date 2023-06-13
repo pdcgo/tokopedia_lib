@@ -8,19 +8,46 @@ import { Flex, FlexColumn } from "../styled_components"
 import { Category } from "../client/sdk_types"
 import MapCard from "../components/MapCard"
 import TokopediaAccount from "../components/TokopediaAccount"
+import { categoryFlatten } from "../utils/categoryFlatten"
 
 type List = {
     shopeeCats: string[]
     shopeeCatId: number
     productCount: number
-    topedCatIds: (number|string)[]
+    topedCatIds: (number | string)[]
 }
 
 export default function CategoryMapping(): React.ReactElement {
     const [showAsk, setShowAsk] = useState(false)
     const [list, setList] = useState<List[]>([])
 
-    const { sender, response: catList } = useRequest(
+    const { sender: topedMapperGetter } = useRequest("GetTokopediaMapperMap", {
+        onSuccess: (data) => {
+            const flattenCats = categoryFlatten(
+                catListTokopedia?.data.categoryAllListLite?.categories
+            )
+            data.data.forEach(rdata => {
+                flattenCats.forEach(fc => {
+                    if (fc.indexOf(rdata.tokopedia_id) > -1) {
+                        setList(l => {
+                            return l.map(ls => {
+                                if (ls.shopeeCatId === rdata.shopee_id) {
+                                    ls.topedCatIds = fc
+                                }
+
+                                return ls
+                            })
+                        })
+                    }
+                })
+            })
+        },
+    })
+    const { sender: saveMapSender, pending: saveMapPending } = useRequest(
+        "PutTokopediaMapperMap"
+    )
+
+    const { sender, response: catListTokopedia } = useRequest(
         "GetTokopediaCategoryList",
         {
             onSuccess: (data) => {
@@ -34,7 +61,7 @@ export default function CategoryMapping(): React.ReactElement {
         "GetV1ProductNamespaceAll",
         {
             onSuccess(data) {
-                data.forEach((nm) => {
+                data?.forEach((nm) => {
                     if (nm.name !== "default") {
                         setSelectedNamespace(nm.name)
                     }
@@ -46,7 +73,8 @@ export default function CategoryMapping(): React.ReactElement {
         "GetV1ProductCategory",
         {
             onSuccess(data) {
-                data.forEach((c) => {
+                setList([])
+                data?.forEach((c) => {
                     setList((l) => [
                         ...l,
                         {
@@ -81,6 +109,7 @@ export default function CategoryMapping(): React.ReactElement {
                     namespace: selectedNamespacem,
                 },
             })
+            topedMapperGetter({ method: "get", path: "tokopedia/mapper/map" })
         }
     }, [selectedNamespacem])
 
@@ -95,7 +124,7 @@ export default function CategoryMapping(): React.ReactElement {
     }, [response])
 
     const categories = () => {
-        if (catList) {
+        if (catListTokopedia) {
             const cb = (c: Category) => {
                 const res = { label: c.name, value: c.id } as any
 
@@ -106,7 +135,10 @@ export default function CategoryMapping(): React.ReactElement {
                 return res
             }
 
-            return catList.data.categoryAllListLite?.categories.map(cb) || []
+            return (
+                catListTokopedia.data.categoryAllListLite?.categories.map(cb) ||
+                []
+            )
         }
 
         return []
@@ -151,11 +183,28 @@ export default function CategoryMapping(): React.ReactElement {
                         >
                             Reset All
                         </Button>
-                        <Button type="primary">Save Mapping</Button>
+                        <Button
+                            loading={saveMapPending}
+                            onClick={() => {
+                                saveMapSender({
+                                    method: "put",
+                                    path: "tokopedia/mapper/map",
+                                    payload: list.map((payload) => ({
+                                        shopee_id: payload.shopeeCatId,
+                                        tokopedia_id:
+                                            payload.topedCatIds.map(Number)[
+                                                payload.topedCatIds.length - 1
+                                            ],
+                                    })),
+                                })
+                            }}
+                            type="primary"
+                        >
+                            Save Mapping
+                        </Button>
                     </Flex>
                 </Flex>
             </Card>
-            <pre style={{maxHeight: 300}}>{JSON.stringify(list,null, 2)}</pre>
             <Divider dashed style={{ marginBlock: "5px" }} />
             <div
                 style={{
@@ -170,9 +219,9 @@ export default function CategoryMapping(): React.ReactElement {
                         categoriesName={pc.shopeeCats}
                         productCount={pc.productCount}
                         catsValue={pc.topedCatIds}
-                        onChangeCatsValue={e => {
-                            setList(l => {
-                                return l.map(ls => {
+                        onChangeCatsValue={(e) => {
+                            setList((l) => {
+                                return l.map((ls) => {
                                     if (ls.shopeeCatId == pc.shopeeCatId) {
                                         ls.topedCatIds = e || []
                                     }

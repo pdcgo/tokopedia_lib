@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+
 export interface AkunListQuery {
     offset: number;
     limit: number;
@@ -231,6 +232,9 @@ export interface ShopeeTopedMapResponse {
     data: ShopeeMapItem[];
 }
 
+export interface AutoSuggestStatus {
+    status: string;
+}
 export interface ShopeeMapperConfig {
     use_mapper: boolean;
 }
@@ -474,6 +478,14 @@ export type SdkConfig = {
 		params: GetMapQuery
 		payload: undefined
 		response: undefined
+		path: "tokopedia/mapper/autosuggest"
+	},
+
+	GetTokopediaMapperAutosuggest: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: AutoSuggestStatus
 		path: "tokopedia/mapper/autosuggest"
 	},
 
