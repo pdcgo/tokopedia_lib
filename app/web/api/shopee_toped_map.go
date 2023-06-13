@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"sync"
 
@@ -116,6 +117,7 @@ func (item *ShopeeMapSuggestItem) SetTokopediaID(categid int) {
 	if err != nil {
 		pdc_common.ReportError(err)
 	}
+	log.Println(mapcateg)
 }
 
 func (item *ShopeeMapSuggestItem) GetName() string {
