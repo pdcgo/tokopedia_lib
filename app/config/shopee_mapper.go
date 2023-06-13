@@ -14,7 +14,7 @@ func (cfg *ShopeeMapperConfig) KeyConfig() string {
 
 type ShopeeMapItem struct {
 	ShopeeID    int64 `gorm:"primaryKey;autoIncrement:false"  json:"shopee_id"`
-	TokopediaID int   `gorm:"primaryKey;autoIncrement:false" json:"tokopedia_id"`
+	TokopediaID int   `json:"tokopedia_id"`
 }
 
 type ShopeeMapper struct {
