@@ -138,7 +138,7 @@ func (mapi *ShopeeTopedMapApi) AutoSuggest(c *gin.Context) {
 		return
 	}
 
-	if !mapi.SuggestStatus.TryLock() {
+	if mapi.SuggestStatus.TryLock() {
 		mapi.SuggestStatus.Status = SUGGEST_RUN
 		hasil := make([]category_mapper.ItemMap, len(aggre))
 		for ind, agg := range aggre {
