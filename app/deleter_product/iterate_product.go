@@ -38,37 +38,72 @@ func (erh *ErrorHandler) SetError(err error) {
 	}
 }
 
-func IterateProduct(sellerapi *api.TokopediaApi, handleItem func(page int, product *model.SellerProductItem) error) error {
+func deleteProducts(sapi *api.TokopediaApi, datas []*model.SellerProductItem) error {
+	deletes := make([]*model.BulkProductEditV3Input, len(datas))
+
+	for ind, data := range datas {
+		deletes[ind] = &model.BulkProductEditV3Input{
+			ProductID: data.ID,
+			Status:    model.DeletedStatus,
+			Shop: model.BulkProductEditShop{
+				ID: data.Shop.ID,
+			},
+		}
+	}
+
+	payload := model.BulkProductEditV3Var{
+		Input: deletes,
+	}
+
+	hasils, err := sapi.BulkProductEditV3(&payload)
+	if err != nil {
+		return err
+	}
+
+	for _, hasil := range hasils.Data.BulkProductEditV3 {
+		if !hasil.Result.IsSuccess {
+			return hasil
+		}
+	}
+
+	return nil
+}
+
+func IterateProduct(sellerapi *api.TokopediaApi, handleItem func(page int, product *model.SellerProductItem, delete func() int) error, filters ...model.Filter) error {
 	// errorHelp := NewErrorHandler(ctx)
 
 	sID := sellerapi.AuthenticatedData.UserShopInfo.Info.ShopID
 	shopId := strconv.Itoa(int(sID))
 
 	page := 0
-
+	countDelete := 0
 	for {
 		page += 1
+		deletedProducts := []*model.SellerProductItem{}
+
 		log.Println(sellerapi.AuthenticatedData.User.Email, "request product page", page)
 		pagestr := strconv.Itoa(page)
 
+		queryFilter := []model.Filter{
+			{
+				ID:    "pageSize",
+				Value: []string{"20"},
+			}, {
+				ID:    "keyword",
+				Value: []string{""},
+			}, {
+				ID:    "status",
+				Value: []string{},
+			},
+			{
+				ID:    "page",
+				Value: []string{pagestr},
+			},
+		}
+
 		query := model.ProductListVar{
 			ShopID: shopId,
-			Filter: []model.Filter{
-				{
-					ID:    "pageSize",
-					Value: []string{"20"},
-				}, {
-					ID:    "keyword",
-					Value: []string{""},
-				}, {
-					ID:    "status",
-					Value: []string{},
-				},
-				{
-					ID:    "page",
-					Value: []string{pagestr},
-				},
-			},
+			Filter: queryFilter,
 			Sort: model.Sort{
 				ID:    "DEFAULT",
 				Value: "DESC",
@@ -86,10 +121,19 @@ func IterateProduct(sellerapi *api.TokopediaApi, handleItem func(page int, produ
 			break
 		}
 		for _, item := range hasilList.Data.ProductList.Data {
-			err := handleItem(page, item)
+			err := handleItem(page, item, func() int {
+				countDelete += 1
+				deletedProducts = append(deletedProducts, item)
+				return countDelete
+			})
 			if err != nil {
 				return err
 			}
+		}
+
+		err = deleteProducts(sellerapi, deletedProducts)
+		if err != nil {
+			return err
 		}
 	}
 

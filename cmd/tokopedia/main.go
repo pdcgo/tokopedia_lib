@@ -22,6 +22,7 @@ func main() {
 	defer catch()
 
 	checkbotCommand := cek_bot.CreateCheckbotCommand()
+	deleteCommand := createDeleteCommand()
 	app := &cli.App{
 		Name:  "Tokopedia Server Tool",
 		Usage: "Binary Tokopedia Server Tool",
@@ -47,6 +48,7 @@ func main() {
 				Action: runUploadShopeeToped,
 			},
 			checkbotCommand,
+			deleteCommand,
 		},
 	}
 

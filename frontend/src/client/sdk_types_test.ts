@@ -262,6 +262,27 @@ export interface UpdateTopedCategoryPayload {
     password: string;
     secret: string;
 }
+export interface AkunDeleteItem {
+    username: string;
+    password: string;
+    secret: string;
+}
+export interface DeleteConfig {
+    limit_concurent: number;
+    limit_product: number;
+    title: string[];
+    product_status: string;
+    category_id: string;
+    start_time: number;
+    end_time: number;
+    akuns: AkunDeleteItem[];
+}
+export interface DeleteSettingRes {
+    data?: DeleteConfig;
+}
+
+
+
 export interface DriverAccount {
     username: string;
     password: string;
@@ -519,6 +540,30 @@ export type SdkConfig = {
 		payload: UpdateTopedCategoryPayload
 		response: Response
 		path: "tokopedia/category/update_category"
+	},
+
+	GetTokopediaDeleterSetting: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: DeleteSettingRes
+		path: "tokopedia/deleter/setting"
+	},
+
+	PutTokopediaDeleterSetting: {
+		method: "put"
+		params: undefined
+		payload: DeleteConfig
+		response: DeleteSettingRes
+		path: "tokopedia/deleter/setting"
+	},
+
+	PutTokopediaDeleterRunDelete: {
+		method: "put"
+		params: undefined
+		payload: undefined
+		response: Response
+		path: "tokopedia/deleter/run_delete"
 	},
 
 	PutTokopediaCekbotRun: {
