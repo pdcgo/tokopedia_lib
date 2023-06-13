@@ -258,8 +258,14 @@ export interface UpdateTopedCategoryPayload {
     password: string;
     secret: string;
 }
+export interface DriverAccount {
+    username: string;
+    password: string;
+    secret: string;
+}
 export interface RunCheckbotPayload {
     fname: string;
+    Akuns: DriverAccount[];
 }
 export type SdkConfig = { 
 

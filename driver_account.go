@@ -12,6 +12,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
+	"github.com/sethvargo/go-retry"
 )
 
 type DriverContext struct {
@@ -34,12 +35,12 @@ type DriverSession interface {
 }
 
 type DriverAccount struct {
-	Username string
-	Password string
-	Secret   string
-	DevMode  bool
-	Proxy    string
-	Session  DriverSession
+	Username string        `json:"username"`
+	Password string        `json:"password"`
+	Secret   string        `json:"secret"`
+	DevMode  bool          `json:"-"`
+	Proxy    string        `json:"-"`
+	Session  DriverSession `json:"-"`
 }
 
 type BrowserClosed struct {
@@ -104,11 +105,35 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 		if isClosed.Data {
 			return
 		}
-
+		d.SaveSession(&dctx)
 		cancelCtx()
 		cancelAloc()
 
 	}
+}
+
+func (d *DriverAccount) SaveSession(dctx *DriverContext) error {
+	return chromedp.Run(dctx.Ctx,
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			cookies, err := network.GetCookies().Do(ctx)
+			if err != nil {
+				return err
+			}
+
+			var userAgent string
+			err = chromedp.Evaluate("navigator.userAgent", &userAgent).Do(ctx)
+			if err != nil {
+				return err
+			}
+
+			err = d.Session.SaveFromDriver(cookies, userAgent)
+			if err != nil {
+				return err
+			}
+			return nil
+		}),
+	)
+
 }
 
 func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
@@ -237,29 +262,48 @@ func (d *DriverAccount) CreateApi() (*api.TokopediaApi, func(), error) {
 		return d.Session.Load()
 	}
 
-	err := d.Session.Load()
-	if errors.Is(err, ErrSessionNotFound) {
-		loginBrowser()
-	}
-
-	acapi := api.NewTokopediaApi(d.Session)
-	_, err = acapi.IsAutheticated()
-	if err != nil {
-		d.Session.DeleteSession()
-		err = loginBrowser()
-	}
-
-	if err != nil {
-		return nil, func() {}, err
-	}
-
-	return acapi, func() {
+	var sapi *api.TokopediaApi
+	var saveSession = func() {
 		log.Println(d.Username, "save session")
 		err := d.Session.SaveSession()
 		if err != nil {
 			pdc_common.ReportError(err)
 		}
-	}, nil
+	}
+
+	b := retry.NewFibonacci(time.Second)
+	err := retry.Do(context.Background(), retry.WithMaxRetries(3, b), func(ctx context.Context) error {
+
+		err := d.Session.Load()
+		if errors.Is(err, ErrSessionNotFound) {
+			errlogin := loginBrowser()
+			if errlogin != nil {
+				return errlogin
+			}
+			return retry.RetryableError(err)
+		}
+
+		acapi := api.NewTokopediaApi(d.Session)
+		sapi = acapi
+		_, err = acapi.IsAutheticated()
+		log.Println("get auth")
+		if err != nil {
+			errlogin := loginBrowser()
+			if errlogin != nil {
+				return errlogin
+			}
+			// return nil
+			return retry.RetryableError(err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, func() {}, err
+	}
+
+	return sapi, saveSession, nil
 }
 
 func NewDriverAccount(username string, password string, secret string) (*DriverAccount, error) {

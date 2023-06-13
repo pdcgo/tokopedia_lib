@@ -6,7 +6,9 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
+	"github.com/pdcgo/tokopedia_lib/lib/report"
 	"github.com/pdcgo/v2_gots_sdk"
 )
 
@@ -23,10 +25,11 @@ type CekbotAkun struct {
 
 type RunCheckbotPayload struct {
 	Fname string `json:"fname"`
+	Akuns []*tokopedia_lib.DriverAccount
 }
 
-func (cekbot *CekbotApi) RunCekbot(ctx *gin.Context) {
-	cmd := exec.Command("bin/tokopedia.exe", "cekbot")
+func (cekbot *CekbotApi) runBin(fname string) {
+	cmd := exec.Command("bin/tokopedia.exe", "cekbot", "-fname", fname)
 	cmd.Dir = cekbot.base.Path()
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		CreationFlags:    CREATE_NEW_CONSOLE,
@@ -35,6 +38,22 @@ func (cekbot *CekbotApi) RunCekbot(ctx *gin.Context) {
 
 	cmd.Start()
 
+}
+
+func (cekbot *CekbotApi) RunCekbot(ctx *gin.Context) {
+	var payload RunCheckbotPayload
+	ctx.BindJSON(&payload)
+
+	hasil := make([]*report.CekReport, len(payload.Akuns))
+
+	for ind, akun := range payload.Akuns {
+		hasil[ind] = &report.CekReport{
+			DriverAccount: akun,
+		}
+	}
+	report.SaveCekReport(payload.Fname, hasil)
+
+	cekbot.runBin(payload.Fname)
 	ctx.JSON(http.StatusOK, Response{
 		Msg: "success",
 	})

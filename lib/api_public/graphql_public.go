@@ -20,6 +20,7 @@ func (api *TokopediaApiPublic) graphqlDefaultHeader(req *http.Request) {
 	headers := map[string]string{
 		"User-Agent":   api.Session.Ua,
 		"Content-Type": "application/json",
+		"Origin":       "https://www.tokopedia.com",
 	}
 
 	for key, value := range headers {

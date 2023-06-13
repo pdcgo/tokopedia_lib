@@ -210,56 +210,60 @@ type ManageProductData struct {
 	Typename          string `json:"__typename"`
 }
 
-type ProductList struct {
-	Header *Header `json:"header"`
-	Data   []struct {
-		ID               string     `json:"id"`
-		Name             string     `json:"name"`
-		Price            Price      `json:"price"`
-		Stock            int        `json:"stock"`
-		Status           string     `json:"status"`
-		MinOrder         int        `json:"minOrder"`
-		MaxOrder         int        `json:"maxOrder"`
-		Weight           int        `json:"weight"`
-		WeightUnit       string     `json:"weightUnit"`
-		Condition        string     `json:"condition"`
-		IsMustInsurance  bool       `json:"isMustInsurance"`
-		IsKreasiLokal    bool       `json:"isKreasiLokal"`
-		IsCOD            bool       `json:"isCOD"`
-		IsCampaign       bool       `json:"isCampaign"`
-		IsVariant        bool       `json:"isVariant"`
-		URL              string     `json:"url"`
-		Sku              string     `json:"sku"`
-		Cashback         int        `json:"cashback"`
-		Featured         int        `json:"featured"`
-		HasStockReserved bool       `json:"hasStockReserved"`
-		HasInbound       bool       `json:"hasInbound"`
-		WarehouseCount   int        `json:"warehouseCount"`
-		IsEmptyStock     bool       `json:"isEmptyStock"`
-		Score            Score      `json:"score"`
-		Pictures         []Pictures `json:"pictures"`
-		Shop             struct {
-			ID       string `json:"id"`
-			Typename string `json:"__typename"`
-		} `json:"shop"`
-		Wholesale          []interface{}     `json:"wholesale"`
-		Stats              Stats             `json:"stats"`
-		TxStats            TxStats           `json:"txStats"`
-		Topads             interface{}       `json:"topads"`
-		PriceSuggestion    interface{}       `json:"priceSuggestion"`
-		CampaignType       []interface{}     `json:"campaignType"`
-		SuspendLevel       int               `json:"suspendLevel"`
-		HasStockAlert      bool              `json:"hasStockAlert"`
-		StockAlertCount    int               `json:"stockAlertCount"`
-		StockAlertActive   bool              `json:"stockAlertActive"`
-		HaveNotifyMeOOS    bool              `json:"haveNotifyMeOOS"`
-		NotifyMeOOSCount   int               `json:"notifyMeOOSCount"`
-		NotifyMeOOSWording string            `json:"notifyMeOOSWording"`
-		ManageProductData  ManageProductData `json:"manageProductData"`
-		CreateTime         time.Time         `json:"createTime"`
-		Typename           string            `json:"__typename"`
-	} `json:"data"`
+type SellerProductItemShop struct {
+	ID       string `json:"id"`
 	Typename string `json:"__typename"`
+}
+
+type SellerProductItem struct {
+	ID                 string                `json:"id"`
+	Name               string                `json:"name"`
+	Price              Price                 `json:"price"`
+	Stock              int                   `json:"stock"`
+	Status             string                `json:"status"`
+	MinOrder           int                   `json:"minOrder"`
+	MaxOrder           int                   `json:"maxOrder"`
+	Weight             int                   `json:"weight"`
+	WeightUnit         string                `json:"weightUnit"`
+	Condition          string                `json:"condition"`
+	IsMustInsurance    bool                  `json:"isMustInsurance"`
+	IsKreasiLokal      bool                  `json:"isKreasiLokal"`
+	IsCOD              bool                  `json:"isCOD"`
+	IsCampaign         bool                  `json:"isCampaign"`
+	IsVariant          bool                  `json:"isVariant"`
+	URL                string                `json:"url"`
+	Sku                string                `json:"sku"`
+	Cashback           int                   `json:"cashback"`
+	Featured           int                   `json:"featured"`
+	HasStockReserved   bool                  `json:"hasStockReserved"`
+	HasInbound         bool                  `json:"hasInbound"`
+	WarehouseCount     int                   `json:"warehouseCount"`
+	IsEmptyStock       bool                  `json:"isEmptyStock"`
+	Score              Score                 `json:"score"`
+	Pictures           []Pictures            `json:"pictures"`
+	Shop               SellerProductItemShop `json:"shop"`
+	Wholesale          []interface{}         `json:"wholesale"`
+	Stats              Stats                 `json:"stats"`
+	TxStats            TxStats               `json:"txStats"`
+	Topads             interface{}           `json:"topads"`
+	PriceSuggestion    interface{}           `json:"priceSuggestion"`
+	CampaignType       []interface{}         `json:"campaignType"`
+	SuspendLevel       int                   `json:"suspendLevel"`
+	HasStockAlert      bool                  `json:"hasStockAlert"`
+	StockAlertCount    int                   `json:"stockAlertCount"`
+	StockAlertActive   bool                  `json:"stockAlertActive"`
+	HaveNotifyMeOOS    bool                  `json:"haveNotifyMeOOS"`
+	NotifyMeOOSCount   int                   `json:"notifyMeOOSCount"`
+	NotifyMeOOSWording string                `json:"notifyMeOOSWording"`
+	ManageProductData  ManageProductData     `json:"manageProductData"`
+	CreateTime         time.Time             `json:"createTime"`
+	Typename           string                `json:"__typename"`
+}
+
+type ProductList struct {
+	Header   *Header              `json:"header"`
+	Data     []*SellerProductItem `json:"data"`
+	Typename string               `json:"__typename"`
 }
 
 type Partial struct {

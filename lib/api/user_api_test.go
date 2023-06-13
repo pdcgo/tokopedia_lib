@@ -9,7 +9,7 @@ import (
 )
 
 func TestApiUser(t *testing.T) {
-	driver, err := tokopedia_lib.NewDriverAccount("mantracode@yahoo.com", "Muhammad123!`", "3KPN2WN2LG42IMONAFRMMCNQJGXEEQGD")
+	driver, err := tokopedia_lib.NewDriverAccount("dirondap@piekiih.com", "Balikpapan1*", "PN72GYGA62UFFJVOKURIA6WVR43FUBSG")
 
 	assert.Nil(t, err)
 
@@ -20,9 +20,14 @@ func TestApiUser(t *testing.T) {
 			return nil
 		})
 
-		sapi := api.NewTokopediaApi(driver.Session)
-		_, err = sapi.IsAutheticated()
-		assert.Nil(t, err)
+		driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
+
+			sapi := api.NewTokopediaApi(driver.Session)
+			_, err = sapi.IsAutheticated()
+			assert.Nil(t, err)
+
+			return err
+		})
 
 	})
 
