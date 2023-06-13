@@ -191,6 +191,9 @@ func RegisterShopeeTopedMap(
 		prodRepo:   prodrepo,
 		mapper:     mapper,
 		configRepo: config.NewConfigRepo(db),
+		SuggestStatus: &AutoSuggestStatus{
+			Status: SUGGEST_STOP,
+		},
 	}
 
 	grp = grp.Group("mapper")
