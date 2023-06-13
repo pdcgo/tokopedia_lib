@@ -7,7 +7,8 @@ import type { SdkConfig, Response as ErrResponse } from "./sdk_types";
 const isDev = import.meta.env.DEV
 
 const client = axios.create({
-    baseURL: "http://localhost:8080"
+    baseURL: "http://localhost:8080",
+    timeout: 30_000,
 });
 
 type UseQueryOptions<D = any, E = Error> = {
@@ -38,7 +39,7 @@ function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, opt
                 params: config.params,
             });
             
-            if (data.error) {
+            if (data?.error) {
                 const err = { error: data.error, msg: data.msg }
                 
                 setError(err)

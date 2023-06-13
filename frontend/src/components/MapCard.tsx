@@ -1,17 +1,33 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
     CopyOutlined,
     FilePptOutlined,
     ReloadOutlined,
 } from "@ant-design/icons"
-import { Breadcrumb, Card, Cascader, Tooltip, Typography } from "antd"
+import {
+    Breadcrumb,
+    Card,
+    Cascader,
+    CascaderProps,
+    Tooltip,
+    Typography,
+} from "antd"
 import { Flex, FlexColumn } from "../styled_components"
 
-export default function MapCard(): React.ReactElement {
+export type MapCardProps = {
+    categoriesName?: string[]
+    productCount?: number
+    optionsCats?: CascaderProps["options"]
+    catsValue?: (number|string)[]
+    onChangeCatsValue?: (j: (number|string)[]) => void
+}
+
+export default function MapCard(props: MapCardProps): React.ReactElement {
     return (
         <Card
             extra={
                 <span>
-                    <strong>120</strong> Product
+                    <strong>{props.productCount}</strong> Product
                 </span>
             }
             size="small"
@@ -19,18 +35,8 @@ export default function MapCard(): React.ReactElement {
             hoverable
             title={
                 <Breadcrumb
-                    separator=">"
-                    items={[
-                        {
-                            title: "Fashion Pria",
-                        },
-                        {
-                            title: "Atasan",
-                        },
-                        {
-                            title: "Kemeja Flanel",
-                        },
-                    ]}
+                    separator="/"
+                    items={props.categoriesName?.map((cat) => ({ title: cat }))}
                 />
             }
             actions={[
@@ -60,7 +66,13 @@ export default function MapCard(): React.ReactElement {
             <FlexColumn style={{ rowGap: "5px" }}>
                 <Typography.Text>Map to :</Typography.Text>
                 <Flex style={{ columnGap: "7px" }}>
-                    <Cascader showSearch style={{ width: "100%" }} />
+                    <Cascader
+                        value={props.catsValue}
+                        onChange={props.onChangeCatsValue}
+                        options={props.optionsCats}
+                        showSearch
+                        style={{ width: "100%" }}
+                    />
                 </Flex>
             </FlexColumn>
         </Card>

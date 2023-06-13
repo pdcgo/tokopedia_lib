@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface AkunListQuery {
 	offset: number;
@@ -59,13 +60,14 @@ export interface UploadAppStatus {
 	count_upload: number;
 	limit_upload: number;
 }
-export interface DataSpinQuery {
-	name: string;
-}
 export interface DataSpinItemResponse {
 	name: string;
 	data: string[];
 }
+export interface DataSpinQuery {
+	name: string;
+}
+
 export interface BaseResponse {
 	data?: any;
 	errcode: number;
@@ -99,46 +101,126 @@ export interface SettingSpinConfigUpdatePayload {
 	name: string;
 	titlePool: SettingSpinTitlePool[];
 }
-export interface ProductAggQuery {
-	marketplace: string;
-	namespace: string;
-}
 export interface ProductNamespaceAgg {
 	count: number;
 	price_min: number;
 	price_max: number;
 	name: string;
 }
-export interface ProductPriceRangeAggQuery {
-	marketplace: string;
-	namespace: string;
-	range_price: number;
-}
 export interface ProductPriceRangeAgg {
 	_id: number[];
 	count: number;
-}
-export interface ProductCategoryAggQuery {
-	marketplace: string;
-	namespace: string;
-	is_public: boolean;
 }
 export interface ProductCategoryAgg {
 	_id: number;
 	price_min: number;
 	price_max: number;
 	count: number;
-	name: any[];
+	name: string[];
 }
-
 export interface ProductCityAgg {
 	_id: string;
 	price_min: number;
 	price_max: number;
 	count: number;
 }
+export interface ProductAggQuery {
+	marketplace: string;
+	namespace: string;
+}
 
-export interface MapItem {
+export interface ProductPriceRangeAggQuery {
+	marketplace: string;
+	namespace: string;
+	range_price: number;
+}
+
+export interface ProductCategoryAggQuery {
+	marketplace: string;
+	namespace: string;
+	is_public: boolean;
+}
+
+
+
+export interface PredictWeightResponse {
+	harga: number;
+	jarak: number;
+}
+export interface PredictWeightPayload {
+	itemid: number;
+	shopid: number;
+}
+export interface PredictWeightSaveQuery {
+	predict: number;
+}
+
+export interface PredictWeightLoadResponse {
+	predict_weight: number;
+}
+export interface SearchFilterDynamicShipping {
+	positionid: number;
+	name: string;
+	channelids: string[];
+	display_name: string;
+	item_tag_ids: number[];
+}
+
+export interface CategorySubSub {
+	catid: number;
+	display_name: string;
+	image: string;
+	block_buyer_platform: any;
+}
+export interface CategorySub {
+	catid: number;
+	display_name: string;
+	name: string;
+	image: string;
+	is_adult: any;
+	parent_category: number;
+	sort_weight: number;
+	block_buyer_platform: any;
+	sub_sub: CategorySubSub[];
+}
+export interface CategoryMain {
+	catid: number;
+	display_name: string;
+	name: string;
+	image: string;
+	is_adult: any;
+	parent_category: number;
+	sort_weight: number;
+	block_buyer_platform: any;
+}
+export interface CategoryItem {
+	main: CategoryMain;
+	sub: CategorySub[];
+}
+export interface ShopeeCategoryRegionSetting {
+	enable_size_chart: boolean;
+	low_stock_value: number;
+	dimension_mandatory: boolean;
+}
+export interface ShopeeCategory {
+	id: number;
+	name: string;
+	display_name: string;
+	parent_id: number;
+	has_active_children: boolean;
+	has_children: boolean;
+	children?: any[];
+	region_setting: ShopeeCategoryRegionSetting;
+	is_prohibit: boolean;
+	chain_name: string[];
+	chain_ids: number[];
+}
+export interface ManifestResponse {
+	category: ShopeeCategory[];
+	public_category_repo: CategoryItem[];
+}
+
+export interface ShopeeMapItem {
 	shopee_id: number;
 	tokopedia_id: number;
 }
@@ -146,8 +228,13 @@ export interface GetMapQuery {
 	collection: string;
 }
 export interface ShopeeTopedMapResponse {
-	data: MapItem[];
+	data: ShopeeMapItem[];
 }
+
+export interface ShopeeMapperConfig {
+	use_mapper: boolean;
+}
+
 export interface Category {
 	id: number;
 	name: string;
@@ -170,6 +257,9 @@ export interface UpdateTopedCategoryPayload {
 	username: string;
 	password: string;
 	secret: string;
+}
+export interface RunCheckbotPayload {
+	fname: string;
 }
 export type SdkConfig = {
 
@@ -317,10 +407,50 @@ export type SdkConfig = {
 		path: "v1/product/kota"
 	},
 
+	PostV4ShopeeWeightPredict: {
+		method: "post"
+		params: undefined
+		payload: PredictWeightPayload
+		response: PredictWeightResponse
+		path: "v4/shopee/weight/predict"
+	},
+
+	GetV3PredictweightSave: {
+		method: "get"
+		params: PredictWeightSaveQuery
+		payload: undefined
+		response: BaseResponse
+		path: "v3/predictweight/save"
+	},
+
+	GetV3PredictweightLoad: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: PredictWeightLoadResponse
+		path: "v3/predictweight/load"
+	},
+
+	GetApiShopeeShipping: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: SearchFilterDynamicShipping[]
+		path: "api/shopee_shipping"
+	},
+
+	GetShopeeManifest: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: ManifestResponse
+		path: "shopee/manifest"
+	},
+
 	PutTokopediaMapperMap: {
 		method: "put"
 		params: undefined
-		payload: MapItem[]
+		payload: ShopeeMapItem[]
 		response: Response
 		path: "tokopedia/mapper/map"
 	},
@@ -335,17 +465,33 @@ export type SdkConfig = {
 
 	PutTokopediaMapperAutosuggest: {
 		method: "put"
-		params: undefined
+		params: GetMapQuery
 		payload: undefined
 		response: undefined
 		path: "tokopedia/mapper/autosuggest"
+	},
+
+	GetTokopediaMapperSetting: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: ShopeeMapperConfig
+		path: "tokopedia/mapper/setting"
+	},
+
+	PutTokopediaMapperSetting: {
+		method: "put"
+		params: undefined
+		payload: undefined
+		response: ShopeeMapperConfig
+		path: "tokopedia/mapper/setting"
 	},
 
 	GetTokopediaCategoryList: {
 		method: "get"
 		params: undefined
 		payload: undefined
-		response: CategoryAllListLiteRes
+		response: CategoryAllListLiteRes | null
 		path: "tokopedia/category/list"
 	},
 
@@ -355,5 +501,13 @@ export type SdkConfig = {
 		payload: UpdateTopedCategoryPayload
 		response: Response
 		path: "tokopedia/category/update_category"
+	},
+
+	PutTokopediaCekbotRun: {
+		method: "put"
+		params: undefined
+		payload: RunCheckbotPayload
+		response: undefined
+		path: "tokopedia/cekbot/run"
 	}
 }
