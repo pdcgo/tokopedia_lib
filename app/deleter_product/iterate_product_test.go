@@ -14,7 +14,7 @@ func TestIterateProduct(t *testing.T) {
 	sellerapi, saveSession := scenario.GetTokopediaApiClient()
 	defer saveSession()
 
-	err := deleter_product.IterateProduct(sellerapi, func(page int, product *model.SellerProductItem) error {
+	err := deleter_product.IterateProduct(sellerapi, func(page int, product *model.SellerProductItem, delete func() int) error {
 		log.Println(product.Name)
 
 		return nil
