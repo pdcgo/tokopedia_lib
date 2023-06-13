@@ -41,12 +41,14 @@ func (mapi *ShopeeTopedMapApi) UpdateMap(c *gin.Context) {
 		Msg: "success",
 	}
 
-	err := mapi.db.CreateInBatches(payload, 100).Error
-	if err != nil {
-		hasil.Msg = err.Error()
-		hasil.Err = "error"
-		c.JSON(http.StatusInternalServerError, &hasil)
-		return
+	for _, mapitem := range payload {
+		err := mapi.db.Save(mapitem).Error
+		if err != nil {
+			hasil.Msg = err.Error()
+			hasil.Err = "error"
+			c.JSON(http.StatusInternalServerError, &hasil)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, &hasil)
