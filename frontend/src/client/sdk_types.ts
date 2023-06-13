@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+
 export interface AkunListQuery {
 	offset: number;
 	limit: number;
@@ -231,6 +232,9 @@ export interface ShopeeTopedMapResponse {
 	data: ShopeeMapItem[];
 }
 
+export interface AutoSuggestStatus {
+	status: string;
+}
 export interface ShopeeMapperConfig {
 	use_mapper: boolean;
 }
@@ -258,8 +262,35 @@ export interface UpdateTopedCategoryPayload {
 	password: string;
 	secret: string;
 }
+export interface AkunDeleteItem {
+	username: string;
+	password: string;
+	secret: string;
+}
+export interface DeleteConfig {
+	limit_concurent: number;
+	limit_product: number;
+	title: string[];
+	product_status: string;
+	category_id: string;
+	start_time: number;
+	end_time: number;
+	akuns: AkunDeleteItem[];
+}
+export interface DeleteSettingRes {
+	data?: DeleteConfig;
+}
+
+
+
+export interface DriverAccount {
+	username: string;
+	password: string;
+	secret: string;
+}
 export interface RunCheckbotPayload {
 	fname: string;
+	Akuns: DriverAccount[];
 }
 export type SdkConfig = {
 
@@ -471,6 +502,14 @@ export type SdkConfig = {
 		path: "tokopedia/mapper/autosuggest"
 	},
 
+	GetTokopediaMapperAutosuggest: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: AutoSuggestStatus
+		path: "tokopedia/mapper/autosuggest"
+	},
+
 	GetTokopediaMapperSetting: {
 		method: "get"
 		params: undefined
@@ -491,7 +530,7 @@ export type SdkConfig = {
 		method: "get"
 		params: undefined
 		payload: undefined
-		response: CategoryAllListLiteRes | null
+		response: CategoryAllListLiteRes
 		path: "tokopedia/category/list"
 	},
 
@@ -501,6 +540,30 @@ export type SdkConfig = {
 		payload: UpdateTopedCategoryPayload
 		response: Response
 		path: "tokopedia/category/update_category"
+	},
+
+	GetTokopediaDeleterSetting: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: DeleteSettingRes
+		path: "tokopedia/deleter/setting"
+	},
+
+	PutTokopediaDeleterSetting: {
+		method: "put"
+		params: undefined
+		payload: DeleteConfig
+		response: DeleteSettingRes
+		path: "tokopedia/deleter/setting"
+	},
+
+	PutTokopediaDeleterRunDelete: {
+		method: "put"
+		params: undefined
+		payload: undefined
+		response: Response
+		path: "tokopedia/deleter/run_delete"
 	},
 
 	PutTokopediaCekbotRun: {

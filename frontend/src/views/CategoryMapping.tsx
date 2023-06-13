@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Button, Card, Divider, Select, Typography } from "antd"
+import {
+    Button,
+    Card,
+    Divider,
+    Result,
+    Select,
+    Typography,
+    message,
+} from "antd"
 import { useEffect, useMemo, useState } from "react"
 import { useRequest } from "../client"
 import { Flex, FlexColumn } from "../styled_components"
@@ -26,11 +34,11 @@ export default function CategoryMapping(): React.ReactElement {
             const flattenCats = categoryFlatten(
                 catListTokopedia?.data.categoryAllListLite?.categories
             )
-            data.data.forEach(rdata => {
-                flattenCats.forEach(fc => {
+            data.data.forEach((rdata) => {
+                flattenCats.forEach((fc) => {
                     if (fc.indexOf(rdata.tokopedia_id) > -1) {
-                        setList(l => {
-                            return l.map(ls => {
+                        setList((l) => {
+                            return l.map((ls) => {
                                 if (ls.shopeeCatId === rdata.shopee_id) {
                                     ls.topedCatIds = fc
                                 }
@@ -44,7 +52,15 @@ export default function CategoryMapping(): React.ReactElement {
         },
     })
     const { sender: saveMapSender, pending: saveMapPending } = useRequest(
-        "PutTokopediaMapperMap"
+        "PutTokopediaMapperMap",
+        {
+            onSuccess() {
+                message.success("Update data success!")
+            },
+            onError() {
+                message.error("Update data error!")
+            },
+        }
     )
 
     const { sender, response: catListTokopedia } = useRequest(
@@ -69,7 +85,7 @@ export default function CategoryMapping(): React.ReactElement {
             },
         }
     )
-    const { sender: productCategoriesGetter } = useRequest(
+    const { sender: productCategoriesGetter, pending } = useRequest(
         "GetV1ProductCategory",
         {
             onSuccess(data) {
@@ -144,6 +160,71 @@ export default function CategoryMapping(): React.ReactElement {
         return []
     }
 
+    const reset = async () => {
+        await saveMapSender({
+            method: "put",
+            path: "tokopedia/mapper/map",
+            payload: list.map((payload) => ({
+                shopee_id: payload.shopeeCatId,
+                tokopedia_id: 0,
+            })),
+        })
+        if (selectedNamespacem) {
+            productCategoriesGetter({
+                method: "get",
+                path: "v1/product/category",
+                params: {
+                    is_public: false,
+                    marketplace: "shopee",
+                    namespace: selectedNamespacem,
+                },
+            })
+            topedMapperGetter({ method: "get", path: "tokopedia/mapper/map" })
+        }
+    }
+
+    const [gettingSuggest, setGettingSuggest] = useState(false)
+    const { sender: runAutoSuggets } = useRequest(
+        "PutTokopediaMapperAutosuggest"
+    )
+    const { sender: autoSuggestChecker } = useRequest(
+        "GetTokopediaMapperAutosuggest",
+        {
+            onSuccess: (data) => {
+                if (data?.status === "STOPPED") setGettingSuggest(false)
+            },
+            onError: (e) => {
+                setGettingSuggest(false)
+                console.log(e)
+            },
+        }
+    )
+
+    const getSuggest = () => {
+        if (!gettingSuggest && selectedNamespacem) {
+            setGettingSuggest(true)
+            runAutoSuggets({
+                method: "put",
+                path: "tokopedia/mapper/autosuggest",
+                params: { collection: selectedNamespacem },
+            })
+        }
+    }
+
+    useEffect(() => {
+        const int = setInterval(() => {
+            if (!gettingSuggest) {
+                return clearInterval(int)
+            }
+            autoSuggestChecker({
+                method: "get",
+                path: "tokopedia/mapper/autosuggest",
+            })
+        }, 1000)
+
+        return () => clearInterval(int)
+    }, [gettingSuggest])
+
     return (
         <FlexColumn>
             <TokopediaAccount
@@ -176,10 +257,17 @@ export default function CategoryMapping(): React.ReactElement {
                         />
                     </FlexColumn>
                     <Flex style={{ rowGap: "5px", justifyContent: "flex-end" }}>
-                        <Button>Use Suggest</Button>
+                        <Button
+                            loading={gettingSuggest}
+                            disabled={gettingSuggest}
+                            onClick={getSuggest}
+                        >
+                            Use Suggest
+                        </Button>
                         <Button
                             style={{ backgroundColor: "#005246" }}
                             type="primary"
+                            onClick={reset}
                         >
                             Reset All
                         </Button>
@@ -206,34 +294,39 @@ export default function CategoryMapping(): React.ReactElement {
                 </Flex>
             </Card>
             <Divider dashed style={{ marginBlock: "5px" }} />
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr ",
-                    gap: "7px",
-                }}
-            >
-                {list.map((pc) => (
-                    <MapCard
-                        key={pc.shopeeCatId}
-                        categoriesName={pc.shopeeCats}
-                        productCount={pc.productCount}
-                        catsValue={pc.topedCatIds}
-                        onChangeCatsValue={(e) => {
-                            setList((l) => {
-                                return l.map((ls) => {
-                                    if (ls.shopeeCatId == pc.shopeeCatId) {
-                                        ls.topedCatIds = e || []
-                                    }
 
-                                    return ls
+            {!pending && list.length == 0 ? (
+                <Result status="404" title="Data not found!" />
+            ) : (
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr ",
+                        gap: "7px",
+                    }}
+                >
+                    {list.map((pc) => (
+                        <MapCard
+                            key={pc.shopeeCatId}
+                            categoriesName={pc.shopeeCats}
+                            productCount={pc.productCount}
+                            catsValue={pc.topedCatIds}
+                            onChangeCatsValue={(e) => {
+                                setList((l) => {
+                                    return l.map((ls) => {
+                                        if (ls.shopeeCatId == pc.shopeeCatId) {
+                                            ls.topedCatIds = e || []
+                                        }
+
+                                        return ls
+                                    })
                                 })
-                            })
-                        }}
-                        optionsCats={categories()}
-                    />
-                ))}
-            </div>
+                            }}
+                            optionsCats={categories()}
+                        />
+                    ))}
+                </div>
+            )}
         </FlexColumn>
     )
 }
