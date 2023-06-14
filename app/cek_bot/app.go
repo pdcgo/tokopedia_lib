@@ -31,7 +31,7 @@ func LisensiLogin(botID int) bool {
 }
 
 func setupPdcLogger() {
-	fname := "config.yml"
+	fname := "data/config.json"
 	pdc_common.SetConfig(fname, Version, LogName, cred)
 	pdc_common.InitializeLogger()
 
