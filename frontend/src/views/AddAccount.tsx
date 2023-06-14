@@ -1,83 +1,122 @@
+import React, { Suspense, useState } from "react"
+import { RobotOutlined } from "@ant-design/icons"
 import { Alert, Button, Card, Input, message } from "antd"
 import { TextAreaRef } from "antd/es/input/TextArea"
-import React, { useState } from "react"
 import { useRequest } from "../client"
-import { BulkItem } from "../client/sdk_types"
-import { FlexColumn } from "../styled_components"
+import { BulkItem, DriverAccount } from "../client/sdk_types"
+import { Flex, FlexColumn } from "../styled_components"
+
+const CheckBotAsk = React.lazy(() => import("../components/CheckBotAsk"))
+
+const accountPayloadChecker = (
+    accountString: string,
+    textarea: React.RefObject<TextAreaRef>
+) => {
+    const accountsList = accountString.split("\n")
+    const data = accountsList.map((account) => {
+        const [username, password, secret] = account.split("|")
+
+        if (!username || !password || !secret) return null
+
+        return {
+            password: password.trim(),
+            secret: secret.trim(),
+            username: username.trim().toLowerCase(),
+        }
+    })
+
+    const invalidFormat = data
+        .map((d, i) => (d == null ? i + 1 : null))
+        .filter((c) => c !== null)
+
+    if (invalidFormat.length) {
+        message.error({
+            content: (
+                <span>
+                    Invalid format on line:{" "}
+                    <i>
+                        <strong>{invalidFormat[0]}</strong>
+                    </i>
+                </span>
+            ),
+        })
+
+        const errorLineContent = accountsList[(invalidFormat[0] as number) - 1]
+        const [start, end] = [
+            accountString.lastIndexOf(errorLineContent),
+            accountString.lastIndexOf(errorLineContent) +
+                errorLineContent.length,
+        ]
+
+        textarea.current?.focus()
+        if (textarea.current?.resizableTextArea?.textArea.selectionStart)
+            textarea.current.resizableTextArea.textArea.selectionStart = start
+        if (textarea.current?.resizableTextArea?.textArea.selectionEnd)
+            textarea.current.resizableTextArea.textArea.selectionEnd = end
+
+        return null
+    }
+
+    return data
+}
 
 export default function AddAccount(): React.ReactElement {
+    const [showAsk, setShowAsk] = useState(false)
     const { sender } = useRequest("PostTokopediaAkunBulkAdd", {
-        onError: console.log,
+        onError: (e) => message.error(`Error: ${e.msg}`),
         onSuccess: () => {
             message.success("Success!")
         },
     })
+    const { sender: checkbot } = useRequest("PutTokopediaCekbotRun")
 
     const [accountString, setAccountString] = useState("")
     const textarea = React.createRef<TextAreaRef>()
 
     function bulkAddAction() {
-        const accountsList = accountString.split("\n")
-        const data = accountsList.map((account) => {
-            const [username, password, secret] = account.split("|")
+        const data = accountPayloadChecker(accountString, textarea)
 
-            if (!username || !password || !secret) return null
-
-            return {
-                password: password.trim(),
-                secret: secret.trim(),
-                username: username.trim().toLowerCase(),
+        if (data) {
+            const payload = {
+                data: data.filter(Boolean) as BulkItem[],
             }
-        })
 
-        const invalidFormat = data
-            .map((d, i) => (d == null ? i + 1 : null))
-            .filter((c) => c !== null)
-
-        if (invalidFormat.length) {
-            message.error({
-                content: (
-                    <span>
-                        Invalid format on line:{" "}
-                        <i>
-                            <strong>{invalidFormat[0]}</strong>
-                        </i>
-                    </span>
-                ),
+            sender({
+                method: "post",
+                path: "tokopedia/akun/bulk_add",
+                payload: payload,
             })
-
-            const errorLineContent =
-                accountsList[(invalidFormat[0] as number) - 1]
-            const [start, end] = [
-                accountString.lastIndexOf(errorLineContent),
-                accountString.lastIndexOf(errorLineContent) +
-                    errorLineContent.length,
-            ]
-
-            textarea.current?.focus()
-            if (textarea.current?.resizableTextArea?.textArea.selectionStart)
-                textarea.current.resizableTextArea.textArea.selectionStart =
-                    start
-            if (textarea.current?.resizableTextArea?.textArea.selectionEnd)
-                textarea.current.resizableTextArea.textArea.selectionEnd = end
-
-            return
         }
+    }
 
-        const payload = {
-            data: data.filter(Boolean) as BulkItem[],
+    function checkBotAction(filename: string) {
+        const data = accountPayloadChecker(accountString, textarea)
+        if (data) {
+            const payload = data.filter(Boolean) as DriverAccount[]
+
+            checkbot({
+                method: "put",
+                path: "tokopedia/cekbot/run",
+                payload: {
+                    fname: filename,
+                    Akuns: payload,
+                },
+            })
         }
-
-        sender({
-            method: "post",
-            path: "tokopedia/akun/bulk_add",
-            payload: payload,
-        })
     }
 
     return (
         <FlexColumn>
-            <Card size="small"  title="Bulk Add Tokopedia Account">
+            <Suspense fallback={<></>}>
+                <CheckBotAsk
+                    onFinish={(name) => {
+                        setShowAsk(false)
+                        checkBotAction(name)
+                    }}
+                    open={showAsk}
+                />
+            </Suspense>
+            <Card size="small" title="Bulk Add Tokopedia Account">
                 <FlexColumn>
                     <Alert
                         type="info"
@@ -91,13 +130,27 @@ export default function AddAccount(): React.ReactElement {
                         value={accountString}
                         onChange={(e) => setAccountString(e.target.value)}
                     />
-                    <Button
-                        style={{ boxShadow: "none" }}
-                        type="primary"
-                        onClick={bulkAddAction}
-                    >
-                        Add Account
-                    </Button>
+                    <Flex>
+                        <Button
+                            style={{ boxShadow: "none" }}
+                            type="primary"
+                            onClick={bulkAddAction}
+                        >
+                            Add Account
+                        </Button>
+                        <Button
+                            style={{
+                                backgroundColor: "#005246",
+                                boxShadow: "none",
+                                color: "#fff",
+                            }}
+                            type="primary"
+                            icon={<RobotOutlined rev="check-bot" />}
+                            onClick={() => setShowAsk(true)}
+                        >
+                            Check Bot
+                        </Button>
+                    </Flex>
                 </FlexColumn>
             </Card>
         </FlexColumn>

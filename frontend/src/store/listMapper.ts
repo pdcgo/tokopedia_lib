@@ -49,7 +49,7 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
             list: [],
             pendingInitEffect: false,
             initEffect: (namespace, topedCategories) => {
-                set(s => ({ ...s, pendingInitEffect: true }))
+                set(s => ({ ...s, pendingInitEffect: true, list: [] }))
                 // dapatkan data dulu dari koleksi terkait
                 getInitialMapData({
                     method: "get",
@@ -79,7 +79,7 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
                                 onSuccess(data) {
                                     if (topedCategories) {
                                         const flattenCats = categoryFlatten(topedCategories.data.categoryAllListLite?.categories)
-    
+
                                         data.data.forEach((rdata) => {
                                             flattenCats.forEach((fc) => {
                                                 if (fc.indexOf(rdata.tokopedia_id) > -1) {

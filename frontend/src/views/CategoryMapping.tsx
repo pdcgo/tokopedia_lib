@@ -6,8 +6,10 @@ import { useRequest } from "../client"
 import { Category } from "../client/sdk_types"
 import { useListStore } from "../store/listMapper"
 import { FlexColumn } from "../styled_components"
-import TokopediaAccount from "../components/TokopediaAccount"
 
+const TokopediaAccount = React.lazy(
+    () => import("../components/TokopediaAccount")
+)
 const MapperHeader = React.lazy(
     () => import("../component_sections/MapperHeader")
 )
@@ -99,11 +101,13 @@ export default function CategoryMapping(): React.ReactElement {
 
     return (
         <FlexColumn>
-            <TokopediaAccount
-                onFinish={() => setShowAsk(false)}
-                open={showAsk}
-                onCancel={() => setShowAsk(false)}
-            />
+            <Suspense fallback={<></>}>
+                <TokopediaAccount
+                    onFinish={() => setShowAsk(false)}
+                    open={showAsk}
+                    onCancel={() => setShowAsk(false)}
+                />
+            </Suspense>
             <Suspense fallback={<Card loading />}>
                 <MapperHeader
                     list={list_}
@@ -122,7 +126,7 @@ export default function CategoryMapping(): React.ReactElement {
                     style={{
                         display: "grid",
                         gridTemplateColumns: "1fr ",
-                        gap: "7px",
+                        gap: "12px",
                     }}
                 >
                     {list_.map((pc) => (

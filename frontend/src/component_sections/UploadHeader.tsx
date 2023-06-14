@@ -1,17 +1,17 @@
-import { Button, Card, Checkbox, Input } from "antd"
-import { Flex } from "../styled_components"
 import {
     CheckOutlined,
     DeleteOutlined,
     FilePptOutlined,
-    RobotOutlined,
     SaveOutlined,
     UploadOutlined,
 } from "@ant-design/icons"
+import { Button, Card, Checkbox, Input } from "antd"
+import { Flex } from "../styled_components"
 
 export type UploadHeaderProps = {
     loadingSave?: boolean
     loadingStartUpload?: boolean
+    disablePasteAll?: boolean
 
     checkedAll?: boolean
     onChangeCheckedAll?: (v: boolean) => void
@@ -55,6 +55,7 @@ export default function UploadHeader(props: UploadHeaderProps) {
                     <Button
                         onClick={props.onClickPasteAll}
                         icon={<FilePptOutlined rev="paste" />}
+                        disabled={props.disablePasteAll}
                     >
                         Paste All
                     </Button>
@@ -62,9 +63,9 @@ export default function UploadHeader(props: UploadHeaderProps) {
                         onClick={props.onClickSetActive}
                         icon={<CheckOutlined rev="active" />}
                     >
-                        Active
+                        Active All
                     </Button>
-                    <Button icon={<DeleteOutlined rev="remove" />}>
+                    <Button disabled icon={<DeleteOutlined rev="remove" />}>
                         Remove
                     </Button>
                     <Button
@@ -80,18 +81,7 @@ export default function UploadHeader(props: UploadHeaderProps) {
                     >
                         Save
                     </Button>
-                    <Button
-                        style={{
-                            backgroundColor: "#005246",
-                            boxShadow: "none",
-                            color: "#fff",
-                        }}
-                        type="primary"
-                        icon={<RobotOutlined rev="check-bot" />}
-                        // style={{ boxShadow: "none" }}
-                    >
-                        Check Bot
-                    </Button>
+
                     <Button
                         type="primary"
                         icon={<UploadOutlined rev="upload" />}

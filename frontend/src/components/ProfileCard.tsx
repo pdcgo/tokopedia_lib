@@ -1,9 +1,8 @@
 import {
-    DeleteOutlined,
-    ReloadOutlined,
-    UploadOutlined,
     CopyOutlined,
+    DeleteOutlined,
     FilePptOutlined,
+    ReloadOutlined,
 } from "@ant-design/icons"
 import {
     Card,
@@ -13,42 +12,24 @@ import {
     Select,
     Tooltip,
     Typography,
+    message,
 } from "antd"
+import {
+    ListProfile,
+    ListProfileActions,
+    Selection,
+} from "../store/listProfile"
 import { Flex, FlexColumn } from "../styled_components"
 
 export type ProfileCardProps = {
+    updateSingleProfileFn: ListProfileActions["updateSingleProfile"]
+    copyProfileFn: (profile: ListProfile) => void
     number: number
-    spins?: Array<{ data: string; name: string }>
-    markups?: Array<string>
-    collections?: Array<string>
-    uploadCount?: number
-
-    isActice?: boolean
-    onChangeIsActive?: (v: boolean) => void
-
-    markup?: string
-    onChangeMarkup?: (v: string) => void
-
-    spin?: string
-    onChangeSpin?: (v: string) => void
-
-    selected?: boolean
-    onChangeSelected?: (v: boolean) => void
-
-    limitUpload?: number
-    onChangeLimitUpload?: (v: number | null) => void
-
-    collection?: string
-    onChangeCollection?: (v: string) => void
-
-    username?: string
-    onChangeUsername?: (username: string) => void
-
-    password?: string
-    onChangePassword?: (pass: string) => void
-
-    onCopy?: () => void
-    onPaste?: () => void
+    profile: ListProfile
+    clipboard: ListProfile | null
+    markups: Selection[]
+    spins: Selection[]
+    collections: Selection[]
 }
 
 export default function ProfileCard(
@@ -58,39 +39,52 @@ export default function ProfileCard(
         <Card
             title={
                 <Checkbox
-                    checked={props.selected}
-                    onChange={(e) => props.onChangeSelected?.(e.target.checked)}
+                    checked={props.profile.isChecked}
+                    onChange={(e) => {
+                        props.updateSingleProfileFn(props.profile.id, {
+                            isChecked: e.target.checked,
+                        })
+                    }}
                     style={{ userSelect: "none" }}
                 >
                     {props.number + ". "}
-                    {props.username}
+                    {props.profile.id}
                 </Checkbox>
             }
             hoverable
             size="small"
             type="inner"
             actions={[
-                <Tooltip title="Upload" placement="bottom" showArrow={false}>
-                    <UploadOutlined
-                        style={{ color: "#FFA559" }}
-                        rev={"upload"}
-                        key="upload"
-                    />
-                </Tooltip>,
                 <Tooltip title="Copy" placement="bottom" showArrow={false}>
                     <CopyOutlined
                         style={{ color: "#FFA559" }}
                         rev={"copy"}
                         key="copy"
-                        onClick={props.onCopy}
-                    />
+                        onClick={() => {
+                            message.success(`Copied profile: ${props.profile.id}`)
+                            props.copyProfileFn(props.profile)
+                        }}
+                        />
                 </Tooltip>,
                 <Tooltip title="Paste" placement="bottom" showArrow={false}>
                     <FilePptOutlined
                         style={{ color: "#FFA559" }}
                         rev={"paste"}
                         key="paste"
-                        onClick={props.onPaste}
+                        onClick={() => {
+                            if (props.clipboard) {
+                                message.info(`Paste from: ${props.clipboard.id}`)
+                                props.updateSingleProfileFn(
+                                    props.profile.id,
+                                    {
+                                        limitUpload: props.clipboard.limitUpload,
+                                        markupName: props.clipboard.markupName,
+                                        spinName: props.clipboard.spinName,
+                                        colName: props.clipboard.colName
+                                    }
+                                )
+                            }
+                        }}
                     />
                 </Tooltip>,
                 <Tooltip title="Reset" placement="bottom" showArrow={false}>
@@ -117,9 +111,12 @@ export default function ProfileCard(
                                 Username :
                             </Typography.Text>
                             <Input
-                                value={props.username}
+                                value={props.profile.emailOrUsername}
                                 onChange={(e) =>
-                                    props.onChangeUsername?.(e.target.value)
+                                    props.updateSingleProfileFn(
+                                        props.profile.id,
+                                        { emailOrUsername: e.target.value }
+                                    )
                                 }
                                 placeholder="username"
                             />
@@ -129,9 +126,12 @@ export default function ProfileCard(
                                 Password :
                             </Typography.Text>
                             <Input.Password
-                                value={props.password}
+                                value={props.profile.password}
                                 onChange={(e) =>
-                                    props.onChangePassword?.(e.target.value)
+                                    props.updateSingleProfileFn(
+                                        props.profile.id,
+                                        { password: e.target.value }
+                                    )
                                 }
                                 placeholder="⁎⁎⁎⁎⁎⁎⁎⁎"
                             />
@@ -141,8 +141,13 @@ export default function ProfileCard(
                                 Upload Limit :
                             </Typography.Text>
                             <InputNumber
-                                value={props.limitUpload}
-                                onChange={props.onChangeLimitUpload}
+                                value={props.profile.limitUpload}
+                                onChange={(e) =>
+                                    props.updateSingleProfileFn(
+                                        props.profile.id,
+                                        { limitUpload: e || 0 }
+                                    )
+                                }
                                 placeholder="1000"
                                 style={{ width: "100%" }}
                             />
@@ -155,16 +160,24 @@ export default function ProfileCard(
                                 Markup :
                             </Typography.Text>
                             <Select
-                                value={props.markup}
-                                onChange={(v) => props.onChangeMarkup?.(v)}
+                                value={props.profile.markupName}
+                                onChange={(v) =>
+                                    props.updateSingleProfileFn(
+                                        props.profile.id,
+                                        { markupName: v }
+                                    )
+                                }
                                 placeholder="Choose Markup Data"
                             >
                                 <Select.Option disabled value="">
                                     Markup Select
                                 </Select.Option>
                                 {props.markups?.map((markup) => (
-                                    <Select.Option value={markup} key={markup}>
-                                        {markup}
+                                    <Select.Option
+                                        value={markup.value}
+                                        key={markup.value}
+                                    >
+                                        {markup.label}
                                     </Select.Option>
                                 ))}
                             </Select>
@@ -174,8 +187,13 @@ export default function ProfileCard(
                                 Spin :
                             </Typography.Text>
                             <Select
-                                value={props.spin}
-                                onChange={(v) => props.onChangeSpin?.(v)}
+                                value={props.profile.spinName}
+                                onChange={(v) =>
+                                    props.updateSingleProfileFn(
+                                        props.profile.id,
+                                        { spinName: v }
+                                    )
+                                }
                                 placeholder="Choose Spin Data"
                             >
                                 <Select.Option disabled value="">
@@ -183,10 +201,10 @@ export default function ProfileCard(
                                 </Select.Option>
                                 {props.spins?.map((spin) => (
                                     <Select.Option
-                                        value={spin.name}
-                                        key={spin.data + spin.name}
+                                        value={spin.value}
+                                        key={spin.value}
                                     >
-                                        {spin.name}
+                                        {spin.label}
                                     </Select.Option>
                                 ))}
                             </Select>
@@ -196,8 +214,15 @@ export default function ProfileCard(
                                 Collection :
                             </Typography.Text>
                             <Select
-                                value={props.collection}
-                                onChange={props.onChangeCollection}
+                                value={props.profile.colName}
+                                onChange={(n) =>
+                                    props.updateSingleProfileFn(
+                                        props.profile.id,
+                                        {
+                                            colName: n,
+                                        }
+                                    )
+                                }
                                 placeholder="Choose Collection Data"
                             >
                                 <Select.Option value="" disabled>
@@ -205,10 +230,10 @@ export default function ProfileCard(
                                 </Select.Option>
                                 {props.collections?.map((collection) => (
                                     <Select.Option
-                                        key={collection}
-                                        value={collection}
+                                        key={collection.value}
+                                        value={collection.value}
                                     >
-                                        {collection}
+                                        {collection.label}
                                     </Select.Option>
                                 ))}
                             </Select>
@@ -222,9 +247,11 @@ export default function ProfileCard(
                     }}
                 >
                     <Checkbox
-                        checked={props.isActice}
+                        checked={props.profile.isActive}
                         onChange={(v) =>
-                            props.onChangeIsActive?.(v.target.checked)
+                            props.updateSingleProfileFn(props.profile.id, {
+                                isActive: v.target.checked,
+                            })
                         }
                         style={{ userSelect: "none" }}
                     >
@@ -232,7 +259,8 @@ export default function ProfileCard(
                     </Checkbox>
 
                     <Typography.Text>
-                        Product Uploaded Count: {props.uploadCount || 0}
+                        Product Uploaded Count:{" "}
+                        {props.profile.productCount || 0}
                     </Typography.Text>
                 </Flex>
             </FlexColumn>

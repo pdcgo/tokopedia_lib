@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable react-hooks/exhaustive-deps */
-
-import { Card, Divider, Pagination, Result, message } from "antd"
 import React, { Suspense, useEffect, useState } from "react"
+import { Card, Divider, Pagination, Result, message } from "antd"
 import { useRequest } from "../client"
-import { AkunItem } from "../client/sdk_types"
+import { useListProfileStore } from "../store/listProfile"
 import { Flex, FlexColumn } from "../styled_components"
 import { scroller } from "../utils/topScroller"
 
@@ -16,27 +15,38 @@ const ProfileCard = React.lazy(() => import("../components/ProfileCard"))
 export default function Upload(props: {
     activePage?: string
 }): React.ReactElement {
+    const [
+        profiles,
+        markups,
+        spins,
+        collections,
+        clipboard,
+        pendingInit,
+        error,
+        totalData,
+        initEffect,
+        setClipboard,
+        updateSingleProfile,
+        updateAllProfileWith,
+    ] = useListProfileStore((store) => [
+        store.list,
+        store.markups,
+        store.spins,
+        store.collections,
+        store.clipboard,
+        store.pendingInit,
+        store.error,
+        store.totalData,
+        store.initEffect,
+        store.setClipboard,
+        store.updateSingleProfile,
+        store.updateAllProfileWith,
+        store.replaceAllProfile,
+    ])
+
     const [query, setQuery] = useState({ page: 1, limit: 10, name: "" })
     const [showBottomPagination, setShowBottomPagination] = useState(false)
-    const [payload, setPayload] = useState<AkunItem[]>([])
-    const [selectedAccounts, setSelectedAccounts] = useState<Array<string>>([])
-
-    const [accountClip, setAccountClip] = useState<AkunItem | null>(null)
-
     const [messageApi, ctx] = message.useMessage()
-
-    const { sender, response, pending, error } = useRequest(
-        "GetTokopediaAkunList",
-        {
-            onSuccess(data) {
-                setPayload([...data.data])
-            },
-        }
-    )
-    const { sender: spinGetter, response: spinData } =
-        useRequest("GetApiSettingSpin")
-    const { sender: markupGetter, response: markupData } =
-        useRequest("GetApiListMarkup")
 
     const { sender: accountUpdater, pending: pendingUpdateAccount } =
         useRequest("PostTokopediaAkunUpdate", {
@@ -52,12 +62,8 @@ export default function Upload(props: {
         }
     )
 
-    const { sender: collectionGetter, response: collections } = useRequest(
-        "GetV1ProductNamespaceAll"
-    )
-
     useEffect(() => {
-        if (pending) {
+        if (pendingInit) {
             messageApi.loading({
                 key: "load-accounts",
                 content: "Loading accounts...",
@@ -65,26 +71,11 @@ export default function Upload(props: {
         } else {
             messageApi.destroy("load-accounts")
         }
-    }, [pending])
+    }, [pendingInit])
 
     useEffect(() => {
         if (props.activePage == "upload") {
-            setSelectedAccounts([])
-            sender({
-                method: "get",
-                path: "tokopedia/akun/list",
-                params: {
-                    limit: query.limit,
-                    offset: (query.page - 1) * query.limit,
-                    search: query.name,
-                },
-            })
-            spinGetter({ method: "get", path: "api/settingSpin" })
-            markupGetter({ method: "get", path: "api/listMarkup" })
-            collectionGetter({
-                method: "get",
-                path: "v1/product/namespace_all",
-            })
+            initEffect(query.limit, (query.page - 1) * query.limit, query.name)
         }
     }, [query.limit, query.name, query.page, props.activePage])
 
@@ -105,17 +96,13 @@ export default function Upload(props: {
     }, [])
 
     function render() {
-        if (error !== null && !pending) {
+        if (error !== null && !pendingInit) {
             return (
                 <Flex style={{ justifyContent: "center", width: "100%" }}>
-                    <Result
-                        status="error"
-                        title={error.msg}
-                        subTitle={error.error}
-                    />
+                    <Result status="error" title={error} subTitle={error} />
                 </Flex>
             )
-        } else if (!response?.data.length && !pending) {
+        } else if (!profiles.length && !pendingInit) {
             return (
                 <Flex style={{ justifyContent: "center", width: "100%" }}>
                     <Result status="404" title="Data not found!" />
@@ -128,7 +115,24 @@ export default function Upload(props: {
         accountUpdater({
             method: "post",
             path: "tokopedia/akun/update",
-            payload: { data: payload },
+            payload: {
+                data: profiles.map((p) => ({
+                    active_upload: p.isActive,
+                    collection: p.colName,
+                    count_upload: p.productCount,
+                    hastag: "",
+                    in_upload: p.isActive,
+                    last_error: "",
+                    lastup: 0,
+                    limit_upload: p.limitUpload,
+                    markup: p.markupName,
+                    password: p.password,
+                    secret: p.secret,
+                    spin: p.spinName,
+                    title_pattern: "",
+                    username: p.emailOrUsername,
+                })),
+            },
         })
     }
 
@@ -144,14 +148,15 @@ export default function Upload(props: {
             {ctx}
             <Suspense fallback={<Card loading />}>
                 <UploadHeader
-                    checkedAll={payload.length === selectedAccounts.length}
+                    disablePasteAll={clipboard === null}
+                    checkedAll={
+                        !pendingInit && profiles.every((p) => p.isChecked)
+                    }
                     onChangeCheckedAll={(e) => {
                         if (e) {
-                            setSelectedAccounts([
-                                ...payload.map((p) => p.username),
-                            ])
+                            updateAllProfileWith({ isChecked: true })
                         } else {
-                            setSelectedAccounts([])
+                            updateAllProfileWith({ isChecked: false })
                         }
                     }}
                     nameQuery={query.name}
@@ -162,35 +167,23 @@ export default function Upload(props: {
                             name: e,
                         }))
                     }
-                    onClickSetActive={() =>
-                        setPayload((p) =>
-                            p.map((payload) => {
-                                if (
-                                    selectedAccounts.includes(payload.username)
-                                ) {
-                                    payload.active_upload = true
-                                }
-
-                                return payload
-                            })
-                        )
-                    }
+                    onClickSetActive={() => {
+                        updateAllProfileWith({ isActive: true })
+                    }}
                     onClickSave={updateAccount}
                     loadingSave={pendingUpdateAccount}
                     loadingStartUpload={pendingUploadStarter}
                     onClickStartUpload={uploadAccount}
                     onClickPasteAll={() => {
-                        if (accountClip) {
+                        if (clipboard) {
                             messageApi.success("Paste to All")
-                            setPayload((p) =>
-                                p.map((payload) => ({
-                                    ...payload,
-                                    limit_upload: accountClip.limit_upload,
-                                    markup: accountClip.markup,
-                                    spin: accountClip.spin,
-                                    collection: accountClip.collection,
-                                }))
-                            )
+                            updateAllProfileWith({
+                                markupName: clipboard.markupName,
+                                spinName: clipboard.spinName,
+                                colName: clipboard.colName,
+                                limitUpload: clipboard.limitUpload,
+                            })
+                            setClipboard(null)
                         }
                     }}
                 />
@@ -198,10 +191,10 @@ export default function Upload(props: {
             <Divider dashed style={{ margin: "5px 0" }} />
             {render()}
             <Flex style={{ justifyContent: "flex-start" }} id="top-pagination">
-                {Boolean(response?.data.length) && (
+                {Boolean(profiles.length) && (
                     <Pagination
                         pageSize={query.limit}
-                        total={response?.pagination.count}
+                        total={totalData}
                         showSizeChanger
                         pageSizeOptions={[10, 20, 30, 40, 50, 75, 100]}
                         current={query.page}
@@ -216,6 +209,7 @@ export default function Upload(props: {
                                 setQuery((q) => ({ ...q, limit: size, page }))
                             }
                         }}
+                        showTotal={(tot) => `Total ${tot} profile`}
                     />
                 )}
             </Flex>
@@ -227,146 +221,18 @@ export default function Upload(props: {
                     gridTemplateColumns: "1fr 1fr",
                 }}
             >
-                {payload.map((profile, index) => (
-                    <Suspense
-                        fallback={<Card loading />}
-                        key={profile.username}
-                    >
+                {profiles.map((profile, index) => (
+                    <Suspense fallback={<Card loading />} key={profile.id}>
                         <ProfileCard
-                            key={profile.username}
+                            key={profile.id}
                             number={index + 1 + (query.page - 1) * query.limit}
-                            spins={spinData?.titlePool}
-                            markups={markupData?.data}
-                            collections={collections?.map(
-                                (collection) => collection.name
-                            )}
-                            isActice={profile.active_upload}
-                            uploadCount={profile.count_upload}
-                            onChangeIsActive={(ck) => {
-                                setPayload((p) =>
-                                    p.map((payload) => {
-                                        if (payload.username == profile.username) {
-                                            payload.active_upload = ck
-                                        }
-    
-                                        return payload
-                                    })
-                                )
-                            }}
-                            markup={profile.markup}
-                            onChangeMarkup={(mk) => {
-                                setPayload((p) =>
-                                    p.map((payload) => {
-                                        if (payload.username == profile.username) {
-                                            payload.markup = mk
-                                        }
-    
-                                        return payload
-                                    })
-                                )
-                            }}
-                            spin={profile.spin}
-                            onChangeSpin={(sp) => {
-                                setPayload((p) =>
-                                    p.map((payload) => {
-                                        if (payload.username == profile.username) {
-                                            payload.spin = sp
-                                        }
-    
-                                        return payload
-                                    })
-                                )
-                            }}
-                            selected={selectedAccounts.includes(profile.username)}
-                            onChangeSelected={(sl) => {
-                                if (sl) {
-                                    setSelectedAccounts((acc) => [
-                                        ...acc,
-                                        profile.username,
-                                    ])
-                                } else {
-                                    setSelectedAccounts((acc) =>
-                                        acc.filter((ac) => ac !== profile.username)
-                                    )
-                                }
-                            }}
-                            limitUpload={profile.limit_upload}
-                            onChangeLimitUpload={(lm) => {
-                                setPayload((p) =>
-                                    p.map((payload) => {
-                                        if (payload.username == profile.username) {
-                                            payload.limit_upload = lm || 0
-                                        }
-    
-                                        return payload
-                                    })
-                                )
-                            }}
-                            collection={profile.collection}
-                            onChangeCollection={(cl) => {
-                                setPayload((p) =>
-                                    p.map((payload) => {
-                                        if (payload.username == profile.username) {
-                                            payload.collection = cl
-                                        }
-    
-                                        return payload
-                                    })
-                                )
-                            }}
-                            username={profile.username}
-                            onChangeUsername={(username_) => {
-                                setPayload((p) =>
-                                    p.map((payload) => {
-                                        if (payload.username == profile.username) {
-                                            payload.username = username_
-                                        }
-    
-                                        return payload
-                                    })
-                                )
-                            }}
-                            password={profile.password}
-                            onChangePassword={(password_) => {
-                                setPayload((p) =>
-                                    p.map((payload) => {
-                                        if (payload.username == profile.username) {
-                                            payload.password = password_
-                                        }
-    
-                                        return payload
-                                    })
-                                )
-                            }}
-                            onCopy={() => {
-                                setAccountClip(profile)
-                                messageApi.destroy("copiedprofile")
-                                messageApi.success({
-                                    content: "Profile Copied",
-                                    key: "copiedprofile",
-                                    duration: 1.5,
-                                })
-                            }}
-                            onPaste={() => {
-                                if (accountClip) {
-                                    setPayload((py) =>
-                                        py.map((payload) => {
-                                            if (
-                                                payload.username == profile.username
-                                            ) {
-                                                payload.collection =
-                                                    accountClip.collection
-                                                payload.markup = accountClip.markup
-                                                payload.spin = accountClip.spin
-                                                payload.limit_upload =
-                                                    accountClip.limit_upload
-                                            }
-    
-                                            return payload
-                                        })
-                                    )
-                                }
-                            }}
+                            clipboard={clipboard}
+                            collections={collections}
+                            markups={markups}
+                            profile={profile}
+                            spins={spins}
+                            copyProfileFn={setClipboard}
+                            updateSingleProfileFn={updateSingleProfile}
                         />
                     </Suspense>
                 ))}
@@ -375,7 +241,7 @@ export default function Upload(props: {
             {showBottomPagination && (
                 <Pagination
                     pageSize={query.limit}
-                    total={response?.pagination.count}
+                    total={totalData}
                     showSizeChanger
                     pageSizeOptions={[10, 20, 30, 40, 50, 75, 100]}
                     current={query.page}
@@ -388,6 +254,7 @@ export default function Upload(props: {
 
                         scroller()
                     }}
+                    showTotal={(tot) => `Total ${tot} profile`}
                 />
             )}
         </FlexColumn>
