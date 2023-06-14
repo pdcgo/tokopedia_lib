@@ -35,7 +35,7 @@ func setupPdcLogger() {
 	pdc_common.SetConfig(fname, Version, LogName, cred)
 	pdc_common.InitializeLogger()
 
-	if !LisensiLogin(7) {
+	if !LisensiLogin(1) {
 		time.Sleep(time.Minute)
 		panic(errors.New("gagal login"))
 	}
