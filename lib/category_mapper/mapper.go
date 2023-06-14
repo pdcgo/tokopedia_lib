@@ -10,7 +10,7 @@ import (
 
 type ItemMap interface {
 	GetName() string
-	SetTokopediaID(categid int)
+	SetTokopediaID(categid int) error
 }
 
 type Mapper struct {
@@ -20,13 +20,14 @@ type Mapper struct {
 
 func NewMapper(papi *api_public.TokopediaApiPublic) *Mapper {
 	return &Mapper{
-		limitGuard: make(chan int),
+		limitGuard: make(chan int, 50),
 		papi:       papi,
 	}
 }
 
 func (mapi *Mapper) RunMapper(datas []ItemMap) {
 	var wg sync.WaitGroup
+
 	for _, item := range datas {
 		mapi.limitGuard <- 1
 
@@ -39,6 +40,7 @@ func (mapi *Mapper) RunMapper(datas []ItemMap) {
 				wg.Done()
 			}()
 			name := shopee.GetName()
+			log.Println("get mapping", name)
 			res, err := mapi.papi.JarvisRecommendation(name)
 			if err != nil {
 				pdc_common.ReportError(err)

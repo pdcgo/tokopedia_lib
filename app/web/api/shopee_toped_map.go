@@ -107,17 +107,29 @@ type ShopeeMapSuggestItem struct {
 	db   *gorm.DB
 }
 
-func (item *ShopeeMapSuggestItem) SetTokopediaID(categid int) {
-	mapcateg := config.ShopeeMapItem{
-		ShopeeID:    item.data.ID,
-		TokopediaID: categid,
+func NewShopeeMapSuggestItem(db *gorm.DB, data *mongolib.ProductCategoryAgg) *ShopeeMapSuggestItem {
+	return &ShopeeMapSuggestItem{
+		db:   db,
+		data: data,
+	}
+}
+
+func (item *ShopeeMapSuggestItem) SetTokopediaID(categid int) error {
+	var mapcateg config.ShopeeMapItem
+
+	item.db.First(&mapcateg, item.data.ID)
+
+	if mapcateg.TokopediaID == 0 {
+		mapcateg.TokopediaID = categid
+		err := item.db.Save(mapcateg).Error
+		if err != nil {
+			return pdc_common.ReportError(err)
+		}
+
+		log.Println("mapping", item.data.Name)
 	}
 
-	err := item.db.Save(mapcateg).Error
-	if err != nil {
-		pdc_common.ReportError(err)
-	}
-	log.Println(mapcateg)
+	return nil
 }
 
 func (item *ShopeeMapSuggestItem) GetName() string {
@@ -141,17 +153,17 @@ func (mapi *ShopeeTopedMapApi) AutoSuggest(c *gin.Context) {
 	}
 
 	if mapi.SuggestStatus.TryLock() {
+		log.Println("running auto suggest")
 		mapi.SuggestStatus.Status = SUGGEST_RUN
 		hasil := make([]category_mapper.ItemMap, len(aggre))
 		for ind, agg := range aggre {
-			hasil[ind] = &ShopeeMapSuggestItem{
-				data: &agg,
-				db:   mapi.db,
-			}
+			item := agg
+			hasil[ind] = NewShopeeMapSuggestItem(mapi.db, &item)
 		}
 		go func() {
 			defer func() {
 				mapi.SuggestStatus.Status = SUGGEST_STOP
+				mapi.SuggestStatus.Unlock()
 			}()
 			mapi.mapper.RunMapper(hasil)
 		}()
