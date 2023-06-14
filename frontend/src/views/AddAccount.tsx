@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Input, message, Modal } from "antd"
+import { Alert, Button, Card, Input, message } from "antd"
 import { TextAreaRef } from "antd/es/input/TextArea"
 import React, { useState } from "react"
 import { useRequest } from "../client"
@@ -6,17 +6,10 @@ import { BulkItem } from "../client/sdk_types"
 import { FlexColumn } from "../styled_components"
 
 export default function AddAccount(): React.ReactElement {
-    const [modal, modalCtx] = Modal.useModal()
     const { sender } = useRequest("PostTokopediaAkunBulkAdd", {
         onError: console.log,
         onSuccess: () => {
-            modal.confirm({
-                title: "Input new account success",
-                centered: true,
-                content: "Clear textarea input?",
-                icon: <i></i>,
-                onOk: () => setAccountString(""),
-            })
+            message.success("Success!")
         },
     })
 
@@ -84,7 +77,6 @@ export default function AddAccount(): React.ReactElement {
 
     return (
         <FlexColumn>
-            {modalCtx}
             <Card size="small"  title="Bulk Add Tokopedia Account">
                 <FlexColumn>
                     <Alert

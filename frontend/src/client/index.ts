@@ -23,14 +23,8 @@ type SenderConfigs<Method = unknown, Path = unknown, Payload = unknown, Params =
     params?: Params
 }
 
-function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, options?: UseQueryOptions<K[T]['response'], ErrResponse>) {
-    const [pending, setPending] = useState(false)
-    const [response, setResponse] = useState<K[T]['response'] | null>(null)
-    const [error, setError] = useState<ErrResponse | null>(null)
-
+function useRequestRaw<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, options?: UseQueryOptions<K[T]['response'], ErrResponse>) {
     async function sender(config: SenderConfigs<K[T]['method'], K[T]['path'], K[T]['payload'], K[T]['params']>, senderOptions?: UseQueryOptions<K[T]['response'], ErrResponse>) {
-        setPending(true)
-        
         try {
             const { data } = await client({
                 method: config.method,
@@ -38,10 +32,48 @@ function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, opt
                 url: config.path,
                 params: config.params,
             });
-            
+
             if (data?.error) {
                 const err = { error: data.error, msg: data.msg }
-                
+
+                options?.onError?.(err)
+                senderOptions?.onError?.(err)
+            } else {
+                options?.onSuccess?.(data as K[T]['response'])
+                senderOptions?.onSuccess?.(data as K[T]['response'])
+            }
+        } catch (error) {
+            if (isDev) console.log(error)
+
+            const err = { error: String(error), msg: "Unpredictable Error Type" }
+
+            options?.onError?.(err)
+            senderOptions?.onError?.(err)
+        }
+    }
+
+    return { sender }
+}
+
+function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, options?: UseQueryOptions<K[T]['response'], ErrResponse>) {
+    const [pending, setPending] = useState(false)
+    const [response, setResponse] = useState<K[T]['response'] | null>(null)
+    const [error, setError] = useState<ErrResponse | null>(null)
+
+    async function sender(config: SenderConfigs<K[T]['method'], K[T]['path'], K[T]['payload'], K[T]['params']>, senderOptions?: UseQueryOptions<K[T]['response'], ErrResponse>) {
+        setPending(true)
+
+        try {
+            const { data } = await client({
+                method: config.method,
+                data: config.payload,
+                url: config.path,
+                params: config.params,
+            });
+
+            if (data?.error) {
+                const err = { error: data.error, msg: data.msg }
+
                 setError(err)
                 setResponse(null)
                 options?.onError?.(err)
@@ -56,7 +88,7 @@ function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, opt
             if (isDev) console.log(error)
 
             const err = { error: String(error), msg: "Unpredictable Error Type" }
-            
+
             setResponse(null)
             setError(err)
             options?.onError?.(err)
@@ -80,5 +112,5 @@ function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, opt
     }
 }
 
-export { useRequest }
+export { useRequest, useRequestRaw }
 

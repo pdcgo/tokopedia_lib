@@ -1,108 +1,34 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {
-    Button,
-    Card,
-    Divider,
-    Result,
-    Select,
-    Typography,
-    message,
-} from "antd"
-import { useEffect, useMemo, useState } from "react"
+import React, { Suspense, useEffect, useMemo, useState } from "react"
+import { Card, Divider, Result } from "antd"
 import { useRequest } from "../client"
-import { Flex, FlexColumn } from "../styled_components"
 import { Category } from "../client/sdk_types"
-import MapCard from "../components/MapCard"
+import { useListStore } from "../store/listMapper"
+import { FlexColumn } from "../styled_components"
 import TokopediaAccount from "../components/TokopediaAccount"
-import { categoryFlatten } from "../utils/categoryFlatten"
 
-type List = {
-    shopeeCats: string[]
-    shopeeCatId: number
-    productCount: number
-    topedCatIds: (number | string)[]
-}
+const MapperHeader = React.lazy(
+    () => import("../component_sections/MapperHeader")
+)
+const MapCard = React.lazy(() => import("../components/MapCard"))
 
 export default function CategoryMapping(): React.ReactElement {
     const [showAsk, setShowAsk] = useState(false)
-    const [list, setList] = useState<List[]>([])
-
-    const { sender: topedMapperGetter } = useRequest("GetTokopediaMapperMap", {
-        onSuccess: (data) => {
-            const flattenCats = categoryFlatten(
-                catListTokopedia?.data.categoryAllListLite?.categories
-            )
-            data.data.forEach((rdata) => {
-                flattenCats.forEach((fc) => {
-                    if (fc.indexOf(rdata.tokopedia_id) > -1) {
-                        setList((l) => {
-                            return l.map((ls) => {
-                                if (ls.shopeeCatId === rdata.shopee_id) {
-                                    ls.topedCatIds = fc
-                                }
-
-                                return ls
-                            })
-                        })
-                    }
-                })
-            })
-        },
-    })
-    const { sender: saveMapSender, pending: saveMapPending } = useRequest(
-        "PutTokopediaMapperMap",
-        {
-            onSuccess() {
-                message.success("Update data success!")
-            },
-            onError() {
-                message.error("Update data error!")
-            },
-        }
+    const [list_, initEffect_, updateSingleList_, listPending_] = useListStore(
+        (state) => [
+            state.list,
+            state.initEffect,
+            state.updateSingleList,
+            state.pendingInitEffect,
+        ]
     )
 
     const { sender, response: catListTokopedia } = useRequest(
-        "GetTokopediaCategoryList",
-        {
-            onSuccess: (data) => {
-                if (!data) {
-                    setShowAsk(true)
-                }
-            },
-        }
+        "GetTokopediaCategoryList"
     )
     const { sender: namespaceGetter, response } = useRequest(
-        "GetV1ProductNamespaceAll",
-        {
-            onSuccess(data) {
-                data?.forEach((nm) => {
-                    if (nm.name !== "default") {
-                        setSelectedNamespace(nm.name)
-                    }
-                })
-            },
-        }
-    )
-    const { sender: productCategoriesGetter, pending } = useRequest(
-        "GetV1ProductCategory",
-        {
-            onSuccess(data) {
-                setList([])
-                data?.forEach((c) => {
-                    setList((l) => [
-                        ...l,
-                        {
-                            productCount: c.count,
-                            shopeeCatId: c._id,
-                            shopeeCats: c.name,
-                            topedCatIds: [],
-                        },
-                    ])
-                })
-            },
-        }
+        "GetV1ProductNamespaceAll"
     )
 
     const [selectedNamespacem, setSelectedNamespace] = useState<string | null>(
@@ -110,22 +36,33 @@ export default function CategoryMapping(): React.ReactElement {
     )
 
     useEffect(() => {
-        sender({ method: "get", path: "tokopedia/category/list" })
-        namespaceGetter({ method: "get", path: "v1/product/namespace_all" })
+        sender(
+            { method: "get", path: "tokopedia/category/list" },
+            {
+                onSuccess: (data) => {
+                    if (!data) {
+                        setShowAsk(true)
+                    }
+                },
+            }
+        )
+        namespaceGetter(
+            { method: "get", path: "v1/product/namespace_all" },
+            {
+                onSuccess(data) {
+                    data?.forEach((nm) => {
+                        if (nm.name !== "default") {
+                            setSelectedNamespace(nm.name)
+                        }
+                    })
+                },
+            }
+        )
     }, [])
 
     useEffect(() => {
         if (selectedNamespacem) {
-            productCategoriesGetter({
-                method: "get",
-                path: "v1/product/category",
-                params: {
-                    is_public: false,
-                    marketplace: "shopee",
-                    namespace: selectedNamespacem,
-                },
-            })
-            topedMapperGetter({ method: "get", path: "tokopedia/mapper/map" })
+            initEffect_(selectedNamespacem, catListTokopedia)
         }
     }, [selectedNamespacem])
 
@@ -160,71 +97,6 @@ export default function CategoryMapping(): React.ReactElement {
         return []
     }
 
-    const reset = async () => {
-        await saveMapSender({
-            method: "put",
-            path: "tokopedia/mapper/map",
-            payload: list.map((payload) => ({
-                shopee_id: payload.shopeeCatId,
-                tokopedia_id: 0,
-            })),
-        })
-        if (selectedNamespacem) {
-            productCategoriesGetter({
-                method: "get",
-                path: "v1/product/category",
-                params: {
-                    is_public: false,
-                    marketplace: "shopee",
-                    namespace: selectedNamespacem,
-                },
-            })
-            topedMapperGetter({ method: "get", path: "tokopedia/mapper/map" })
-        }
-    }
-
-    const [gettingSuggest, setGettingSuggest] = useState(false)
-    const { sender: runAutoSuggets } = useRequest(
-        "PutTokopediaMapperAutosuggest"
-    )
-    const { sender: autoSuggestChecker } = useRequest(
-        "GetTokopediaMapperAutosuggest",
-        {
-            onSuccess: (data) => {
-                if (data?.status === "STOPPED") setGettingSuggest(false)
-            },
-            onError: (e) => {
-                setGettingSuggest(false)
-                console.log(e)
-            },
-        }
-    )
-
-    const getSuggest = () => {
-        if (!gettingSuggest && selectedNamespacem) {
-            setGettingSuggest(true)
-            runAutoSuggets({
-                method: "put",
-                path: "tokopedia/mapper/autosuggest",
-                params: { collection: selectedNamespacem },
-            })
-        }
-    }
-
-    useEffect(() => {
-        const int = setInterval(() => {
-            if (!gettingSuggest) {
-                return clearInterval(int)
-            }
-            autoSuggestChecker({
-                method: "get",
-                path: "tokopedia/mapper/autosuggest",
-            })
-        }, 1000)
-
-        return () => clearInterval(int)
-    }, [gettingSuggest])
-
     return (
         <FlexColumn>
             <TokopediaAccount
@@ -232,70 +104,18 @@ export default function CategoryMapping(): React.ReactElement {
                 open={showAsk}
                 onCancel={() => setShowAsk(false)}
             />
-            <Card
-                size="small"
-                title={
-                    <Typography.Text>
-                        Map Category From Shopee to Tokopedia
-                    </Typography.Text>
-                }
-            >
-                <Flex
-                    style={{
-                        justifyContent: "space-between",
-                        alignItems: "end",
-                    }}
-                >
-                    <FlexColumn style={{ rowGap: "5px" }}>
-                        <Typography.Text>Collections :</Typography.Text>
-                        <Select
-                            style={{ width: "300px" }}
-                            placeholder="Choose Collection"
-                            value={selectedNamespacem}
-                            onChange={setSelectedNamespace}
-                            options={namespaces}
-                        />
-                    </FlexColumn>
-                    <Flex style={{ rowGap: "5px", justifyContent: "flex-end" }}>
-                        <Button
-                            loading={gettingSuggest}
-                            disabled={gettingSuggest}
-                            onClick={getSuggest}
-                        >
-                            Use Suggest
-                        </Button>
-                        <Button
-                            style={{ backgroundColor: "#005246" }}
-                            type="primary"
-                            onClick={reset}
-                        >
-                            Reset All
-                        </Button>
-                        <Button
-                            loading={saveMapPending}
-                            onClick={() => {
-                                saveMapSender({
-                                    method: "put",
-                                    path: "tokopedia/mapper/map",
-                                    payload: list.map((payload) => ({
-                                        shopee_id: payload.shopeeCatId,
-                                        tokopedia_id:
-                                            payload.topedCatIds.map(Number)[
-                                                payload.topedCatIds.length - 1
-                                            ],
-                                    })),
-                                })
-                            }}
-                            type="primary"
-                        >
-                            Save Mapping
-                        </Button>
-                    </Flex>
-                </Flex>
-            </Card>
+            <Suspense fallback={<Card loading />}>
+                <MapperHeader
+                    list={list_}
+                    namespace={selectedNamespacem}
+                    namespaces={namespaces}
+                    onChangeNamespace={setSelectedNamespace}
+                    initEffect={initEffect_}
+                    listCategoryTokopedia={catListTokopedia}
+                />
+            </Suspense>
             <Divider dashed style={{ marginBlock: "5px" }} />
-
-            {!pending && list.length == 0 ? (
+            {!listPending_ && list_.length == 0 ? (
                 <Result status="404" title="Data not found!" />
             ) : (
                 <div
@@ -305,25 +125,24 @@ export default function CategoryMapping(): React.ReactElement {
                         gap: "7px",
                     }}
                 >
-                    {list.map((pc) => (
-                        <MapCard
-                            key={pc.shopeeCatId}
-                            categoriesName={pc.shopeeCats}
-                            productCount={pc.productCount}
-                            catsValue={pc.topedCatIds}
-                            onChangeCatsValue={(e) => {
-                                setList((l) => {
-                                    return l.map((ls) => {
-                                        if (ls.shopeeCatId == pc.shopeeCatId) {
-                                            ls.topedCatIds = e || []
-                                        }
-
-                                        return ls
+                    {list_.map((pc) => (
+                        <Suspense
+                            key={pc.shopeeCategoryId}
+                            fallback={<Card loading />}
+                        >
+                            <MapCard
+                                key={pc.shopeeCategoryId}
+                                categoriesName={pc.shopeeCategoryName}
+                                productCount={pc.productCount}
+                                catsValue={pc.tokopediaCategoryIds}
+                                onChangeCatsValue={(e) => {
+                                    updateSingleList_(pc.shopeeCategoryId, {
+                                        tokopediaCategoryIds: e,
                                     })
-                                })
-                            }}
-                            optionsCats={categories()}
-                        />
+                                }}
+                                optionsCats={categories()}
+                            />
+                        </Suspense>
                     ))}
                 </div>
             )}

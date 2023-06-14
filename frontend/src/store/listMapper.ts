@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { useRequest } from "../client"
+import { useRequestRaw } from "../client"
 import { CategoryAllListLiteRes } from "../client/sdk_types"
 import { categoryFlatten } from "../utils/categoryFlatten"
 
@@ -27,7 +27,7 @@ export type ListMapperState = {
 export type ListMapperActions = {
     /** Digunakan untuk mendapatkan data awal mapping.
      * @tutorial Gunakan dalam fungsi `React.useEffect` */
-    initEffect: (namespace: string, topedCategories: CategoryAllListLiteRes) => void
+    initEffect: (namespace: string, topedCategories: CategoryAllListLiteRes | null) => void
     /** Digunakan untuk update salah satu data list.
      * @description Gunakan ketika list update, contoh -> `Saat update tokopediaCategoryIds` */
     updateSingleList: (shopeeCategoryId: number, change?: Partial<ListMapper>) => void
@@ -38,12 +38,12 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
         const {
             /** Digunakan untuk mendapatkan data awal mapping dari koleksi berdasarkan nama koleksi */
             sender: getInitialMapData
-        } = useRequest("GetV1ProductCategory")
+        } = useRequestRaw("GetV1ProductCategory")
 
         const {
             /** Digunakan setelah mendapatkan data awal map kemudian mencocokan tokopedia id jika ada */
             sender: getMapAfterInitialData
-        } = useRequest("GetTokopediaMapperMap")
+        } = useRequestRaw("GetTokopediaMapperMap")
 
         return {
             list: [],
@@ -77,25 +77,27 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
                                 }
                             }, {
                                 onSuccess(data) {
-                                    const flattenCats = categoryFlatten(topedCategories.data.categoryAllListLite?.categories)
-
-                                    data.data.forEach((rdata) => {
-                                        flattenCats.forEach((fc) => {
-                                            if (fc.indexOf(rdata.tokopedia_id) > -1) {
-
-                                                set(state => ({
-                                                    ...state,
-                                                    list: state.list.map((ls) => {
-                                                        if (ls.shopeeCategoryId === rdata.shopee_id) {
-                                                            ls.tokopediaCategoryIds = fc
-                                                        }
-
-                                                        return ls
-                                                    })
-                                                }))
-                                            }
+                                    if (topedCategories) {
+                                        const flattenCats = categoryFlatten(topedCategories.data.categoryAllListLite?.categories)
+    
+                                        data.data.forEach((rdata) => {
+                                            flattenCats.forEach((fc) => {
+                                                if (fc.indexOf(rdata.tokopedia_id) > -1) {
+    
+                                                    set(state => ({
+                                                        ...state,
+                                                        list: state.list.map((ls) => {
+                                                            if (ls.shopeeCategoryId === rdata.shopee_id) {
+                                                                ls.tokopediaCategoryIds = fc
+                                                            }
+    
+                                                            return ls
+                                                        })
+                                                    }))
+                                                }
+                                            })
                                         })
-                                    })
+                                    }
                                 },
                             })
                         }

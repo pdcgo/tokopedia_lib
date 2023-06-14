@@ -5,16 +5,17 @@ import {
     ShopOutlined,
 } from "@ant-design/icons"
 import { Button, Card, Tabs, Tooltip } from "antd"
-import { useEffect, useState } from "react"
+import React, { Suspense, useEffect, useState } from "react"
 import {
     AppContainer,
     AppContainer2,
     FlexColumn,
     FloatingMenu,
 } from "./styled_components"
-import AddAccount from "./views/AddAccount"
-import CategoryMapping from "./views/CategoryMapping"
-import Upload from "./views/Upload"
+
+const AddAccount = React.lazy(() => import("./views/AddAccount"))
+const CategoryMapping = React.lazy( () => import("./views/CategoryMapping"))
+const Upload = React.lazy( () => import("./views/Upload"))
 
 const menus = [
     {
@@ -102,10 +103,12 @@ function App() {
                             </span>
                         ),
                         children: (
-                            <menu.child
-                                key={activeMenu}
-                                activePage={activeMenu}
-                            />
+                            <Suspense key={activeMenu} fallback={<Card loading />}>
+                                <menu.child
+                                    key={activeMenu}
+                                    activePage={activeMenu}
+                                />
+                            </Suspense>
                         ),
                     }))}
                 />
