@@ -28,7 +28,7 @@ function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, opt
     const [response, setResponse] = useState<K[T]['response'] | null>(null)
     const [error, setError] = useState<ErrResponse | null>(null)
 
-    async function sender(config: SenderConfigs<K[T]['method'], K[T]['path'], K[T]['payload'], K[T]['params']>) {
+    async function sender(config: SenderConfigs<K[T]['method'], K[T]['path'], K[T]['payload'], K[T]['params']>, senderOptions?: UseQueryOptions<K[T]['response'], ErrResponse>) {
         setPending(true)
         
         try {
@@ -45,10 +45,12 @@ function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, opt
                 setError(err)
                 setResponse(null)
                 options?.onError?.(err)
+                senderOptions?.onError?.(err)
             } else {
                 setError(null)
                 setResponse(data as K[T]['response'])
                 options?.onSuccess?.(data as K[T]['response'])
+                senderOptions?.onSuccess?.(data as K[T]['response'])
             }
         } catch (error) {
             if (isDev) console.log(error)
@@ -58,6 +60,7 @@ function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, opt
             setResponse(null)
             setError(err)
             options?.onError?.(err)
+            senderOptions?.onError?.(err)
         } finally {
             setPending(false)
         }
