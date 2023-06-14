@@ -83,14 +83,10 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
                                         data.data.forEach((rdata) => {
                                             flattenCats.forEach((fc) => {
                                                 if (fc.indexOf(rdata.tokopedia_id) > -1) {
-    
                                                     set(state => ({
                                                         ...state,
                                                         list: state.list.map((ls) => {
-                                                            if (ls.shopeeCategoryId === rdata.shopee_id) {
-                                                                ls.tokopediaCategoryIds = fc
-                                                            }
-    
+                                                            if (ls.shopeeCategoryId === rdata.shopee_id) ls.tokopediaCategoryIds = fc
                                                             return ls
                                                         })
                                                     }))

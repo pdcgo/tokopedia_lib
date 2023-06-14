@@ -28,11 +28,7 @@ export default function MapperHeader(props: MapperHeaderProps) {
     )
 
     const { sender: saveMapSender, pending: saveMapPending } = useRequest(
-        "PutTokopediaMapperMap",
-        {
-            onSuccess: () => message.success("Data updated!"),
-            onError: (e) => message.error(`Update error: ${e.msg}`),
-        }
+        "PutTokopediaMapperMap"
     )
 
     const mapSaver = () => {
@@ -87,6 +83,12 @@ export default function MapperHeader(props: MapperHeaderProps) {
     useEffect(() => {
         const int = setInterval(() => {
             if (!gettingSuggest) {
+                if (props.namespace && !gettingSuggest) {
+                    props.initEffect(
+                        props.namespace,
+                        props.listCategoryTokopedia
+                    )
+                }
                 return clearInterval(int)
             }
             autoSuggestChecker(
