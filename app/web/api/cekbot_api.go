@@ -24,8 +24,8 @@ type CekbotAkun struct {
 }
 
 type RunCheckbotPayload struct {
-	Fname string `json:"fname"`
-	Akuns []*tokopedia_lib.DriverAccount
+	Fname string                         `json:"fname"`
+	Akuns []*tokopedia_lib.DriverAccount `json:"akuns"`
 }
 
 func (cekbot *CekbotApi) runBin(fname string) {
@@ -51,7 +51,8 @@ func (cekbot *CekbotApi) RunCekbot(ctx *gin.Context) {
 			DriverAccount: akun,
 		}
 	}
-	report.SaveCekReport(payload.Fname, hasil)
+	fname := cekbot.base.Path(payload.Fname)
+	report.SaveCekReport(fname, hasil)
 
 	cekbot.runBin(payload.Fname)
 	ctx.JSON(http.StatusOK, Response{
