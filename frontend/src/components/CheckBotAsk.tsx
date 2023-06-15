@@ -24,7 +24,7 @@ export default function CheckBotAsk(props: CheckBotAskProps & ModalProps) {
             centered
             onCancel={() => {
                 if (filename) {
-                    props.onFinish(filename)
+                    props.onFinish(filename.trim() + ".csv")
                 } else {
                     props.onFinish("cekbot.csv")
                 }
