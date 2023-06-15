@@ -24,8 +24,8 @@ type CekbotAkun struct {
 }
 
 type RunCheckbotPayload struct {
-	Fname string                         `json:"fname"`
-	Akuns []*tokopedia_lib.DriverAccount `json:"akuns"`
+	Fname string `json:"fname"`
+	Akuns []*tokopedia_lib.DriverAccount
 }
 
 func (cekbot *CekbotApi) runBin(fname string) {
