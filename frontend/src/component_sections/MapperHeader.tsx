@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button, Card, Select, Typography, message } from "antd"
 import { useEffect, useState } from "react"
@@ -81,7 +82,7 @@ export default function MapperHeader(props: MapperHeaderProps) {
     }
 
     useEffect(() => {
-        const int = setInterval(() => {
+        const int: any = setInterval(() => {
             if (!gettingSuggest) {
                 if (props.namespace && !gettingSuggest) {
                     props.initEffect(
