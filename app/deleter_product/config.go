@@ -85,6 +85,7 @@ func (cfg *DeleteConfig) GenerateFilter() FilterHandler {
 	return func(product *model.SellerProductItem) bool {
 		for _, handler := range handlers {
 			if !handler(product) {
+
 				return false
 			}
 		}
@@ -96,7 +97,8 @@ func (cfg *DeleteConfig) GenerateFilter() FilterHandler {
 func (cfg *DeleteConfig) GenerateFilterTime() FilterHandler {
 	return func(product *model.SellerProductItem) bool {
 		data := product.CreateTime
-		return cfg.TStartTime.After(data) && cfg.TEndTime.Before(data)
+
+		return data.After(cfg.TStartTime) && data.Before(cfg.TEndTime)
 	}
 }
 

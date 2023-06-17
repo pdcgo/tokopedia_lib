@@ -91,9 +91,6 @@ func IterateProduct(sellerapi *api.TokopediaApi, handleItem func(page int, produ
 			}, {
 				ID:    "keyword",
 				Value: []string{""},
-			}, {
-				ID:    "status",
-				Value: []string{},
 			},
 			{
 				ID:    "page",

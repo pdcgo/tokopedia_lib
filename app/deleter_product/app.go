@@ -42,7 +42,12 @@ func (runner *DeleteRunner) RunDeleteAkun(akun *AkunDeleteItem) error {
 	filterhandler := runner.Config.GenerateFilter()
 	count := 0
 
-	queryFilter := []model.Filter{}
+	queryFilter := []model.Filter{
+		{
+			ID:    "status",
+			Value: []string{string(runner.Config.StatusProduct)},
+		},
+	}
 	if runner.Config.CategoryID != "" {
 		queryFilter = append(queryFilter, model.Filter{
 			ID:    "category",

@@ -119,8 +119,10 @@ type InputVariable struct {
 type ProductStatus string
 
 const (
-	LimitedStatus ProductStatus = "LIMITED"
-	DeletedStatus ProductStatus = "DELETED"
+	LimitedStatus   ProductStatus = "LIMITED"
+	DeletedStatus   ProductStatus = "DELETED"
+	ViolationStatus ProductStatus = "VIOLATION"
+	ActiveStatus    ProductStatus = "ACTIVE"
 )
 
 type NoVariantStockPrice struct {

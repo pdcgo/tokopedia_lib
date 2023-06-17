@@ -45,7 +45,7 @@ func (runapi *DeleterApi) UpdateSetting(c *gin.Context) {
 }
 
 func (runapi *DeleterApi) RunDelete(c *gin.Context) {
-	cmd := exec.Command("bin/tokopedia.exe", "delete_product")
+	cmd := exec.Command("bin/tokopedia.exe", "delete_product", "-base", "./")
 	cmd.Dir = runapi.base.Path()
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		CreationFlags:    CREATE_NEW_CONSOLE,

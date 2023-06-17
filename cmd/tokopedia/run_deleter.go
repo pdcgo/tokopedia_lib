@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/tokopedia_lib/app/deleter_product"
 	"github.com/urfave/cli/v2"
@@ -37,6 +39,8 @@ func runDeleteCommand(ctx *cli.Context) error {
 	}
 
 	runner := deleter_product.NewDeleteRunner(config)
+
+	log.Println("running deleter")
 	runner.Run()
 
 	return nil
