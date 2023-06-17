@@ -14,13 +14,13 @@ import {
 } from "./styled_components"
 
 const AddAccount = React.lazy(() => import("./views/AddAccount"))
-const CategoryMapping = React.lazy( () => import("./views/CategoryMapping"))
-const Upload = React.lazy( () => import("./views/Upload"))
+const CategoryMapping = React.lazy(() => import("./views/CategoryMapping"))
+const Upload = React.lazy(() => import("./views/Upload"))
 
 const menus = [
     {
-        key: "add_account",
-        name: "Add Account",
+        key: "accounts",
+        name: "Accounts",
         icon: ShopOutlined,
         child: AddAccount,
     },
@@ -39,10 +39,11 @@ const menus = [
 ]
 
 function App() {
-    const [activeMenu, setActiveMenu] = useState("add_account")
+    const [activeMenu, setActiveMenu] = useState("accounts")
     const [showFloatMenu, setShowFloatMenu] = useState(false)
 
     useEffect(() => {
+        const element = document.getElementById("accounts")
         const observer = new IntersectionObserver(
             (entry) => {
                 if (!entry[0].isIntersecting) setShowFloatMenu(true)
@@ -51,10 +52,14 @@ function App() {
             { threshold: [0] }
         )
 
-        observer.observe(document.getElementById("add_account")!)
+        if (element) {
+            observer.observe(element)
+        }
 
         return () => {
-            observer.unobserve(document.getElementById("add_account")!)
+            if (element) {
+                observer.unobserve(element)
+            }
         }
     }, [])
 
@@ -103,7 +108,10 @@ function App() {
                             </span>
                         ),
                         children: (
-                            <Suspense key={activeMenu} fallback={<Card loading />}>
+                            <Suspense
+                                key={activeMenu}
+                                fallback={<Card loading />}
+                            >
                                 <menu.child
                                     key={activeMenu}
                                     activePage={activeMenu}

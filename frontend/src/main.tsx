@@ -43,7 +43,7 @@ const theme: ThemeConfig = {
 }
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-    <ConfigProvider theme={theme}>
+    <ConfigProvider prefixCls="nox" theme={theme}>
         <App />
     </ConfigProvider>
 )
