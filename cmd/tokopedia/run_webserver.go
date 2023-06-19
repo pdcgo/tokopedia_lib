@@ -96,6 +96,7 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	api.RegisterDeleterApi(g, baseData)
 	cekbotgrp := g.Group("cekbot")
 	api.RegisterCekbotApi(cekbotgrp, baseData)
+	api.RegisterCheckVerifApi(g, baseData)
 
 	web.RegisterTokopediaFrontend(r, prefix)
 

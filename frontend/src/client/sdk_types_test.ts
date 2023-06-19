@@ -292,6 +292,17 @@ export interface RunCheckbotPayload {
     fname: string;
     Akuns: DriverAccount[];
 }
+export interface VerifDriverAccount {
+    username: string;
+    password: string;
+    secret: string;
+    Pesan: string;
+    Status: string;
+}
+export interface RunCheckVerifPayload {
+    fname: string;
+    Akuns: VerifDriverAccount[];
+}
 export type SdkConfig = { 
 
 	GetTokopediaAkunList: {
@@ -572,5 +583,13 @@ export type SdkConfig = {
 		payload: RunCheckbotPayload
 		response: undefined
 		path: "tokopedia/cekbot/run"
+	},
+
+	PutTokopediaCheckVerifRun: {
+		method: "put"
+		params: undefined
+		payload: RunCheckVerifPayload
+		response: undefined
+		path: "tokopedia/check_verif/run"
 	}
 }

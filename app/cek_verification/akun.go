@@ -1,4 +1,4 @@
-package main
+package cek_verification
 
 import (
 	"fmt"
@@ -13,6 +13,20 @@ type VerifDriverAccount struct {
 	*tokopedia_lib.DriverAccount
 	Pesan  string
 	Status string
+}
+
+func SaveCekReport(fname string, akuns []*VerifDriverAccount) error {
+	f, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	f.WriteString("username,password,secret,shopname,product_active,product_inactive,product_violation,shop_score,unread_chat,new_order,pm_status,extend_status,status\n")
+	for _, driver := range akuns {
+		f.WriteString(fmt.Sprintf("%s|%s|%s|%s|%s\n", driver.Username, driver.Password, driver.Secret, driver.Status, driver.Pesan))
+	}
+	return nil
 }
 
 func getakunFromFile(fname string) ([]*VerifDriverAccount, func(), error) {

@@ -1,4 +1,4 @@
-package main
+package cek_verification
 
 import (
 	"log"
@@ -6,14 +6,16 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/pdcgo/tokopedia_lib"
+	"github.com/urfave/cli/v2"
 )
 
 // func reportFile() (func(data string), func()) {
 
 // }
 
-func main() {
-	akuns, save, _ := getakunFromFile("akun.txt")
+func runCheckKtp(cCtx *cli.Context) error {
+	fname := cCtx.String("fname")
+	akuns, save, _ := getakunFromFile(fname)
 
 	for _, driver := range akuns {
 		if driver.Status == "success" || driver.Status == "gagal" {
@@ -67,4 +69,27 @@ func main() {
 
 	}
 
+	return nil
+
+}
+
+func CreateCheckVerifCommand() *cli.Command {
+	command := cli.Command{
+		Name:    "cekverif",
+		Aliases: []string{"cv"},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "base",
+				Aliases: []string{"b"},
+				Value:   "./",
+			},
+			&cli.StringFlag{
+				Name:    "fname",
+				Aliases: []string{"f"},
+				Value:   "akun_verification.txt",
+			},
+		},
+		Action: runCheckKtp,
+	}
+	return &command
 }
