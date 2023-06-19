@@ -3,7 +3,6 @@ import {
     CopyOutlined,
     DeleteOutlined,
     FilePptOutlined,
-    ReloadOutlined,
 } from "@ant-design/icons"
 import {
     Card,
@@ -15,14 +14,14 @@ import {
     Typography,
     message,
 } from "antd"
+import { SenderConfigs, UseQueryOptions } from "../client"
+import { Response, SdkConfig } from "../client/sdk_types"
 import {
     ListProfile,
     ListProfileActions,
     Selection,
 } from "../store/listProfile"
 import { Flex, FlexColumn } from "../styled_components"
-import { SenderConfigs, UseQueryOptions } from "../client"
-import { Response, SdkConfig } from "../client/sdk_types"
 
 export type ProfileCardProps = {
     updateSingleProfileFn: ListProfileActions["updateSingleProfile"]
@@ -100,13 +99,13 @@ export default function ProfileCard(
                         }}
                     />
                 </Tooltip>,
-                <Tooltip title="Reset" placement="bottom" showArrow={false}>
-                    <ReloadOutlined
-                        style={{ color: "#FFA559" }}
-                        rev={"reset"}
-                        key="reset"
-                    />
-                </Tooltip>,
+                // <Tooltip title="Reset" placement="bottom" showArrow={false}>
+                //     <ReloadOutlined
+                //         style={{ color: "#FFA559" }}
+                //         rev={"reset"}
+                //         key="reset"
+                //     />
+                // </Tooltip>,
                 <Tooltip title="Remove" placement="bottom" showArrow={false}>
                     <DeleteOutlined
                         style={{ color: "#FFA559" }}
