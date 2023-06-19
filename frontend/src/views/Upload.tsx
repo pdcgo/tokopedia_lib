@@ -62,6 +62,27 @@ export default function Upload(props: {
         }
     )
 
+    const { sender: deleterAccount } = useRequest("PostTokopediaAkunDelete", {
+        onError(err) {
+            message.error({ key: "error-delete", content: err.error })
+        },
+        onSuccess() {
+            message.success({
+                key: "success-delete",
+                content: "Delete fulfilled!",
+            })
+            setQuery((q) => ({ ...q, name: "", page: 1 }))
+
+            if (query.page == 1 && query.name == "") {
+                initEffect(
+                    query.limit,
+                    (query.page - 1) * query.limit,
+                    query.name
+                )
+            }
+        },
+    })
+
     useEffect(() => {
         if (pendingInit) {
             messageApi.loading({
@@ -111,6 +132,17 @@ export default function Upload(props: {
         }
     }
 
+    function deleteSome() {
+        const payload = profiles.filter(p => p.isChecked).map(p => p.id)
+        deleterAccount({
+            method: "post",
+            path: "tokopedia/akun/delete",
+            payload: {
+                usernames: payload
+            }
+        })
+    }
+
     function updateAccount() {
         accountUpdater({
             method: "post",
@@ -150,7 +182,9 @@ export default function Upload(props: {
                 <UploadHeader
                     disablePasteAll={clipboard === null}
                     checkedAll={
-                        !pendingInit && profiles.every((p) => p.isChecked)
+                        !pendingInit &&
+                        profiles.length != 0 &&
+                        profiles.every((p) => p.isChecked)
                     }
                     onChangeCheckedAll={(e) => {
                         if (e) {
@@ -186,6 +220,12 @@ export default function Upload(props: {
                             setClipboard(null)
                         }
                     }}
+                    indeterminate={
+                        profiles.some((p) => p.isChecked) &&
+                        !profiles.every((p) => p.isChecked)
+                    }
+                    disableRemoveAll={!profiles.some((p) => p.isChecked)}
+                    onClickRemoveAll={deleteSome}
                 />
             </Suspense>
             <Divider dashed style={{ margin: "5px 0" }} />
@@ -233,6 +273,7 @@ export default function Upload(props: {
                             spins={spins}
                             copyProfileFn={setClipboard}
                             updateSingleProfileFn={updateSingleProfile}
+                            deleter={deleterAccount}
                         />
                     </Suspense>
                 ))}

@@ -11,12 +11,12 @@ const client = axios.create({
     timeout: 30_000,
 });
 
-type UseQueryOptions<D = any, E = Error> = {
+export type UseQueryOptions<D = any, E = Error> = {
     onSuccess?: (data: D) => void
     onError?: (err: E) => void
 }
 
-type SenderConfigs<Method = unknown, Path = unknown, Payload = unknown, Params = unknown> = {
+export type SenderConfigs<Method = unknown, Path = unknown, Payload = unknown, Params = unknown> = {
     method: Method
     path: Path
     payload?: Payload

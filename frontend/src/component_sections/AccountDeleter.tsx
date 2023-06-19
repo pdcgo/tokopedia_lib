@@ -16,6 +16,7 @@ import { AkunDeleteItem } from "../client/sdk_types"
 import LabelInput from "../components/LabelInput"
 import { Flex, FlexColumn } from "../styled_components"
 import { accountPayloadChecker } from "../utils/accountPayloadChecker"
+import { RobotOutlined } from "@ant-design/icons"
 
 export default function AccountDeleter() {
     const { sender: filterPutter } = useRequest("PutTokopediaDeleterSetting")
@@ -171,7 +172,7 @@ regex-->obat|jamu|ramuan
                                 </LabelInput>
                                 <LabelInput
                                     style={{ flex: 2 }}
-                                    label="Range Date :"
+                                    label="Date Range :"
                                 >
                                     <DatePicker.RangePicker
                                         onChange={(d) => {
@@ -190,6 +191,7 @@ regex-->obat|jamu|ramuan
                                     }}
                                     type="primary"
                                     onClick={deleteAction}
+                                    icon={<RobotOutlined rev="run-delete" />}
                                 >
                                     Run Delete
                                 </Button>

@@ -55,6 +55,7 @@ export interface AkunDeletePayload {
 }
 
 
+
 export interface UploadAppStatus {
     status: string;
     akun_count: number;
@@ -335,6 +336,14 @@ export type SdkConfig = {
 		payload: AkunDeletePayload
 		response: Response
 		path: "tokopedia/akun/delete"
+	},
+
+	PutTokopediaAkunResetAllCount: {
+		method: "put"
+		params: undefined
+		payload: undefined
+		response: Response
+		path: "tokopedia/akun/reset_all_count"
 	},
 
 	GetTokopediaUploadStart: {

@@ -6,6 +6,7 @@ import { useRequest } from "../client"
 import { CategoryAllListLiteRes } from "../client/sdk_types"
 import { ListMapper, ListMapperActions } from "../store/listMapper"
 import { Flex, FlexColumn } from "../styled_components"
+import { ReloadOutlined, RobotOutlined, SaveOutlined } from "@ant-design/icons"
 
 type SelectOption = { label: string; value: string }
 
@@ -142,6 +143,7 @@ export default function MapperHeader(props: MapperHeaderProps) {
                         loading={gettingSuggest}
                         disabled={gettingSuggest}
                         onClick={getSuggest}
+                        icon={<RobotOutlined rev="suggest" />}
                     >
                         Use Suggest
                     </Button>
@@ -149,6 +151,7 @@ export default function MapperHeader(props: MapperHeaderProps) {
                         style={{ backgroundColor: "#005246" }}
                         type="primary"
                         onClick={reset}
+                        icon={<ReloadOutlined rev="reset" />}
                     >
                         Reset All
                     </Button>
@@ -156,6 +159,7 @@ export default function MapperHeader(props: MapperHeaderProps) {
                         loading={saveMapPending}
                         onClick={mapSaver}
                         type="primary"
+                        icon={<SaveOutlined rev="save" />}
                     >
                         Save Mapping
                     </Button>

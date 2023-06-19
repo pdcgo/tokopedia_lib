@@ -1,67 +1,26 @@
 import React, { Suspense, useState } from "react"
-import { RobotOutlined } from "@ant-design/icons"
+import {
+    RobotOutlined,
+    IdcardOutlined,
+    UsergroupAddOutlined,
+} from "@ant-design/icons"
 import { Card, Alert, Input, Button, message } from "antd"
 import { FlexColumn, Flex } from "../styled_components"
 import { TextAreaRef } from "antd/es/input/TextArea"
 import { useRequest } from "../client"
-import { BulkItem, DriverAccount } from "../client/sdk_types"
+import {
+    BulkItem,
+    DriverAccount,
+    VerifDriverAccount,
+} from "../client/sdk_types"
+import { accountPayloadChecker } from "../utils/accountPayloadChecker"
 
 const CheckBotAsk = React.lazy(() => import("../components/CheckBotAsk"))
-
-const accountPayloadChecker = (
-    accountString: string,
-    textarea: React.RefObject<TextAreaRef>
-) => {
-    const accountsList = accountString.split("\n")
-    const data = accountsList.map((account) => {
-        const [username, password, secret] = account.split("|")
-
-        if (!username || !password || !secret) return null
-
-        return {
-            password: password.trim(),
-            secret: secret.trim(),
-            username: username.trim().toLowerCase(),
-        }
-    })
-
-    const invalidFormat = data
-        .map((d, i) => (d == null ? i + 1 : null))
-        .filter((c) => c !== null)
-
-    if (invalidFormat.length) {
-        message.error({
-            content: (
-                <span>
-                    Invalid format on line:{" "}
-                    <i>
-                        <strong>{invalidFormat[0]}</strong>
-                    </i>
-                </span>
-            ),
-        })
-
-        const errorLineContent = accountsList[(invalidFormat[0] as number) - 1]
-        const [start, end] = [
-            accountString.lastIndexOf(errorLineContent),
-            accountString.lastIndexOf(errorLineContent) +
-                errorLineContent.length,
-        ]
-
-        textarea.current?.focus()
-        if (textarea.current?.resizableTextArea?.textArea.selectionStart)
-            textarea.current.resizableTextArea.textArea.selectionStart = start
-        if (textarea.current?.resizableTextArea?.textArea.selectionEnd)
-            textarea.current.resizableTextArea.textArea.selectionEnd = end
-
-        return null
-    }
-
-    return data
-}
+const CheckSubmitAsk = React.lazy(() => import("../components/CheckSubmitAsk"))
 
 export default function CommonMenu() {
     const [showAsk, setShowAsk] = useState(false)
+    const [showAskKtp, setShowAskKtp] = useState(false)
     const { sender } = useRequest("PostTokopediaAkunBulkAdd", {
         onError: (e) => message.error(`Error: ${e.msg}`),
         onSuccess: () => {
@@ -69,41 +28,76 @@ export default function CommonMenu() {
         },
     })
     const { sender: checkbot } = useRequest("PutTokopediaCekbotRun")
+    const { sender: verifKtp } = useRequest("PutTokopediaCheckVerifRun")
 
     const [accountString, setAccountString] = useState("")
     const textarea = React.createRef<TextAreaRef>()
 
     function bulkAddAction() {
-        const data = accountPayloadChecker(accountString, textarea)
+        accountPayloadChecker(
+            accountString,
+            textarea,
+            (warn) => {
+                message.warning({ content: warn, key: "ghigggj" })
+            },
+            (data) => {
+                const payload = {
+                    data: data.filter(Boolean) as BulkItem[],
+                }
 
-        if (data) {
-            const payload = {
-                data: data.filter(Boolean) as BulkItem[],
+                sender({
+                    method: "post",
+                    path: "tokopedia/akun/bulk_add",
+                    payload: payload,
+                })
             }
-
-            sender({
-                method: "post",
-                path: "tokopedia/akun/bulk_add",
-                payload: payload,
-            })
-        }
+        )
     }
 
     function checkBotAction(filename: string) {
-        const data = accountPayloadChecker(accountString, textarea)
-        if (data) {
-            const payload = data.filter(Boolean) as DriverAccount[]
+        accountPayloadChecker(
+            accountString,
+            textarea,
+            (warn) => {
+                message.warning({ content: warn, key: "ghigggj" })
+            },
+            (data) => {
+                const payload = data.filter(Boolean) as DriverAccount[]
 
-            checkbot({
-                method: "put",
-                path: "tokopedia/cekbot/run",
-                payload: {
-                    fname: filename,
-                    Akuns: payload,
-                },
-            })
-        }
+                checkbot({
+                    method: "put",
+                    path: "tokopedia/cekbot/run",
+                    payload: {
+                        fname: filename,
+                        Akuns: payload,
+                    },
+                })
+            }
+        )
     }
+
+    function checkSubmitAction(filename: string) {
+        accountPayloadChecker(
+            accountString,
+            textarea,
+            (warn) => {
+                message.warning({ content: warn, key: "vfdvf" })
+            },
+            (data) => {
+                const payload = data.filter(Boolean) as VerifDriverAccount[]
+
+                verifKtp({
+                    method: "put",
+                    path: "tokopedia/check_verif/run",
+                    payload: {
+                        fname: filename,
+                        Akuns: payload,
+                    },
+                })
+            }
+        )
+    }
+
     return (
         <Card size="small" title="Bulk Add Tokopedia Account">
             <FlexColumn>
@@ -114,6 +108,17 @@ export default function CommonMenu() {
                             checkBotAction(name)
                         }}
                         open={showAsk}
+                        onCancel={() => setShowAsk(false)}
+                    />
+                </Suspense>
+                <Suspense fallback={<></>}>
+                    <CheckSubmitAsk
+                        onFinish={(name) => {
+                            setShowAskKtp(false)
+                            checkSubmitAction(name)
+                        }}
+                        open={showAskKtp}
+                        onCancel={() => setShowAskKtp(false)}
                     />
                 </Suspense>
                 <Alert
@@ -133,9 +138,11 @@ export default function CommonMenu() {
                         style={{ boxShadow: "none" }}
                         type="primary"
                         onClick={bulkAddAction}
+                        icon={<UsergroupAddOutlined rev="add-account" />}
                     >
                         Add Account
                     </Button>
+                    <div style={{ flex: 1 }}></div>
                     <Button
                         style={{
                             backgroundColor: "#005246",
@@ -147,6 +154,18 @@ export default function CommonMenu() {
                         onClick={() => setShowAsk(true)}
                     >
                         Check Bot
+                    </Button>
+                    <Button
+                        type="primary"
+                        style={{
+                            backgroundColor: "#C2418D",
+                            boxShadow: "none",
+                            color: "#fff",
+                        }}
+                        icon={<IdcardOutlined rev="id-card" />}
+                        onClick={() => setShowAskKtp((f) => !f)}
+                    >
+                        Check Submit KTP
                     </Button>
                 </Flex>
             </FlexColumn>

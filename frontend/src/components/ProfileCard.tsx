@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
     CopyOutlined,
     DeleteOutlined,
@@ -20,10 +21,21 @@ import {
     Selection,
 } from "../store/listProfile"
 import { Flex, FlexColumn } from "../styled_components"
+import { SenderConfigs, UseQueryOptions } from "../client"
+import { Response, SdkConfig } from "../client/sdk_types"
 
 export type ProfileCardProps = {
     updateSingleProfileFn: ListProfileActions["updateSingleProfile"]
     copyProfileFn: (profile: ListProfile) => void
+    deleter: (
+        config: SenderConfigs<
+            SdkConfig["PostTokopediaAkunDelete"]["method"],
+            SdkConfig["PostTokopediaAkunDelete"]["path"],
+            SdkConfig["PostTokopediaAkunDelete"]["payload"],
+            undefined
+        >,
+        senderOptions?: UseQueryOptions<Response, Response> | undefined
+    ) => Promise<any>
     number: number
     profile: ListProfile
     clipboard: ListProfile | null
@@ -61,10 +73,12 @@ export default function ProfileCard(
                         rev={"copy"}
                         key="copy"
                         onClick={() => {
-                            message.success(`Copied profile: ${props.profile.id}`)
+                            message.success(
+                                `Copied profile: ${props.profile.id}`
+                            )
                             props.copyProfileFn(props.profile)
                         }}
-                        />
+                    />
                 </Tooltip>,
                 <Tooltip title="Paste" placement="bottom" showArrow={false}>
                     <FilePptOutlined
@@ -73,16 +87,15 @@ export default function ProfileCard(
                         key="paste"
                         onClick={() => {
                             if (props.clipboard) {
-                                message.info(`Paste from: ${props.clipboard.id}`)
-                                props.updateSingleProfileFn(
-                                    props.profile.id,
-                                    {
-                                        limitUpload: props.clipboard.limitUpload,
-                                        markupName: props.clipboard.markupName,
-                                        spinName: props.clipboard.spinName,
-                                        colName: props.clipboard.colName
-                                    }
+                                message.info(
+                                    `Paste from: ${props.clipboard.id}`
                                 )
+                                props.updateSingleProfileFn(props.profile.id, {
+                                    limitUpload: props.clipboard.limitUpload,
+                                    markupName: props.clipboard.markupName,
+                                    spinName: props.clipboard.spinName,
+                                    colName: props.clipboard.colName,
+                                })
                             }
                         }}
                     />
@@ -97,6 +110,15 @@ export default function ProfileCard(
                 <Tooltip title="Remove" placement="bottom" showArrow={false}>
                     <DeleteOutlined
                         style={{ color: "#FFA559" }}
+                        onClick={() =>
+                            props.deleter({
+                                method: "post",
+                                path: "tokopedia/akun/delete",
+                                payload: {
+                                    usernames: [props.profile.id],
+                                },
+                            })
+                        }
                         rev={"delete"}
                         key="delete"
                     />

@@ -2,16 +2,20 @@ import {
     CheckOutlined,
     DeleteOutlined,
     FilePptOutlined,
+    ReloadOutlined,
     SaveOutlined,
     UploadOutlined,
 } from "@ant-design/icons"
-import { Button, Card, Checkbox, Input } from "antd"
+import { Button, Card, Checkbox, Input, message } from "antd"
 import { Flex } from "../styled_components"
+import { useRequest } from "../client"
 
 export type UploadHeaderProps = {
     loadingSave?: boolean
     loadingStartUpload?: boolean
     disablePasteAll?: boolean
+    disableRemoveAll?: boolean
+    indeterminate?: boolean
 
     checkedAll?: boolean
     onChangeCheckedAll?: (v: boolean) => void
@@ -23,9 +27,19 @@ export type UploadHeaderProps = {
     onClickSave?: () => void
     onClickStartUpload?: () => void
     onClickPasteAll?: () => void
+    onClickRemoveAll?: () => void
 }
 
 export default function UploadHeader(props: UploadHeaderProps) {
+    const { sender: reset } = useRequest("PutTokopediaAkunResetAllCount", {
+        onSuccess() {
+            message.success({ key: "rss-scss", content: "Reset fulfilled" })
+        },
+        onError(err) {
+            message.success({ key: "rss-err", content: err.error })
+        },
+    })
+
     return (
         <Card size="small" title="Setting Tokopedia Upload">
             <Flex
@@ -36,6 +50,7 @@ export default function UploadHeader(props: UploadHeaderProps) {
             >
                 <Checkbox
                     checked={props.checkedAll}
+                    indeterminate={props.indeterminate}
                     onChange={(e) => {
                         props.onChangeCheckedAll?.(e.target.checked)
                     }}
@@ -60,13 +75,28 @@ export default function UploadHeader(props: UploadHeaderProps) {
                         Paste All
                     </Button>
                     <Button
+                        disabled={props.disableRemoveAll}
+                        icon={<DeleteOutlined rev="remove" />}
+                        onClick={props.onClickRemoveAll}
+                    >
+                        Remove
+                    </Button>
+                    <Button
                         onClick={props.onClickSetActive}
                         icon={<CheckOutlined rev="active" />}
                     >
                         Active All
                     </Button>
-                    <Button disabled icon={<DeleteOutlined rev="remove" />}>
-                        Remove
+                    <Button
+                        onClick={() =>
+                            reset({
+                                method: "put",
+                                path: "tokopedia/akun/reset_all_count",
+                            })
+                        }
+                        icon={<ReloadOutlined rev="reset" />}
+                    >
+                        Reset All
                     </Button>
                     <Button
                         type="primary"
