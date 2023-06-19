@@ -180,7 +180,7 @@ func (akapi *AkunApi) Delete(ctx *gin.Context) {
 	}
 
 	for _, data := range payload.Usernames {
-		err = akapi.db.Delete(&repo.AkunItem{}, data).Error
+		err = akapi.db.Where("username = ?", data).Delete(&repo.AkunItem{}).Error
 		if err != nil {
 			hasil.Msg = "error"
 			hasil.Err = err.Error()
