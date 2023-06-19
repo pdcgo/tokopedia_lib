@@ -192,20 +192,21 @@ func (akapi *AkunApi) Delete(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &hasil)
 }
 
-// func (api *AkunApi) Reset(ctx *gin.Context) {
-// 	hasil := Response{
-// 		Msg: "success",
-// 	}
-// 	payload := AkunResetPayload{}
-// 	err := ctx.BindJSON(&payload)
-// 	if err != nil {
-// 		hasil.Msg = "error"
-// 		hasil.Err = err.Error()
-// 		ctx.JSON(http.StatusOK, &hasil)
-// 		return
-// 	}
-// 	ctx.JSON(http.StatusOK, &hasil)
-// }
+func (akapi *AkunApi) ResetAll(ctx *gin.Context) {
+	hasil := api.Response{
+		Msg: "success",
+	}
+	err := akapi.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Model(&repo.AkunItem{}).Update("count_upload", 0).Error
+
+	if err != nil {
+		hasil.Msg = "error"
+		hasil.Err = err.Error()
+		ctx.JSON(http.StatusInternalServerError, &hasil)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &hasil)
+}
 
 func RegisterAkunApi(g *v2_gots_sdk.SdkGroup, db *gorm.DB, repo *repo.AkunRepo) {
 
@@ -240,6 +241,12 @@ func RegisterAkunApi(g *v2_gots_sdk.SdkGroup, db *gorm.DB, repo *repo.AkunRepo) 
 		Payload:      AkunDeletePayload{},
 		Response:     api.Response{},
 	}, akapi.Delete)
+
+	akun.Register(&v2_gots_sdk.Api{
+		Method:       http.MethodPut,
+		RelativePath: "reset_all_count",
+		Response:     api.Response{},
+	}, akapi.ResetAll)
 
 	// akun.Register(&v2_gots_sdk.Api{
 	// 	Method:       http.MethodPost,
