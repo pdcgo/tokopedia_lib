@@ -2,7 +2,7 @@
 import {
     ApiOutlined,
     CloudUploadOutlined,
-    ShopOutlined,
+    UsergroupAddOutlined,
 } from "@ant-design/icons"
 import { Button, Card, Tabs, Tooltip } from "antd"
 import React, { Suspense, useEffect, useState } from "react"
@@ -21,7 +21,7 @@ const menus = [
     {
         key: "accounts",
         name: "Accounts",
-        icon: ShopOutlined,
+        icon: UsergroupAddOutlined,
         child: AddAccount,
     },
     {
