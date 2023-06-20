@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"errors"
 	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -18,6 +19,12 @@ var waitallakun sync.WaitGroup
 var loginMutex sync.Mutex
 
 func LisensiLogin(botID int) bool {
+	development := os.Getenv("DEVEL_AUTH") != ""
+
+	if development {
+		return true
+	}
+
 	client := auth.NewAuthClient("https://pdcoke.com/v2/login")
 	config := pdc_common.GetConfig()
 

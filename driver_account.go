@@ -145,13 +145,14 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 		selanjutnya := `//*/button[@id="button-submit"]`
 		pathpass := `//*/input[@id="login-widget-password"]`
 		// masuk := `//*/span[@aria-label="login-button"]`
-		pathauthentica := `//*/div[@aria-label="google_authenticator"]`
-		tabakun := `//*/div[@data-testid="tabHomeAkunSaya"]`
+		pathauthentica := `//*/section[@aria-label="google_authenticator"]`
+		tabakun := `//*/button[@data-testid="tabHomeAkunSaya"]`
 
 		chromedp.Run(ctx,
 			chromedp.WaitVisible(tabakun, chromedp.BySearch),
 			chromedp.Click(tabakun, chromedp.BySearch),
-			chromedp.WaitVisible(pathemail, chromedp.BySearch),
+			chromedp.WaitReady(pathemail, chromedp.BySearch),
+
 			chromedp.SendKeys(pathemail, driver.Username, chromedp.BySearch),
 			chromedp.Click(selanjutnya, chromedp.BySearch),
 			chromedp.WaitVisible(pathpass, chromedp.BySearch),
