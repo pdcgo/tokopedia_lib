@@ -54,7 +54,7 @@ func (cekbot *CheckVerifApi) RunCekverif(ctx *gin.Context) {
 }
 
 func RegisterCheckVerifApi(grp *v2_gots_sdk.SdkGroup, base repo.BaseInterface) {
-	api := CekbotApi{
+	api := CheckVerifApi{
 		base: base,
 	}
 	delgrp := grp.Group("check_verif")
@@ -62,5 +62,5 @@ func RegisterCheckVerifApi(grp *v2_gots_sdk.SdkGroup, base repo.BaseInterface) {
 		Method:       http.MethodPut,
 		RelativePath: "run",
 		Payload:      RunCheckVerifPayload{},
-	}, api.RunCekbot)
+	}, api.RunCekverif)
 }

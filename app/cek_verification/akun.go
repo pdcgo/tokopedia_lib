@@ -22,9 +22,9 @@ func SaveCekReport(fname string, akuns []*VerifDriverAccount) error {
 	}
 	defer f.Close()
 
-	f.WriteString("username,password,secret,shopname,product_active,product_inactive,product_violation,shop_score,unread_chat,new_order,pm_status,extend_status,status\n")
+	f.WriteString("username,password,secret,status,pesan\n")
 	for _, driver := range akuns {
-		f.WriteString(fmt.Sprintf("%s|%s|%s|%s|%s\n", driver.Username, driver.Password, driver.Secret, driver.Status, driver.Pesan))
+		f.WriteString(fmt.Sprintf("%s,%s,%s,%s,%s\n", driver.Username, driver.Password, driver.Secret, driver.Status, driver.Pesan))
 	}
 	return nil
 }
@@ -40,11 +40,15 @@ Parent:
 			continue Parent
 		}
 
+		if strings.HasPrefix(line, "username") {
+			continue
+		}
+
 		dataline := make([]string, 5)
 
 		fixline := strings.ReplaceAll(line, "\r", "")
 
-		for ind, value := range strings.Split(fixline, "|") {
+		for ind, value := range strings.Split(fixline, ",") {
 			dataline[ind] = value
 		}
 
@@ -69,7 +73,7 @@ Parent:
 		}
 		defer f.Close()
 		for _, driver := range hasil {
-			f.WriteString(fmt.Sprintf("%s|%s|%s|%s|%s\n", driver.Username, driver.Password, driver.Secret, driver.Status, driver.Pesan))
+			f.WriteString(fmt.Sprintf("%s,%s,%s,%s,%s\n", driver.Username, driver.Password, driver.Secret, driver.Status, driver.Pesan))
 		}
 
 	}, nil

@@ -85,26 +85,8 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 
 	d.Session.SetCookieToDriver(dctx.Ctx)
 
-	// checking jaga2 jika close manual browser nya
-	isClosed := BrowserClosed{
-		Data: false,
-	}
-	go func() {
-		<-ctx.Done()
-
-		isClosed.Lock()
-		defer isClosed.Unlock()
-
-		isClosed.Data = true
-	}()
-
 	return &dctx, func() {
-		isClosed.Lock()
-		defer isClosed.Unlock()
 
-		if isClosed.Data {
-			return
-		}
 		d.SaveSession(&dctx)
 		cancelCtx()
 		cancelAloc()
@@ -139,6 +121,14 @@ func (d *DriverAccount) SaveSession(dctx *DriverContext) error {
 func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	chromedp.Run(ctx, chromedp.Navigate("https://mitra.tokopedia.com"))
 	errChan := make(chan error, 1)
+
+	go func() {
+		pathlogout := `//*/h4[contains(text(), "Keluar Akun")]`
+		chromedp.Run(ctx,
+			chromedp.WaitReady(pathlogout, chromedp.BySearch),
+		)
+		errChan <- nil
+	}()
 
 	go func() {
 		pathemail := `//*/input[@name="login"]`

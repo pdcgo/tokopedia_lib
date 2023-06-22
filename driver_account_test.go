@@ -30,3 +30,11 @@ func TestDriverAccount(t *testing.T) {
 	})
 
 }
+
+func TestMitraLogin(t *testing.T) {
+	driver, err := tokopedia_lib.NewDriverAccount("lamarbarton732@outlook.com", "vytTmjT8", "REQXXGY5NXJPMFHEKEKXFEBO46H2NMHU")
+	assert.Nil(t, err)
+	driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
+		return driver.MitraLogin(dctx.Ctx)
+	})
+}
