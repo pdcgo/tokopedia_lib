@@ -47,3 +47,5 @@ tokopedia_data.db
 credentials.json
 
 dist/bin/tokopedia.upx
+
+dist/
