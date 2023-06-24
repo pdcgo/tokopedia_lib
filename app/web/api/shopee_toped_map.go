@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pdcgo/common_conf/pdc_common"
-	mongolib "github.com/pdcgo/go_v2_shopeelib/lib/mongo"
+	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/pdcgo/tokopedia_lib/lib/category_mapper"
 	"github.com/pdcgo/v2_gots_sdk"
@@ -28,7 +28,7 @@ type AutoSuggestStatus struct {
 
 type ShopeeTopedMapApi struct {
 	db            *gorm.DB
-	prodRepo      *mongolib.ProductRepo
+	prodRepo      *mongorepo.ProductRepo
 	mapper        *category_mapper.Mapper
 	configRepo    *config.ConfigRepo
 	SuggestStatus *AutoSuggestStatus
@@ -60,11 +60,16 @@ type GetMapQuery struct {
 	Collection string `json:"collection" form:"collection"`
 }
 
-func (mapi *ShopeeTopedMapApi) GetCollectionCategories(c *gin.Context) ([]mongolib.ProductCategoryAgg, error) {
+func (mapi *ShopeeTopedMapApi) GetCollectionCategories(c *gin.Context) ([]mongorepo.ProductCategoryAgg, error) {
 	var query GetMapQuery
 	c.BindQuery(&query)
 
-	return mapi.prodRepo.CategoryAgg("shopee", query.Collection, false)
+	aggQuery := mongorepo.ProductMatchStageQuery{
+		Marketplace: mongorepo.MP_SHOPEE,
+		Namespace:   query.Collection,
+	}
+
+	return mapi.prodRepo.CategoryAgg(aggQuery)
 }
 
 func (mapi *ShopeeTopedMapApi) GetMap(c *gin.Context) {
@@ -103,11 +108,11 @@ func (mapi *ShopeeTopedMapApi) GetMap(c *gin.Context) {
 }
 
 type ShopeeMapSuggestItem struct {
-	data *mongolib.ProductCategoryAgg
+	data *mongorepo.ProductCategoryAgg
 	db   *gorm.DB
 }
 
-func NewShopeeMapSuggestItem(db *gorm.DB, data *mongolib.ProductCategoryAgg) *ShopeeMapSuggestItem {
+func NewShopeeMapSuggestItem(db *gorm.DB, data *mongorepo.ProductCategoryAgg) *ShopeeMapSuggestItem {
 	return &ShopeeMapSuggestItem{
 		db:   db,
 		data: data,
@@ -194,7 +199,7 @@ type ShopeeTopedMapResponse struct {
 
 func RegisterShopeeTopedMap(
 	grp *v2_gots_sdk.SdkGroup,
-	db *gorm.DB, prodrepo *mongolib.ProductRepo,
+	db *gorm.DB, prodrepo *mongorepo.ProductRepo,
 	mapper *category_mapper.Mapper,
 ) *ShopeeTopedMapApi {
 	// untuk migrasi data

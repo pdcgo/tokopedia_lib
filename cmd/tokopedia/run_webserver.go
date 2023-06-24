@@ -12,7 +12,7 @@ import (
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/controller"
-	mongolib "github.com/pdcgo/go_v2_shopeelib/lib/mongo"
+	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	sapi_public "github.com/pdcgo/go_v2_shopeelib/lib/public_api"
 	"github.com/pdcgo/go_v2_shopeelib/lib/shopee_dp"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
@@ -70,7 +70,7 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	}
 
 	cfg := config.NewUploadConfigBase(webtoped.Base)
-	mdb := mongolib.NewDatabase(context.Background(), cfg.Database.DbURI, cfg.Database.DbName)
+	mdb := mongorepo.NewDatabase(context.Background(), cfg.Database.DbURI, cfg.Database.DbName)
 
 	// [HENDRA]: running sementara
 	browser := runProxyBrowser(baseData)
@@ -82,8 +82,9 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	controller.RegisterProductController(sdk, base)
 	controller.RegisterPredictWeightController(sdk, base)
 	controller.RegisterLegacyController(sdk, base)
+	api.RegisterShopeeCategoryApi(sdk, baseData)
 
-	productRepo := mongolib.NewProductRepo(context.TODO(), mdb)
+	productRepo := mongorepo.NewProductRepo(context.TODO(), mdb)
 	pubapi, err := api_public.NewTokopediaApiPublic()
 
 	if err != nil {

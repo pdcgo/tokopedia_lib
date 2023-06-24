@@ -11,7 +11,7 @@ import (
 	shopee_upapp "github.com/pdcgo/go_v2_shopeelib/app/upload_app"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/spin"
-	libmongo "github.com/pdcgo/go_v2_shopeelib/lib/mongo"
+	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	shopeeuploader "github.com/pdcgo/go_v2_shopeelib/lib/uploader"
 	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -44,7 +44,7 @@ type ShopeeToTopedFlow struct {
 	Ctx            context.Context
 	CancelCtx      func()
 	limitGuard     chan int
-	productRepo    *libmongo.ProductRepo
+	productRepo    *mongorepo.ProductRepo
 	ConfigFlow     *shopee_upapp.ConfigUploadFlow
 	TopedPublicApi *api_public.TokopediaApiPublic
 	AkunIterator   *repo.AkunUploadIterator
@@ -58,7 +58,7 @@ func NewShopeeToTopedFlow(rootBase string, ctx context.Context, db *mongo.Databa
 		BaseData: rootBase,
 	}, db, concurent)
 
-	productRepo := libmongo.NewProductRepo(ctx, db)
+	productRepo := mongorepo.NewProductRepo(ctx, db)
 
 	iterator := repo.NewAkunUploadIterator(sqlitedb)
 	shopeemapper := config.NewShopeeMapper(sqlitedb)

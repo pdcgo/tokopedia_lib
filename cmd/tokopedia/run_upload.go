@@ -5,7 +5,7 @@ import (
 	"log"
 	"path/filepath"
 
-	mongolib "github.com/pdcgo/go_v2_shopeelib/lib/mongo"
+	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/shopee_flow"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -25,7 +25,7 @@ func runUploadShopeeToped(ctx *cli.Context) error {
 
 	concurent := shopee_flow.CreateConfigConcurencyFromCmd()
 
-	mdb := mongolib.NewDatabase(context.Background(), cfg.Database.DbURI, cfg.Database.DbName)
+	mdb := mongorepo.NewDatabase(context.Background(), cfg.Database.DbURI, cfg.Database.DbName)
 
 	publicapi, err := api_public.NewTokopediaApiPublic()
 	if err != nil {

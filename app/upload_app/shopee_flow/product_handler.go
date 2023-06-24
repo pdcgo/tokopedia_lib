@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/pdcgo/common_conf/common_concept"
-	libmongo "github.com/pdcgo/go_v2_shopeelib/lib/mongo"
+	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	shopeeuploader "github.com/pdcgo/go_v2_shopeelib/lib/uploader"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/tokopedia_lib/lib/uploader"
@@ -16,7 +16,7 @@ func (flow *ShopeeToTopedFlow) createProductHandler(akun *repo.AkunItem, spin sh
 	return func(eventcore uploader.EmitFunc, tokpedup *uploader.TokopediaUploader, payload *uploader.PayloadUpload, sub *common_concept.Subscriber) error {
 
 		sub.Cancel()
-		product, err := flow.productRepo.Get(libmongo.MP_SHOPEE, akun.Collection, true)
+		product, _, err := flow.productRepo.Get(mongorepo.MP_SHOPEE, akun.Collection, true)
 		if err != nil {
 			if strings.Contains(err.Error(), "cannot decode") {
 				return errors.New(product.Name + ", " + err.Error() + ", silahkan grab baru")

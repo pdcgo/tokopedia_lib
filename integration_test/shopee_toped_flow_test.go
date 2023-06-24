@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	shopeeupapp "github.com/pdcgo/go_v2_shopeelib/app/upload_app"
-	mongolib "github.com/pdcgo/go_v2_shopeelib/lib/mongo"
+	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/shopee_flow"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/datasource"
@@ -48,7 +48,7 @@ func TestUploadFlow(t *testing.T) {
 		ProductPerAccount: 2,
 	}
 
-	mdb := mongolib.NewDatabase(context.Background(), cfg.MongoUri, "kampretcode2")
+	mdb := mongorepo.NewDatabase(context.Background(), cfg.MongoUri, "kampretcode2")
 
 	publicapi, err := api_public.NewTokopediaApiPublic()
 

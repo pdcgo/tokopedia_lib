@@ -25,6 +25,7 @@ func TestDriverAccount(t *testing.T) {
 		defer saveSession()
 
 		assert.NotEmpty(t, api)
+		assert.NotEmpty(t, api.AuthenticatedData.UserShopInfo)
 		assert.Nil(t, err)
 
 	})
