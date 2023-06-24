@@ -16,6 +16,28 @@ type AkunDeleteItem struct {
 	Secret   string `json:"secret"`
 }
 
+type SoldConfig struct {
+	Min int `json:"min"`
+	Max int `json:"max"`
+}
+
+func (soldf *SoldConfig) GenerateFilter() FilterHandler {
+	return func(product *model.SellerProductItem) bool {
+		return soldf.Min <= product.Stats.CountView && product.Stats.CountView <= soldf.Max
+	}
+}
+
+type ViewConfig struct {
+	Min int `json:"min"`
+	Max int `json:"max"`
+}
+
+func (soldf *ViewConfig) GenerateFilter() FilterHandler {
+	return func(product *model.SellerProductItem) bool {
+		return soldf.Min <= product.Stats.CountView && product.TxStats.Sold <= soldf.Max
+	}
+}
+
 type DeleteConfig struct {
 	LimitConcurent int                 `json:"limit_concurent"`
 	LimitProduct   int                 `json:"limit_product"`
@@ -27,6 +49,8 @@ type DeleteConfig struct {
 	TStartTime     time.Time           `json:"-"`
 	TEndTime       time.Time           `json:"-"`
 	Akuns          []*AkunDeleteItem   `json:"akuns"`
+	SoldFilter     *SoldConfig         `json:"sold_filter,omitempty"`
+	ViewFilter     *ViewConfig         `json:"view_filter,omitempty"`
 }
 
 func NewDeleteConfig(fname string) (*DeleteConfig, error) {
@@ -80,6 +104,14 @@ func (cfg *DeleteConfig) GenerateFilter() FilterHandler {
 	handlers := []FilterHandler{
 		cfg.GenerateFilterTime(),
 		cfg.GenerateFilterTitle(),
+	}
+
+	if cfg.SoldFilter != nil {
+		handlers = append(handlers, cfg.SoldFilter.GenerateFilter())
+	}
+
+	if cfg.ViewFilter != nil {
+		handlers = append(handlers, cfg.ViewFilter.GenerateFilter())
 	}
 
 	return func(product *model.SellerProductItem) bool {
