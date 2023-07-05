@@ -122,9 +122,27 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	chromedp.Run(ctx, chromedp.Navigate("https://mitra.tokopedia.com"))
 	errChan := make(chan error, 1)
 
+	tabakun := `//*/button[@data-testid="tabHomeAkunSaya"]`
+	pathlogout := `//*/h4[contains(text(), "Keluar Akun")]`
+
 	go func() {
-		pathlogout := `//*/h4[contains(text(), "Keluar Akun")]`
+
 		chromedp.Run(ctx,
+			chromedp.WaitVisible(tabakun, chromedp.BySearch),
+			chromedp.Click(tabakun, chromedp.BySearch),
+			chromedp.WaitReady(pathlogout, chromedp.BySearch),
+		)
+		errChan <- nil
+	}()
+
+	go func() {
+		banner := `//*/img[@class="success fade"]`
+		chromedp.Run(ctx,
+
+			chromedp.WaitVisible(banner, chromedp.BySearch),
+			chromedp.WaitVisible(tabakun, chromedp.BySearch),
+			chromedp.Click(tabakun, chromedp.BySearch),
+			chromedp.Click(tabakun, chromedp.BySearch),
 			chromedp.WaitReady(pathlogout, chromedp.BySearch),
 		)
 		errChan <- nil
@@ -136,11 +154,8 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 		pathpass := `//*/input[@id="login-widget-password"]`
 		// masuk := `//*/span[@aria-label="login-button"]`
 		pathauthentica := `//*/section[@aria-label="google_authenticator"]`
-		tabakun := `//*/button[@data-testid="tabHomeAkunSaya"]`
 
 		chromedp.Run(ctx,
-			chromedp.WaitVisible(tabakun, chromedp.BySearch),
-			chromedp.Click(tabakun, chromedp.BySearch),
 			chromedp.WaitReady(pathemail, chromedp.BySearch),
 
 			chromedp.SendKeys(pathemail, driver.Username, chromedp.BySearch),
@@ -168,68 +183,6 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	}()
 
 	return <-errChan
-}
-
-func (driver *DriverAccount) ExecLogin(dctx *DriverContext) (bool, error) {
-	cCtx, cancel := context.WithTimeout(dctx.Ctx, time.Minute*3)
-	defer cancel()
-
-	waitdata := make(chan int, 1)
-	logined := false
-
-	chromedp.Run(cCtx, chromedp.Navigate("https://mitra.tokopedia.com"))
-
-	go func() {
-		pathemail := `//*/input[@name="login"]`
-		selanjutnya := `//*/button[@id="button-submit"]`
-		pathpass := `//*/input[@id="login-widget-password"]`
-		// masuk := `//*/span[@aria-label="login-button"]`
-		pathauthentica := `//*/div[@aria-label="google_authenticator"]`
-		tabakun := `//*/div[@data-testid="tabHomeAkunSaya"]`
-
-		chromedp.Run(cCtx,
-			chromedp.WaitVisible(tabakun, chromedp.BySearch),
-			chromedp.Click(tabakun, chromedp.BySearch),
-			chromedp.WaitVisible(pathemail, chromedp.BySearch),
-			chromedp.SendKeys(pathemail, driver.Username, chromedp.BySearch),
-			chromedp.Click(selanjutnya, chromedp.BySearch),
-			chromedp.WaitVisible(pathpass, chromedp.BySearch),
-			chromedp.SendKeys(pathpass, driver.Password, chromedp.BySearch),
-			chromedp.Click(selanjutnya, chromedp.BySearch),
-			chromedp.WaitVisible(pathauthentica, chromedp.BySearch),
-			chromedp.Click(pathauthentica, chromedp.BySearch),
-			chromedp.WaitVisible(tabakun, chromedp.BySearch),
-		)
-		logined = true
-		waitdata <- 1
-	}()
-
-	go func() {
-		pathotp := `//*/input[@autocomplete="one-time-code"]`
-
-		chromedp.Run(cCtx,
-			chromedp.WaitVisible(pathotp, chromedp.BySearch),
-			chromedp.ActionFunc(func(ctx context.Context) error {
-				otp, _ := GetTotp(driver.Secret)
-				return chromedp.Run(ctx, chromedp.SendKeys(pathotp, otp, chromedp.BySearch))
-			}),
-		)
-	}()
-
-	// go func() {
-	// 	sidebar := `//*/div[@data-testid="imgSellerSidebarProfile"]`
-	// 	chromedp.Run(cCtx, chromedp.WaitVisible(sidebar, chromedp.BySearch))
-	// 	waitdata <- 1
-	// }()
-
-	select {
-	case <-cCtx.Done():
-		break
-	case <-waitdata:
-		logined = true
-	}
-
-	return logined, nil
 }
 
 func (d *DriverAccount) Run(headless bool, actionCallback func(dctx *DriverContext) error) error {

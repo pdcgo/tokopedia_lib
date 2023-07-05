@@ -9,7 +9,7 @@ import (
 )
 
 func TestCheckVerif(t *testing.T) {
-	dd, err := tokopedia_lib.NewDriverAccount("mariantucker724@outlook.com", "xgAd3phw", "GKLG3LCXAADF237Z4ZAXRLG3AQD6TBGK")
+	dd, err := tokopedia_lib.NewDriverAccount("jimmiebowman418@yahoo.com", "jmupzYcn", "DHOUPLOFYIKL6AYAAJKRMDV5X7HQ5PBZ")
 	driver := cek_verification.VerifDriverAccount{
 		DriverAccount: dd,
 	}
@@ -17,6 +17,7 @@ func TestCheckVerif(t *testing.T) {
 	driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
 		err := driver.MitraLogin(dctx.Ctx)
 		assert.Nil(t, err)
+
 		err = driver.CheckVerif(dctx)
 		assert.Nil(t, err)
 
