@@ -118,23 +118,27 @@ func (iter *AkunUploadIterator) Get() (akun *AkunItem, updateinc func(count int,
 	if err != nil {
 		return akun, updateinc, finish, err
 	}
+	finish = func() error {
+		akun.AkunUploadStatus.Active = false
+		akun.AkunUploadStatus.CountUpload = 0
+
+		return iter.db.Save(akun).Error
+	}
 
 	updateinc = func(count int, err error) error {
 		akun.AkunUploadStatus.Lastup = time.Now().UnixNano()
 		akun.AkunUploadStatus.InUpload = false
 		akun.AkunUploadStatus.CountUpload += 1
 
+		if akun.AkunUploadStatus.CountUpload >= akun.LimitUpload {
+			return finish()
+		}
+
 		if err != nil {
 			akun.AkunUploadStatus.LastError = err.Error()
 		} else {
 			akun.AkunUploadStatus.LastError = ""
 		}
-
-		return iter.db.Save(akun).Error
-	}
-	finish = func() error {
-		akun.AkunUploadStatus.Active = false
-		akun.AkunUploadStatus.CountUpload = 0
 
 		return iter.db.Save(akun).Error
 	}

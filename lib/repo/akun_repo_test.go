@@ -12,7 +12,7 @@ func TestAkunIterate(t *testing.T) {
 	db := scenario.GetDb()
 
 	status := repo.AkunUploadStatus{
-		LimitUpload: 200,
+		LimitUpload: 7,
 		Active:      true,
 	}
 	db.Save(&repo.AkunItem{
@@ -40,10 +40,21 @@ func TestAkunIterate(t *testing.T) {
 
 	t.Run("akun kedua harus beda", func(t *testing.T) {
 
-		akun2, _, _, err := iter.Get()
+		akun2, updateinc, _, err := iter.Get()
 		assert.NotEmpty(t, akun)
 		assert.Nil(t, err)
 		assert.NotEqual(t, akun2.Username, akun.Username)
+
+		t.Run("test limit bocor", func(t *testing.T) {
+			for range [20]int{} {
+				updateinc(1, nil)
+			}
+		})
+		username := akun2.Username
+		err = db.First(akun2).Error
+		assert.Equal(t, username, akun2.Username)
+		assert.Nil(t, err)
+		assert.LessOrEqual(t, akun2.AkunUploadStatus.CountUpload, 20)
 	})
 
 	t.Run("test merata bergiliran", func(t *testing.T) {
