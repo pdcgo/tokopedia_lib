@@ -364,6 +364,10 @@ export interface RunCheckVerifPayload {
     fname: string;
     Akuns: VerifDriverAccount[];
 }
+export interface AutoSubmit {
+    base_ktp: string;
+    filename: string;
+}
 export type SdkConfig = { 
 
 	GetTokopediaAkunList: {
@@ -732,5 +736,13 @@ export type SdkConfig = {
 		payload: RunCheckVerifPayload
 		response: undefined
 		path: "tokopedia/check_verif/run"
+	},
+
+	PostTokopediaAutosubmitRun: {
+		method: "post"
+		params: undefined
+		payload: AutoSubmit
+		response: undefined
+		path: "tokopedia/autosubmit/run"
 	}
 }

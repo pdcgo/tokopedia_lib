@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/tokopedia_lib/app/autosubmit"
 	"github.com/pdcgo/tokopedia_lib/app/cek_bot"
 	"github.com/pdcgo/tokopedia_lib/app/cek_verification"
 	"github.com/urfave/cli/v2"
@@ -25,6 +26,8 @@ func main() {
 	checkbotCommand := cek_bot.CreateCheckbotCommand()
 	checkverifCommand := cek_verification.CreateCheckVerifCommand()
 	deleteCommand := createDeleteCommand()
+	submitCommand := autosubmit.CreateSubmitCommand()
+
 	app := &cli.App{
 		Name:  "Tokopedia Server Tool",
 		Usage: "Binary Tokopedia Server Tool",
@@ -52,6 +55,7 @@ func main() {
 			checkbotCommand,
 			deleteCommand,
 			checkverifCommand,
+			submitCommand,
 		},
 	}
 
