@@ -277,6 +277,8 @@ export interface DeleteConfig {
 	start_time: number;
 	end_time: number;
 	akuns: AkunDeleteItem[];
+	sold_filter?: { min: number, max: number }
+	view_filter?: { min: number, max: number }
 }
 export interface DeleteSettingRes {
 	data?: DeleteConfig;

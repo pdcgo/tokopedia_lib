@@ -1,3 +1,4 @@
+import { RobotOutlined } from "@ant-design/icons"
 import {
     Alert,
     Button,
@@ -16,7 +17,6 @@ import { AkunDeleteItem } from "../client/sdk_types"
 import LabelInput from "../components/LabelInput"
 import { Flex, FlexColumn } from "../styled_components"
 import { accountPayloadChecker } from "../utils/accountPayloadChecker"
-import { RobotOutlined } from "@ant-design/icons"
 
 export default function AccountDeleter() {
     const { sender: filterPutter } = useRequest("PutTokopediaDeleterSetting")
@@ -33,6 +33,14 @@ export default function AccountDeleter() {
         dayjs().subtract(30, "day"),
         dayjs(),
     ])
+    const [view, setView] = useState<[number | null, number | null]>([
+        null,
+        null,
+    ])
+    const [sold, setSold] = useState<[number | null, number | null]>([
+        null,
+        null,
+    ])
 
     const deleteAction = () => {
         accountPayloadChecker(
@@ -41,7 +49,7 @@ export default function AccountDeleter() {
             (warn) => {
                 message.warning({
                     content: warn,
-                    key: "warningvalidation"
+                    key: "warningvalidation",
                 })
             },
             (data) => {
@@ -63,6 +71,22 @@ export default function AccountDeleter() {
                                 .split("\n")
                                 .map((line) => line.trim())
                                 .filter(Boolean),
+                            ...(sold[0] != null && sold[1] != null
+                                ? {
+                                      sold_filter: {
+                                          max: sold[1],
+                                          min: sold[0],
+                                      },
+                                  }
+                                : {}),
+                            ...(view[0] != null && view[1] != null
+                                ? {
+                                      view_filter: {
+                                          max: view[1],
+                                          min: view[0],
+                                      },
+                                  }
+                                : {}),
                         },
                     },
                     {
@@ -113,7 +137,7 @@ export default function AccountDeleter() {
                             >
                                 <Input.TextArea
                                     size="large"
-                                    autoSize={{ minRows: 10, maxRows: 10 }}
+                                    autoSize={{ minRows: 13, maxRows: 13 }}
                                     placeholder={`rokok herbal
 obat pelangsing
 regex-->obat|jamu|ramuan
@@ -151,6 +175,66 @@ regex-->obat|jamu|ramuan
                                                 e && setLimitDel(e)
                                             }
                                         />
+                                    </LabelInput>
+                                </Flex>
+                                <Flex style={{ width: "100%" }}>
+                                    <LabelInput
+                                        style={{ flex: 1 }}
+                                        label="Sold :"
+                                    >
+                                        <Flex
+                                            style={{
+                                                alignItems: "center",
+                                                columnGap: 7,
+                                            }}
+                                        >
+                                            <InputNumber
+                                                style={{ width: "100%" }}
+                                                placeholder="Min"
+                                                value={sold[0] || null}
+                                                onChange={(e) =>
+                                                    setSold((s) => [e, s[1]])
+                                                }
+                                            />
+                                            -
+                                            <InputNumber
+                                                style={{ width: "100%" }}
+                                                placeholder="Max"
+                                                value={sold[1] || null}
+                                                onChange={(e) =>
+                                                    setSold((s) => [s[0], e])
+                                                }
+                                            />
+                                        </Flex>
+                                    </LabelInput>
+                                    <LabelInput
+                                        style={{ flex: 1 }}
+                                        label="View :"
+                                    >
+                                        <Flex
+                                            style={{
+                                                alignItems: "center",
+                                                columnGap: 7,
+                                            }}
+                                        >
+                                            <InputNumber
+                                                style={{ width: "100%" }}
+                                                placeholder="Min"
+                                                value={view[0] || null}
+                                                onChange={(e) =>
+                                                    setView((v) => [e, v[1]])
+                                                }
+                                            />
+                                            -
+                                            <InputNumber
+                                                style={{ width: "100%" }}
+                                                placeholder="Max"
+                                                value={view[1] || null}
+                                                onChange={(e) =>
+                                                    setView((v) => [v[0], e])
+                                                }
+                                            />
+                                        </Flex>
                                     </LabelInput>
                                 </Flex>
                                 <LabelInput label="Product Status">

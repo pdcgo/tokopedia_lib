@@ -71,7 +71,6 @@ export interface DataSpinQuery {
 }
 
 export interface BaseResponse {
-    data?: any;
     errcode: number;
     message?: string;
     status?: string;
@@ -103,6 +102,37 @@ export interface SettingSpinConfigUpdatePayload {
     name: string;
     titlePool: SettingSpinTitlePool[];
 }
+export interface ListMarkupResponse {
+    errcode: number;
+    message?: string;
+    status?: string;
+    data: string[];
+}
+
+export interface MarkupData {
+    mark: string;
+    type: string;
+    range: any;
+    up: number[];
+}
+export interface Markup {
+    data: MarkupData[];
+    fix_mark: number;
+    name: string;
+}
+export interface MarkupGetQuery {
+    name: string;
+}
+export interface MarkupGetResponse {
+    data: MarkupData[];
+    fix_mark: number;
+    name: string;
+    errorcode: number;
+}
+
+
+
+
 export interface ProductNamespaceAgg {
     count: number;
     price_min: number;
@@ -126,22 +156,41 @@ export interface ProductCityAgg {
     price_max: number;
     count: number;
 }
-export interface ProductAggQuery {
+export interface ShopeeCategoryOld {
+    parent_category: number;
+    catid: number;
+    parent_display_name: string;
+    display_name: string;
+    status: string;
+}
+export interface ProductMatchStageQuery {
+    is_public: boolean;
+    kota: string;
     marketplace: string;
     namespace: string;
+    pmax: number;
+    pmin: number;
 }
 
 export interface ProductPriceRangeAggQuery {
+    is_public: boolean;
+    kota: string;
     marketplace: string;
     namespace: string;
+    pmax: number;
+    pmin: number;
     range_price: number;
 }
 
-export interface ProductCategoryAggQuery {
-    marketplace: string;
-    namespace: string;
-    is_public: boolean;
-}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -222,6 +271,7 @@ export interface ManifestResponse {
     public_category_repo: CategoryItem[];
 }
 
+
 export interface ShopeeMapItem {
     shopee_id: number;
     tokopedia_id: number;
@@ -263,6 +313,14 @@ export interface UpdateTopedCategoryPayload {
     password: string;
     secret: string;
 }
+export interface ViewConfig {
+    min: number;
+    max: number;
+}
+export interface SoldConfig {
+    min: number;
+    max: number;
+}
 export interface AkunDeleteItem {
     username: string;
     password: string;
@@ -277,6 +335,8 @@ export interface DeleteConfig {
     start_time: number;
     end_time: number;
     akuns: AkunDeleteItem[];
+    sold_filter?: SoldConfig;
+    view_filter?: ViewConfig;
 }
 export interface DeleteSettingRes {
     data?: DeleteConfig;
@@ -422,13 +482,45 @@ export type SdkConfig = {
 		method: "get"
 		params: undefined
 		payload: undefined
-		response: string[]
+		response: ListMarkupResponse
 		path: "api/listMarkup"
+	},
+
+	PostApiAddMarkup: {
+		method: "post"
+		params: undefined
+		payload: Markup
+		response: BaseResponse
+		path: "api/addMarkup"
+	},
+
+	GetApiMarkup: {
+		method: "get"
+		params: MarkupGetQuery
+		payload: undefined
+		response: MarkupGetResponse
+		path: "api/markup"
+	},
+
+	PostApiMarkup: {
+		method: "post"
+		params: MarkupGetQuery
+		payload: Markup
+		response: BaseResponse
+		path: "api/markup"
+	},
+
+	PostApiDeleteMarkup: {
+		method: "post"
+		params: undefined
+		payload: string[]
+		response: BaseResponse
+		path: "api/deleteMarkup"
 	},
 
 	GetV1ProductNamespaceAll: {
 		method: "get"
-		params: ProductAggQuery
+		params: ProductMatchStageQuery
 		payload: undefined
 		response: ProductNamespaceAgg[]
 		path: "v1/product/namespace_all"
@@ -444,7 +536,7 @@ export type SdkConfig = {
 
 	GetV1ProductCategory: {
 		method: "get"
-		params: ProductCategoryAggQuery
+		params: ProductMatchStageQuery
 		payload: undefined
 		response: ProductCategoryAgg[]
 		path: "v1/product/category"
@@ -452,10 +544,42 @@ export type SdkConfig = {
 
 	GetV1ProductKota: {
 		method: "get"
-		params: ProductAggQuery
+		params: ProductMatchStageQuery
 		payload: undefined
 		response: ProductCityAgg[]
 		path: "v1/product/kota"
+	},
+
+	GetV1ProductDelete: {
+		method: "get"
+		params: ProductMatchStageQuery
+		payload: undefined
+		response: BaseResponse
+		path: "v1/product/delete"
+	},
+
+	PostApiDeleteItem: {
+		method: "post"
+		params: ProductMatchStageQuery
+		payload: number[]
+		response: BaseResponse
+		path: "api/deleteItem"
+	},
+
+	PostV1ProductCategstatToCsv: {
+		method: "post"
+		params: undefined
+		payload: ShopeeCategoryOld[]
+		response: BaseResponse
+		path: "v1/product/categstat_to_csv"
+	},
+
+	GetV1ProductResync: {
+		method: "get"
+		params: ProductMatchStageQuery
+		payload: undefined
+		response: BaseResponse
+		path: "v1/product/resync"
 	},
 
 	PostV4ShopeeWeightPredict: {
@@ -496,6 +620,14 @@ export type SdkConfig = {
 		payload: undefined
 		response: ManifestResponse
 		path: "shopee/manifest"
+	},
+
+	GetApiUpdateTokpedCategories: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: BaseResponse
+		path: "api/updateTokpedCategories"
 	},
 
 	PutTokopediaMapperMap: {
