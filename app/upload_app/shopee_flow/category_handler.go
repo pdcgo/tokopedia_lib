@@ -11,6 +11,10 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/uploader"
 )
 
+type CategoryEvent struct {
+	CatID int
+}
+
 func (flow *ShopeeToTopedFlow) createCategoryHandler() uploader.UploadHandler {
 
 	configMap := config.ShopeeMapperConfig{}
@@ -44,6 +48,10 @@ func (flow *ShopeeToTopedFlow) createCategoryHandler() uploader.UploadHandler {
 				return err
 			}
 
+			eventcore(&CategoryEvent{
+				CatID: mapitem.TokopediaID,
+			})
+
 			fixid = strconv.Itoa(mapitem.TokopediaID)
 		} else {
 			title := source.Name
@@ -53,7 +61,13 @@ func (flow *ShopeeToTopedFlow) createCategoryHandler() uploader.UploadHandler {
 				return err
 			}
 
-			fixid = strconv.Itoa(catrmd.Data.GetJarvisRecommendation.Categories[0].ID)
+			catID := catrmd.Data.GetJarvisRecommendation.Categories[0].ID
+
+			eventcore(&CategoryEvent{
+				CatID: catID,
+			})
+
+			fixid = strconv.Itoa(catID)
 		}
 
 		payload.Lock()

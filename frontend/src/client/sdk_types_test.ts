@@ -368,6 +368,18 @@ export interface AutoSubmit {
     base_ktp: string;
     filename: string;
 }
+export interface EtalasePayload {
+    etalase: string;
+    cat_ids: number[];
+}
+export interface EtalaseListMapRes {
+    data: EtalasePayload[];
+}
+
+
+export interface DeleteEtalaseQuery {
+    name: string;
+}
 export type SdkConfig = { 
 
 	GetTokopediaAkunList: {
@@ -744,5 +756,29 @@ export type SdkConfig = {
 		payload: AutoSubmit
 		response: undefined
 		path: "tokopedia/autosubmit/run"
+	},
+
+	GetTokopediaEtalaseMapList: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: EtalaseListMapRes
+		path: "tokopedia/etalase_map/list"
+	},
+
+	PostTokopediaEtalaseMapAdd: {
+		method: "post"
+		params: undefined
+		payload: EtalasePayload
+		response: Response
+		path: "tokopedia/etalase_map/add"
+	},
+
+	DeleteTokopediaEtalaseMap: {
+		method: "delete"
+		params: DeleteEtalaseQuery
+		payload: undefined
+		response: undefined
+		path: "tokopedia/etalase_map"
 	}
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	shopeeuploader "github.com/pdcgo/go_v2_shopeelib/lib/uploader"
 	"github.com/pdcgo/tokopedia_lib/app/config"
+	"github.com/pdcgo/tokopedia_lib/app/services"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/tokopedia_lib/lib/uploader"
@@ -49,6 +50,7 @@ type ShopeeToTopedFlow struct {
 	TopedPublicApi *api_public.TokopediaApiPublic
 	AkunIterator   *repo.AkunUploadIterator
 	CacheApi       *CacheApiDriver
+	etalasemap     *services.EtalaseMapService
 }
 
 func NewShopeeToTopedFlow(rootBase string, ctx context.Context, db *mongo.Database, sqlitedb *gorm.DB, concurent *shopee_upapp.UploadConcurencyConfig, publicapi *api_public.TokopediaApiPublic) *ShopeeToTopedFlow {
@@ -76,6 +78,7 @@ func NewShopeeToTopedFlow(rootBase string, ctx context.Context, db *mongo.Databa
 		Ctx:            cctx,
 		CacheApi:       NewCacheApiDriver(),
 		CancelCtx:      cancel,
+		etalasemap:     services.NewEtalaseMapService(sqlitedb),
 	}
 }
 
@@ -202,6 +205,7 @@ func (flow *ShopeeToTopedFlow) GenerateHandler(akun *repo.AkunItem, spin shopeeu
 		flow.createAnnotationHandler(),
 		flow.createImageHandler(),
 		flow.createCategoryHandler(),
+		flow.createEtalaseHandler(),
 		flow.createVariantHandler(spin),
 	}
 	return handlers
