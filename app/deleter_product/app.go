@@ -56,7 +56,8 @@ func (runner *DeleteRunner) RunDeleteAkun(akun *AkunDeleteItem) error {
 	}
 
 	err = IterateProduct(sapi, func(page int, product *model.SellerProductItem, delete func() int) error {
-		if filterhandler(product) {
+		cek, _ := filterhandler(product)
+		if cek {
 			count = delete()
 			log.Println(sapi.AuthenticatedData.User.Email, count, "/", runner.Config.LimitProduct, "deleted ", product.Name)
 		}

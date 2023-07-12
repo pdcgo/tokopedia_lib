@@ -23,7 +23,7 @@ type SoldConfig struct {
 
 func (soldf *SoldConfig) GenerateFilter() FilterHandler {
 	return func(product *model.SellerProductItem) bool {
-		return soldf.Min <= product.Stats.CountView && product.Stats.CountView <= soldf.Max
+		return soldf.Min <= product.TxStats.Sold && product.TxStats.Sold <= soldf.Max
 	}
 }
 
@@ -32,9 +32,9 @@ type ViewConfig struct {
 	Max int `json:"max"`
 }
 
-func (soldf *ViewConfig) GenerateFilter() FilterHandler {
+func (view *ViewConfig) GenerateFilter() FilterHandler {
 	return func(product *model.SellerProductItem) bool {
-		return soldf.Min <= product.Stats.CountView && product.TxStats.Sold <= soldf.Max
+		return view.Min <= product.Stats.CountView && product.Stats.CountView <= view.Max
 	}
 }
 
@@ -99,30 +99,29 @@ func (cfg *DeleteConfig) UnmarshalJSON(data []byte) error {
 
 type FilterHandler func(product *model.SellerProductItem) bool
 
-func (cfg *DeleteConfig) GenerateFilter() FilterHandler {
+func (cfg *DeleteConfig) GenerateFilter() func(product *model.SellerProductItem) (bool, string) {
 
-	handlers := []FilterHandler{
-		cfg.GenerateFilterTime(),
-		cfg.GenerateFilterTitle(),
-	}
+	handlers := map[string]FilterHandler{}
+	handlers["time"] = cfg.GenerateFilterTime()
+	handlers["title"] = cfg.GenerateFilterTitle()
 
 	if cfg.SoldFilter != nil {
-		handlers = append(handlers, cfg.SoldFilter.GenerateFilter())
+		handlers["sold"] = cfg.SoldFilter.GenerateFilter()
 	}
 
 	if cfg.ViewFilter != nil {
-		handlers = append(handlers, cfg.ViewFilter.GenerateFilter())
+		handlers["view"] = cfg.ViewFilter.GenerateFilter()
 	}
 
-	return func(product *model.SellerProductItem) bool {
-		for _, handler := range handlers {
+	return func(product *model.SellerProductItem) (bool, string) {
+		for key, handler := range handlers {
 			if !handler(product) {
 
-				return false
+				return false, key
 			}
 		}
 
-		return true
+		return true, ""
 	}
 }
 
@@ -137,6 +136,12 @@ func (cfg *DeleteConfig) GenerateFilterTime() FilterHandler {
 func (cfg *DeleteConfig) GenerateFilterTitle() FilterHandler {
 	fstring := []string{}
 	fregex := []*regexp.Regexp{}
+
+	if len(cfg.Title) == 0 {
+		return func(product *model.SellerProductItem) bool {
+			return true
+		}
+	}
 
 	regpola := `regex-->`
 
