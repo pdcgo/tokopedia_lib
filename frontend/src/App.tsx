@@ -3,6 +3,7 @@ import {
     ApiOutlined,
     CloudUploadOutlined,
     UsergroupAddOutlined,
+    CodeSandboxOutlined,
 } from "@ant-design/icons"
 import { Button, Card, Tabs, Tooltip } from "antd"
 import React, { Suspense, useEffect, useState } from "react"
@@ -13,6 +14,7 @@ import {
     FloatingMenu,
 } from "./styled_components"
 
+const EtalaseMapping = React.lazy(() => import("./views/EtalaseMapping"))
 const AddAccount = React.lazy(() => import("./views/AddAccount"))
 const CategoryMapping = React.lazy(() => import("./views/CategoryMapping"))
 const Upload = React.lazy(() => import("./views/Upload"))
@@ -35,6 +37,12 @@ const menus = [
         name: "Category Mapping",
         icon: ApiOutlined,
         child: CategoryMapping,
+    },
+    {
+        key: "etalase_map",
+        name: "Etalase Mapping",
+        icon: CodeSandboxOutlined,
+        child: EtalaseMapping,
     },
 ]
 
