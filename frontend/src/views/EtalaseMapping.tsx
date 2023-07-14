@@ -54,7 +54,7 @@ export default function EtalaseMapping() {
         }
 
         return []
-    }, [response])
+    }, [response, cats])
 
     React.useEffect(() => {
         sender({ method: "get", path: "tokopedia/etalase_map/list" })
@@ -110,18 +110,21 @@ export default function EtalaseMapping() {
                                         />
                                     }
                                     onConfirm={() => {
-                                        delEtalase({
-                                            method: "delete",
-                                            path: "tokopedia/etalase_map",
-                                            params: { name: et.name },
-                                        }, {
-                                            onSuccess: () => {
-                                                sender({
-                                                    method: "get",
-                                                    path: "tokopedia/etalase_map/list",
-                                                })
+                                        delEtalase(
+                                            {
+                                                method: "delete",
+                                                path: "tokopedia/etalase_map",
+                                                params: { name: et.name },
+                                            },
+                                            {
+                                                onSuccess: () => {
+                                                    sender({
+                                                        method: "get",
+                                                        path: "tokopedia/etalase_map/list",
+                                                    })
+                                                },
                                             }
-                                        })
+                                        )
                                     }}
                                 >
                                     <Button
@@ -148,29 +151,32 @@ export default function EtalaseMapping() {
                                             gap: "6px 0px",
                                         }}
                                     >
-                                        {et.ids_names
-                                            .slice(0, 2)
-                                            .map((name) => {
-                                                return (
-                                                    <Tag
-                                                        style={{
-                                                            fontSize: "11.5px",
-                                                        }}
-                                                        key={name}
-                                                        color="cyan"
-                                                    >
-                                                        {name}
-                                                    </Tag>
-                                                )
-                                            })}
                                         {et.ids.length > 2 && (
-                                            <Tag
-                                                style={{
-                                                    fontSize: "11.5px",
-                                                }}
-                                            >
-                                                +{et.ids.length - 2} Other
-                                            </Tag>
+                                            <>
+                                                {Array.from(
+                                                    Array(2).keys()
+                                                ).map((k, i) => {
+                                                    return (
+                                                        <Tag
+                                                            style={{
+                                                                fontSize:
+                                                                    "11.5px",
+                                                            }}
+                                                            key={k}
+                                                            color="cyan"
+                                                        >
+                                                            {et.ids_names[i]}
+                                                        </Tag>
+                                                    )
+                                                })}
+                                                <Tag
+                                                    style={{
+                                                        fontSize: "11.5px",
+                                                    }}
+                                                >
+                                                    +{et.ids.length - 2} Other
+                                                </Tag>
+                                            </>
                                         )}
                                     </Flex>
                                 </FlexColumn>
