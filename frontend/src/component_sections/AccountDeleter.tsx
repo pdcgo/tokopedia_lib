@@ -4,6 +4,7 @@ import {
     Button,
     Card,
     DatePicker,
+    Divider,
     Input,
     InputNumber,
     Select,
@@ -237,7 +238,7 @@ regex-->obat|jamu|ramuan
                                         </Flex>
                                     </LabelInput>
                                 </Flex>
-                                <LabelInput label="Product Status">
+                                <LabelInput label="Product Status :">
                                     <Select
                                         value={status}
                                         onChange={setStatus}
