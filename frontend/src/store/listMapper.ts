@@ -57,7 +57,10 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
                     params: {
                         is_public: false,
                         marketplace: "shopee",
-                        namespace
+                        namespace,
+                        kota: "",
+                        pmax: 0,
+                        pmin: 0
                     }
                 }, {
                     onError: () => { set(s => ({ ...s, pendingInitEffect: false })) },

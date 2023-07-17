@@ -2,311 +2,385 @@
 
 
 export interface AkunListQuery {
-	offset: number;
-	limit: number;
-	search: string;
+    offset: number;
+    limit: number;
+    search: string;
 }
 export interface Pagination {
-	offset: number;
-	limit: number;
-	count: number;
+    offset: number;
+    limit: number;
+    count: number;
 }
 export interface AkunItem {
-	limit_upload: number;
-	count_upload: number;
-	active_upload: boolean;
-	lastup: number;
-	in_upload: boolean;
-	last_error: string;
-	username: string;
-	password: string;
-	secret: string;
-	markup: string;
-	spin: string;
-	collection: string;
-	hastag: string;
-	title_pattern: string;
+    limit_upload: number;
+    count_upload: number;
+    active_upload: boolean;
+    lastup: number;
+    in_upload: boolean;
+    last_error: string;
+    username: string;
+    password: string;
+    secret: string;
+    markup: string;
+    spin: string;
+    collection: string;
+    hastag: string;
+    title_pattern: string;
 }
 export interface AkunListResponse {
-	msg: string;
-	error: string;
-	data: AkunItem[];
-	pagination: Pagination;
+    msg: string;
+    error: string;
+    data: AkunItem[];
+    pagination: Pagination;
 }
 export interface Response {
-	msg: string;
-	error: string;
+    msg: string;
+    error: string;
 }
 export interface BulkItem {
-	username: string;
-	password: string;
-	secret: string;
+    username: string;
+    password: string;
+    secret: string;
 }
 export interface BulkPayload {
-	data: BulkItem[];
+    data: BulkItem[];
 }
 
 export interface AkunUpdatePayload {
-	data: AkunItem[];
+    data: AkunItem[];
 }
 
 export interface AkunDeletePayload {
-	usernames: string[];
+    usernames: string[];
 }
 
 
 
 export interface UploadAppStatus {
-	status: string;
-	akun_count: number;
-	count_upload: number;
-	limit_upload: number;
+    status: string;
+    akun_count: number;
+    count_upload: number;
+    limit_upload: number;
 }
 export interface DataSpinItemResponse {
-	name: string;
-	data: string[];
+    name: string;
+    data: string[];
 }
 export interface DataSpinQuery {
-	name: string;
+    name: string;
 }
 
 export interface BaseResponse {
-	data?: any;
-	errcode: number;
-	message?: string;
-	status?: string;
+    errcode: number;
+    message?: string;
+    status?: string;
 }
 export interface SettingSpinData {
-	smin: number;
-	smax: number;
-	merek_ins_t: boolean;
-	title: string;
-	desc: string;
+    smin: number;
+    smax: number;
+    merek_ins_t: boolean;
+    title: string;
+    desc: string;
 }
 export interface DataSpinDeleteQuery {
-	name: string;
+    name: string;
 }
 
 export interface SettingSpinTitlePool {
-	name: string;
-	data: string;
+    name: string;
+    data: string;
 }
 export interface SettingSpinResponse {
-	data?: SettingSpinData;
-	errcode: number;
-	titlePool: SettingSpinTitlePool[];
+    data?: SettingSpinData;
+    errcode: number;
+    titlePool: SettingSpinTitlePool[];
 }
 
 
 
 export interface SettingSpinConfigUpdatePayload {
-	name: string;
-	titlePool: SettingSpinTitlePool[];
+    name: string;
+    titlePool: SettingSpinTitlePool[];
 }
+export interface ListMarkupResponse {
+    errcode: number;
+    message?: string;
+    status?: string;
+    data: string[];
+}
+
+export interface MarkupData {
+    mark: string;
+    type: string;
+    range: any;
+    up: number[];
+}
+export interface Markup {
+    data: MarkupData[];
+    fix_mark: number;
+    name: string;
+}
+export interface MarkupGetQuery {
+    name: string;
+}
+export interface MarkupGetResponse {
+    data: MarkupData[];
+    fix_mark: number;
+    name: string;
+    errorcode: number;
+}
+
+
+
+
 export interface ProductNamespaceAgg {
-	count: number;
-	price_min: number;
-	price_max: number;
-	name: string;
+    count: number;
+    price_min: number;
+    price_max: number;
+    name: string;
 }
 export interface ProductPriceRangeAgg {
-	_id: number[];
-	count: number;
+    _id: number[];
+    count: number;
 }
 export interface ProductCategoryAgg {
-	_id: number;
-	price_min: number;
-	price_max: number;
-	count: number;
-	name: string[];
+    _id: number;
+    price_min: number;
+    price_max: number;
+    count: number;
+    name: string[];
 }
 export interface ProductCityAgg {
-	_id: string;
-	price_min: number;
-	price_max: number;
-	count: number;
+    _id: string;
+    price_min: number;
+    price_max: number;
+    count: number;
 }
-export interface ProductAggQuery {
-	marketplace: string;
-	namespace: string;
+export interface ShopeeCategoryOld {
+    parent_category: number;
+    catid: number;
+    parent_display_name: string;
+    display_name: string;
+    status: string;
+}
+export interface ProductMatchStageQuery {
+    is_public: boolean;
+    kota: string;
+    marketplace: string;
+    namespace: string;
+    pmax: number;
+    pmin: number;
 }
 
 export interface ProductPriceRangeAggQuery {
-	marketplace: string;
-	namespace: string;
-	range_price: number;
+    is_public: boolean;
+    kota: string;
+    marketplace: string;
+    namespace: string;
+    pmax: number;
+    pmin: number;
+    range_price: number;
 }
 
-export interface ProductCategoryAggQuery {
-	marketplace: string;
-	namespace: string;
-	is_public: boolean;
-}
+
+
+
+
+
+
+
+
+
 
 
 
 export interface PredictWeightResponse {
-	harga: number;
-	jarak: number;
+    harga: number;
+    jarak: number;
 }
 export interface PredictWeightPayload {
-	itemid: number;
-	shopid: number;
+    itemid: number;
+    shopid: number;
 }
 export interface PredictWeightSaveQuery {
-	predict: number;
+    predict: number;
 }
 
 export interface PredictWeightLoadResponse {
-	predict_weight: number;
+    predict_weight: number;
 }
 export interface SearchFilterDynamicShipping {
-	positionid: number;
-	name: string;
-	channelids: string[];
-	display_name: string;
-	item_tag_ids: number[];
+    positionid: number;
+    name: string;
+    channelids: string[];
+    display_name: string;
+    item_tag_ids: number[];
 }
 
 export interface CategorySubSub {
-	catid: number;
-	display_name: string;
-	image: string;
-	block_buyer_platform: any;
+    catid: number;
+    display_name: string;
+    image: string;
+    block_buyer_platform: any;
 }
 export interface CategorySub {
-	catid: number;
-	display_name: string;
-	name: string;
-	image: string;
-	is_adult: any;
-	parent_category: number;
-	sort_weight: number;
-	block_buyer_platform: any;
-	sub_sub: CategorySubSub[];
+    catid: number;
+    display_name: string;
+    name: string;
+    image: string;
+    is_adult: any;
+    parent_category: number;
+    sort_weight: number;
+    block_buyer_platform: any;
+    sub_sub: CategorySubSub[];
 }
 export interface CategoryMain {
-	catid: number;
-	display_name: string;
-	name: string;
-	image: string;
-	is_adult: any;
-	parent_category: number;
-	sort_weight: number;
-	block_buyer_platform: any;
+    catid: number;
+    display_name: string;
+    name: string;
+    image: string;
+    is_adult: any;
+    parent_category: number;
+    sort_weight: number;
+    block_buyer_platform: any;
 }
 export interface CategoryItem {
-	main: CategoryMain;
-	sub: CategorySub[];
+    main: CategoryMain;
+    sub: CategorySub[];
 }
 export interface ShopeeCategoryRegionSetting {
-	enable_size_chart: boolean;
-	low_stock_value: number;
-	dimension_mandatory: boolean;
+    enable_size_chart: boolean;
+    low_stock_value: number;
+    dimension_mandatory: boolean;
 }
 export interface ShopeeCategory {
-	id: number;
-	name: string;
-	display_name: string;
-	parent_id: number;
-	has_active_children: boolean;
-	has_children: boolean;
-	children?: any[];
-	region_setting: ShopeeCategoryRegionSetting;
-	is_prohibit: boolean;
-	chain_name: string[];
-	chain_ids: number[];
+    id: number;
+    name: string;
+    display_name: string;
+    parent_id: number;
+    has_active_children: boolean;
+    has_children: boolean;
+    children?: any[];
+    region_setting: ShopeeCategoryRegionSetting;
+    is_prohibit: boolean;
+    chain_name: string[];
+    chain_ids: number[];
 }
 export interface ManifestResponse {
-	category: ShopeeCategory[];
-	public_category_repo: CategoryItem[];
+    category: ShopeeCategory[];
+    public_category_repo: CategoryItem[];
 }
 
+
 export interface ShopeeMapItem {
-	shopee_id: number;
-	tokopedia_id: number;
+    shopee_id: number;
+    tokopedia_id: number;
 }
 export interface GetMapQuery {
-	collection: string;
+    collection: string;
 }
 export interface ShopeeTopedMapResponse {
-	data: ShopeeMapItem[];
+    data: ShopeeMapItem[];
 }
 
 export interface AutoSuggestStatus {
-	status: string;
+    status: string;
 }
 export interface ShopeeMapperConfig {
-	use_mapper: boolean;
+    use_mapper: boolean;
 }
 
 export interface Category {
-	id: number;
-	name: string;
-	url: string;
-	children: Category[];
-	__typename: string;
+    id: number;
+    name: string;
+    url: string;
+    children: Category[];
+    __typename: string;
 }
 export interface CategoryAllListLite {
-	categories: Category[];
-	__typename: string;
+    categories: Category[];
+    __typename: string;
 }
 export interface CategoryAllListLiteData {
-	categoryAllListLite?: CategoryAllListLite;
+    categoryAllListLite?: CategoryAllListLite;
 }
 export interface CategoryAllListLiteRes {
-	data: CategoryAllListLiteData;
+    data: CategoryAllListLiteData;
 }
 
 export interface UpdateTopedCategoryPayload {
-	username: string;
-	password: string;
-	secret: string;
+    username: string;
+    password: string;
+    secret: string;
+}
+export interface ViewConfig {
+    min: number;
+    max: number;
+}
+export interface SoldConfig {
+    min: number;
+    max: number;
 }
 export interface AkunDeleteItem {
-	username: string;
-	password: string;
-	secret: string;
+    username: string;
+    password: string;
+    secret: string;
 }
 export interface DeleteConfig {
-	limit_concurent: number;
-	limit_product: number;
-	title: string[];
-	product_status: string;
-	category_id: string;
-	start_time: number;
-	end_time: number;
-	akuns: AkunDeleteItem[];
-	sold_filter?: { min: number, max: number }
-	view_filter?: { min: number, max: number }
+    limit_concurent: number;
+    limit_product: number;
+    title: string[];
+    product_status: string;
+    category_id: string;
+    start_time: number;
+    end_time: number;
+    akuns: AkunDeleteItem[];
+    sold_filter?: SoldConfig;
+    view_filter?: ViewConfig;
 }
 export interface DeleteSettingRes {
-	data?: DeleteConfig;
+    data?: DeleteConfig;
 }
 
 
 
 export interface DriverAccount {
-	username: string;
-	password: string;
-	secret: string;
+    username: string;
+    password: string;
+    secret: string;
 }
 export interface RunCheckbotPayload {
-	fname: string;
-	Akuns: DriverAccount[];
+    fname: string;
+    Akuns: DriverAccount[];
 }
 export interface VerifDriverAccount {
-	username: string;
-	password: string;
-	secret: string;
-	Pesan: string;
-	Status: string;
+    username: string;
+    password: string;
+    secret: string;
+    Pesan: string;
+    Status: string;
 }
 export interface RunCheckVerifPayload {
-	fname: string;
-	Akuns: VerifDriverAccount[];
+    fname: string;
+    Akuns: VerifDriverAccount[];
 }
-export type SdkConfig = {
+export interface AutoSubmit {
+    base_ktp: string;
+    filename: string;
+}
+export interface EtalasePayload {
+    etalase: string;
+    cat_ids: number[];
+}
+export interface EtalaseListMapRes {
+    data: EtalasePayload[];
+}
+
+
+export interface DeleteEtalaseQuery {
+    name: string;
+}
+export type SdkConfig = { 
 
 	GetTokopediaAkunList: {
 		method: "get"
@@ -424,13 +498,45 @@ export type SdkConfig = {
 		method: "get"
 		params: undefined
 		payload: undefined
-		response: { data: string[] }
+		response: ListMarkupResponse
 		path: "api/listMarkup"
+	},
+
+	PostApiAddMarkup: {
+		method: "post"
+		params: undefined
+		payload: Markup
+		response: BaseResponse
+		path: "api/addMarkup"
+	},
+
+	GetApiMarkup: {
+		method: "get"
+		params: MarkupGetQuery
+		payload: undefined
+		response: MarkupGetResponse
+		path: "api/markup"
+	},
+
+	PostApiMarkup: {
+		method: "post"
+		params: MarkupGetQuery
+		payload: Markup
+		response: BaseResponse
+		path: "api/markup"
+	},
+
+	PostApiDeleteMarkup: {
+		method: "post"
+		params: undefined
+		payload: string[]
+		response: BaseResponse
+		path: "api/deleteMarkup"
 	},
 
 	GetV1ProductNamespaceAll: {
 		method: "get"
-		params: ProductAggQuery
+		params: ProductMatchStageQuery
 		payload: undefined
 		response: ProductNamespaceAgg[]
 		path: "v1/product/namespace_all"
@@ -446,7 +552,7 @@ export type SdkConfig = {
 
 	GetV1ProductCategory: {
 		method: "get"
-		params: ProductCategoryAggQuery
+		params: ProductMatchStageQuery
 		payload: undefined
 		response: ProductCategoryAgg[]
 		path: "v1/product/category"
@@ -454,10 +560,42 @@ export type SdkConfig = {
 
 	GetV1ProductKota: {
 		method: "get"
-		params: ProductAggQuery
+		params: ProductMatchStageQuery
 		payload: undefined
 		response: ProductCityAgg[]
 		path: "v1/product/kota"
+	},
+
+	GetV1ProductDelete: {
+		method: "get"
+		params: ProductMatchStageQuery
+		payload: undefined
+		response: BaseResponse
+		path: "v1/product/delete"
+	},
+
+	PostApiDeleteItem: {
+		method: "post"
+		params: ProductMatchStageQuery
+		payload: number[]
+		response: BaseResponse
+		path: "api/deleteItem"
+	},
+
+	PostV1ProductCategstatToCsv: {
+		method: "post"
+		params: undefined
+		payload: ShopeeCategoryOld[]
+		response: BaseResponse
+		path: "v1/product/categstat_to_csv"
+	},
+
+	GetV1ProductResync: {
+		method: "get"
+		params: ProductMatchStageQuery
+		payload: undefined
+		response: BaseResponse
+		path: "v1/product/resync"
 	},
 
 	PostV4ShopeeWeightPredict: {
@@ -498,6 +636,14 @@ export type SdkConfig = {
 		payload: undefined
 		response: ManifestResponse
 		path: "shopee/manifest"
+	},
+
+	GetApiUpdateTokpedCategories: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: BaseResponse
+		path: "api/updateTokpedCategories"
 	},
 
 	PutTokopediaMapperMap: {
@@ -602,5 +748,37 @@ export type SdkConfig = {
 		payload: RunCheckVerifPayload
 		response: undefined
 		path: "tokopedia/check_verif/run"
+	},
+
+	PostTokopediaAutosubmitRun: {
+		method: "post"
+		params: undefined
+		payload: AutoSubmit
+		response: undefined
+		path: "tokopedia/autosubmit/run"
+	},
+
+	GetTokopediaEtalaseMapList: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: EtalaseListMapRes
+		path: "tokopedia/etalase_map/list"
+	},
+
+	PostTokopediaEtalaseMapAdd: {
+		method: "post"
+		params: undefined
+		payload: EtalasePayload
+		response: Response
+		path: "tokopedia/etalase_map/add"
+	},
+
+	DeleteTokopediaEtalaseMap: {
+		method: "delete"
+		params: DeleteEtalaseQuery
+		payload: undefined
+		response: undefined
+		path: "tokopedia/etalase_map"
 	}
 }

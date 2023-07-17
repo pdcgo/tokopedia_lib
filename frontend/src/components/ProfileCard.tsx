@@ -99,13 +99,6 @@ export default function ProfileCard(
                         }}
                     />
                 </Tooltip>,
-                // <Tooltip title="Reset" placement="bottom" showArrow={false}>
-                //     <ReloadOutlined
-                //         style={{ color: "#FFA559" }}
-                //         rev={"reset"}
-                //         key="reset"
-                //     />
-                // </Tooltip>,
                 <Tooltip title="Remove" placement="bottom" showArrow={false}>
                     <DeleteOutlined
                         style={{ color: "#FFA559" }}

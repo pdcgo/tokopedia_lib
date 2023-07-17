@@ -7,7 +7,7 @@ import {
     Input,
     InputNumber,
     Select,
-    message,
+    message
 } from "antd"
 import { TextAreaRef } from "antd/es/input/TextArea"
 import dayjs from "dayjs"
@@ -237,7 +237,7 @@ regex-->obat|jamu|ramuan
                                         </Flex>
                                     </LabelInput>
                                 </Flex>
-                                <LabelInput label="Product Status">
+                                <LabelInput label="Product Status :">
                                     <Select
                                         value={status}
                                         onChange={setStatus}

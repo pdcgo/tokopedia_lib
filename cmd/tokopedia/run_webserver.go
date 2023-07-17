@@ -15,6 +15,7 @@ import (
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	sapi_public "github.com/pdcgo/go_v2_shopeelib/lib/public_api"
 	"github.com/pdcgo/go_v2_shopeelib/lib/shopee_dp"
+	"github.com/pdcgo/tokopedia_lib/app/services"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/app/web"
@@ -100,6 +101,11 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	api.RegisterCheckVerifApi(g, baseData)
 	api.RegisterSubmitApi(g.Group("autosubmit"), baseData)
 
+	mapetalase := services.NewEtalaseMapService(db)
+	etalaseApi := api.NewEtalaseMapApi(mapetalase)
+
+	etalaseApi.RegisterApi(g.Group("etalase_map"))
+
 	web.RegisterTokopediaFrontend(r, prefix)
 
 	return nil
@@ -111,7 +117,7 @@ func CORSMiddleware() gin.HandlerFunc {
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Access-Control-Allow-Credentials", "true")
 		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
+		c.Header("Access-Control-Allow-Methods", "POST, HEAD, PATCH, OPTIONS, GET, PUT, DELETE")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)

@@ -5,11 +5,13 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/pdcgo/common_conf/auth"
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/report"
 	"github.com/urfave/cli/v2"
 )
@@ -51,9 +53,9 @@ func setupPdcLogger() {
 func cekbot(driver *report.CekReport) {
 	loginMutex.Lock()
 	defer loginMutex.Unlock()
-	api, saveSession, _ := driver.CreateApi()
+	apiclient, saveSession, _ := driver.CreateApi()
 
-	driver.ShopName = api.AuthenticatedData.UserShopInfo.Info.ShopName
+	driver.ShopName = apiclient.AuthenticatedData.UserShopInfo.Info.ShopName
 
 	concurent <- 1
 	go func() {
@@ -68,7 +70,7 @@ func cekbot(driver *report.CekReport) {
 		waitall.Add(1)
 		go func() {
 			defer waitall.Done()
-			hasil, err := api.ProductListMeta()
+			hasil, err := apiclient.ProductListMeta()
 			if err != nil {
 				pdc_common.ReportError(err)
 			}
@@ -90,7 +92,7 @@ func cekbot(driver *report.CekReport) {
 		waitall.Add(1)
 		go func() {
 			defer waitall.Done()
-			hasil, err := api.GetShopScoreLevel()
+			hasil, err := apiclient.GetShopScoreLevel()
 			if err != nil {
 				pdc_common.ReportError(err)
 			}
@@ -103,7 +105,7 @@ func cekbot(driver *report.CekReport) {
 		waitall.Add(1)
 		go func() {
 			defer waitall.Done()
-			hasil, err := api.NotificationCounter()
+			hasil, err := apiclient.NotificationCounter()
 			if err != nil {
 				pdc_common.ReportError(err)
 			}
@@ -117,7 +119,7 @@ func cekbot(driver *report.CekReport) {
 		waitall.Add(1)
 		go func() {
 			defer waitall.Done()
-			hasil, err := api.GoldGetPMOSStatus()
+			hasil, err := apiclient.GoldGetPMOSStatus()
 			if err != nil {
 				pdc_common.ReportError(err)
 			}
@@ -139,7 +141,7 @@ func cekbot(driver *report.CekReport) {
 		waitall.Add(1)
 		go func() {
 			defer waitall.Done()
-			hasil, err := api.ShopInfoByID()
+			hasil, err := apiclient.ShopInfoByID()
 			if err != nil {
 				pdc_common.ReportError(err)
 			}
@@ -151,6 +153,32 @@ func cekbot(driver *report.CekReport) {
 				driver.Status = "Moderasi Sementara"
 			}
 
+		}()
+
+		// getting penalty
+		waitall.Add(1)
+		go func() {
+			defer waitall.Done()
+			enddate := time.Now()
+			stdate := enddate.AddDate(0, -2, 0)
+
+			shopID := strconv.FormatInt(apiclient.AuthenticatedData.UserShopInfo.Info.ShopID, 10)
+
+			hasil, err := apiclient.ShopScorePenaltySummary(&api.ShopScorePenaltySummaryVar{
+				StartDate: stdate,
+				EndDate:   enddate,
+				ShopID:    shopID,
+				Source:    "icarus",
+			})
+
+			if err != nil {
+				pdc_common.ReportError(err)
+				return
+			}
+			penalty := strconv.Itoa(hasil.Data.ShopScorePenaltySummary.Result.Penalty)
+			penaltyAmount := strconv.Itoa(hasil.Data.ShopScorePenaltySummary.Result.PenaltyAmount)
+			driver.Penalty = penalty
+			driver.PenaltyAmount = penaltyAmount
 		}()
 
 		waitall.Wait()

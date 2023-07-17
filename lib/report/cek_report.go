@@ -22,6 +22,8 @@ type CekReport struct {
 	PmStatus         string
 	ExtendStatus     string
 	Status           string
+	Penalty          string
+	PenaltyAmount    string
 }
 
 func SaveCekReport(fname string, akuns []*CekReport) error {
@@ -31,10 +33,10 @@ func SaveCekReport(fname string, akuns []*CekReport) error {
 	}
 	defer f.Close()
 
-	f.WriteString("username,password,secret,shopname,product_active,product_inactive,product_violation,shop_score,unread_chat,new_order,pm_status,extend_status,status\n")
+	f.WriteString("username,password,secret,shopname,product_active,product_inactive,product_violation,shop_score,unread_chat,new_order,pm_status,extend_status,status,penalty,penalty_amount\n")
 	for _, driver := range akuns {
 
-		f.WriteString(fmt.Sprintf("%s,%s,%s,%s,%d,%d,%d,%.2f,%d,%d,%s,%s,%s\n",
+		f.WriteString(fmt.Sprintf("%s,%s,%s,%s,%d,%d,%d,%.2f,%d,%d,%s,%s,%s,%s,%s\n",
 			driver.Username,
 			driver.Password,
 			driver.Secret,
@@ -48,6 +50,8 @@ func SaveCekReport(fname string, akuns []*CekReport) error {
 			driver.PmStatus,
 			driver.ExtendStatus,
 			driver.Status,
+			driver.Penalty,
+			driver.PenaltyAmount,
 		))
 	}
 	return nil
@@ -68,7 +72,7 @@ Parent:
 			continue
 		}
 
-		dataline := make([]string, 13)
+		dataline := make([]string, 15)
 
 		fixline := strings.ReplaceAll(line, "\r", "")
 
