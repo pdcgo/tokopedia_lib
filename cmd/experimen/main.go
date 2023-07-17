@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	driver, _ := tokopedia_lib.NewDriverAccount("mrwicaksono690@gmail.com", "Semogaberkah", "KQ2YZZJDS2DAC7Y6K4HCTTXSS5B7N4IN")
+	driver, _ := tokopedia_lib.NewDriverAccount("delaccozz12@yahoo.com", "M@ret2022", "QFY76RQYBXJ6NPBWVF24HF7QUT7IAG74")
 
 	driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
 		driver.SellerLogin(dctx)

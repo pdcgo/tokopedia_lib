@@ -30,6 +30,19 @@ func TestDriverAccount(t *testing.T) {
 
 	})
 
+	t.Run("test create api otp salah", func(t *testing.T) {
+
+		driver, err := tokopedia_lib.NewDriverAccount("kedaiblanjadotcom@gmail.com", "pakdosen", "OF5LGY2FLIDPUZXK7GST5R3HT6QA6B5F")
+		assert.Nil(t, err)
+
+		api, saveSession, err := driver.CreateApi()
+		defer saveSession()
+
+		assert.NotEmpty(t, api)
+		assert.NotEmpty(t, api.AuthenticatedData.UserShopInfo)
+		assert.Nil(t, err)
+	})
+
 }
 
 func TestMitraLogin(t *testing.T) {

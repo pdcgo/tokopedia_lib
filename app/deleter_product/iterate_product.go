@@ -98,6 +98,8 @@ func IterateProduct(sellerapi *api.TokopediaApi, handleItem func(page int, produ
 			},
 		}
 
+		queryFilter = append(queryFilter, filters...)
+
 		query := model.ProductListVar{
 			ShopID: shopId,
 			Filter: queryFilter,

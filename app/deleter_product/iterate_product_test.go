@@ -23,3 +23,24 @@ func TestIterateProduct(t *testing.T) {
 	assert.Nil(t, err)
 
 }
+
+func TestIterateViolation(t *testing.T) {
+	sellerapi, saveSession := scenario.GetTokopediaApiClient()
+	defer saveSession()
+
+	names := []string{}
+
+	err := deleter_product.IterateProduct(sellerapi, func(page int, product *model.SellerProductItem, delete func() int) error {
+		names = append(names, product.Name)
+
+		t.Log(product)
+
+		return nil
+	}, model.Filter{
+		ID:    "status",
+		Value: []string{string(model.ViolationStatus)},
+	})
+
+	assert.NotEmpty(t, names)
+	assert.Nil(t, err)
+}
