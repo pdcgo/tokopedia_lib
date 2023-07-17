@@ -30,3 +30,16 @@ func (api *TokopediaApiPublic) TopadsProductQuery(payload *model_public.AdParams
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
+
+func (api *TokopediaApiPublic) SearchProductQuery(payload *model_public.SearchProductQueryVar) (*model_public.SearchProductQueryResp, error) {
+	gqlQuery := GraphqlPayload{
+		OperationName: "SearchProductQuery",
+		Variables:     payload,
+		Query:         query.SearchProductQuery,
+	}
+	req := api.NewGraphqlReq(&gqlQuery)
+
+	var hasil model_public.SearchProductQueryResp
+	err := api.SendRequest(req, &hasil)
+	return &hasil, err
+}

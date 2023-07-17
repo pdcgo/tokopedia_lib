@@ -9,6 +9,7 @@ require (
 	github.com/pdcgo/go_v2_shopeelib v1.0.15
 	github.com/pdcgo/v2_gots_sdk v1.2.4
 	github.com/sethvargo/go-retry v0.2.4
+	github.com/zeebo/assert v1.3.0
 	go.mongodb.org/mongo-driver v1.11.3
 	gorm.io/gorm v1.25.2-0.20230530020048-26663ab9bf55
 	nhooyr.io/websocket v1.8.7
