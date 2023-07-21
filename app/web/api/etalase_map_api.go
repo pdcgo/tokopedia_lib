@@ -43,10 +43,45 @@ func (api *EtalaseMapApi) RegisterApi(gr *v2_gots_sdk.SdkGroup) {
 		Query:        &DeleteEtalaseQuery{},
 	}, api.DeleteEtalase)
 
+	gr.Register(&v2_gots_sdk.Api{
+		Method:       http.MethodGet,
+		RelativePath: "listmap",
+		Response:     []*services.EtalaseMapItem{},
+	}, api.ListMap)
+
+	gr.Register(&v2_gots_sdk.Api{
+		Method:       http.MethodGet,
+		RelativePath: "update_map_item",
+		Response:     &Response{},
+		Payload:      []*services.EtalaseMapItem{},
+	}, api.UpdateMapEtalase)
+
+}
+
+func (api *EtalaseMapApi) UpdateMapEtalase(ctx *gin.Context) {
+	var payload []*services.EtalaseMapItem
+	err := ctx.BindJSON(&payload)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, Response{
+			Msg: err.Error(),
+		})
+		return
+	}
+
+	errs := api.service.UpdateBulkMap(payload)
+
+	ctx.JSON(http.StatusOK, errs)
 }
 
 type EtalaseListMapRes struct {
 	Data []*services.EtalasePayload `json:"data"`
+}
+
+func (api *EtalaseMapApi) ListMap(ctx *gin.Context) {
+	hasil, _ := api.service.List()
+
+	ctx.JSON(http.StatusOK, hasil)
 }
 
 func (api *EtalaseMapApi) ListEtalase(ctx *gin.Context) {

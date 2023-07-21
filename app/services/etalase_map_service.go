@@ -9,8 +9,8 @@ import (
 
 type EtalaseMapItem struct {
 	ID          uint   `gorm:"primarykey"`
-	EtalaseName string `gorm:"index:etalase_map_unique,unique"`
-	CategoryID  int    `gorm:"index:etalase_map_unique,unique"`
+	EtalaseName string `gorm:"index:etalase_map_unique,unique" json:"etalase_name"`
+	CategoryID  int    `gorm:"index:etalase_map_unique,unique" json:"category_id"`
 }
 
 type EtalaseMapService struct {
@@ -76,6 +76,30 @@ func (service *EtalaseMapService) ListEtalase() ([]*EtalasePayload, error) {
 	}
 
 	return hasil, nil
+}
+
+func (service *EtalaseMapService) UpdateBulkMap(payload []*EtalaseMapItem) []error {
+	hasil := make([]error, len(payload))
+
+	for ind, item := range payload {
+		err := service.db.Transaction(func(tx *gorm.DB) error {
+			etalaseName := item.EtalaseName
+
+			tx.Where(&EtalaseMapItem{CategoryID: item.CategoryID}).First(item)
+			item.EtalaseName = etalaseName
+			return tx.Save(item).Error
+		})
+
+		hasil[ind] = err
+	}
+
+	return hasil
+}
+
+func (service *EtalaseMapService) List() ([]*EtalaseMapItem, error) {
+	hasil := []*EtalaseMapItem{}
+	err := service.db.Find(&hasil).Error
+	return hasil, err
 }
 
 func (service *EtalaseMapService) AddMap(payload *EtalasePayload) error {
