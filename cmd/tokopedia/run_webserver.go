@@ -38,9 +38,8 @@ type TokopediaWebServer struct {
 func runProxyBrowser(base *legacy_source.BaseConfig) *shopee_dp.ShopeeBrowser {
 	prox, _ := app_config.GetProxy(app_config.TestProxyKey)
 	browser := shopee_dp.InitializeShopeeBrowser(base, context.Background(), prox, time.Minute*2)
-	go browser.Proxy.RunProxy()
-	go browser.Run()
 
+	go browser.Run()
 	return browser
 }
 
