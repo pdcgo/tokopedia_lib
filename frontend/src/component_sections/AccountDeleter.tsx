@@ -252,6 +252,9 @@ regex-->obat|jamu|ramuan
                                         <Select.Option value="VIOLATION">
                                             Pelanggaran
                                         </Select.Option>
+                                        <Select.Option value="INACTIVE">
+                                            InActive
+                                        </Select.Option>
                                     </Select>
                                 </LabelInput>
                                 <LabelInput

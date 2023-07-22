@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/go_v2_shopeelib/app/app_config"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/controller"
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
@@ -35,10 +36,10 @@ type TokopediaWebServer struct {
 }
 
 func runProxyBrowser(base *legacy_source.BaseConfig) *shopee_dp.ShopeeBrowser {
-	browser := shopee_dp.InitializeShopeeBrowser(base, context.Background(), "localhost:5002", time.Minute*2)
-	go browser.Proxy.RunProxy()
-	go browser.Run()
+	prox, _ := app_config.GetProxy(app_config.TestProxyKey)
+	browser := shopee_dp.InitializeShopeeBrowser(base, context.Background(), prox, time.Minute*2)
 
+	go browser.Run()
 	return browser
 }
 

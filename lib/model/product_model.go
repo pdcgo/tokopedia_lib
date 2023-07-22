@@ -123,6 +123,7 @@ const (
 	DeletedStatus   ProductStatus = "DELETED"
 	ViolationStatus ProductStatus = "VIOLATION"
 	ActiveStatus    ProductStatus = "ACTIVE"
+	InActiveStatus  ProductStatus = "INACTIVE"
 )
 
 type NoVariantStockPrice struct {

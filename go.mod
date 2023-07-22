@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/pdcgo/common_conf v1.1.0
-	github.com/pdcgo/go_v2_shopeelib v1.0.15
+	github.com/pdcgo/go_v2_shopeelib v1.0.16
 	github.com/pdcgo/v2_gots_sdk v1.2.4
 	github.com/sethvargo/go-retry v0.2.4
 	github.com/zeebo/assert v1.3.0
@@ -70,7 +70,8 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
-	github.com/pdcgo/analytic v1.0.1 // indirect
+	github.com/pdcgo/analytic v1.0.2 // indirect
+	github.com/pdcgo/go-mitmproxy v1.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -111,6 +112,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/logging v1.7.0 // indirect
 	cloud.google.com/go/longrunning v0.5.1 // indirect
+	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/chromedp/cdproto v0.0.0-20230620000757-8605e5981815
 	github.com/chromedp/chromedp v0.9.1
@@ -141,6 +143,7 @@ require (
 	github.com/robotn/xgb v0.0.0-20190912153532-2cb92d044934 // indirect
 	github.com/robotn/xgbutil v0.0.0-20190912154524-c861d6f87770 // indirect
 	github.com/rs/zerolog v1.29.1 // indirect
+	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/sirupsen/logrus v1.9.2
 	github.com/stretchr/testify v1.8.4
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
