@@ -1,0 +1,24 @@
+{
+    "query": {
+        "pmin": 10000,
+        "pmax": 100000,
+        "ob": "8",
+        "rt": "0,1,2,3,4,5",
+        "condition": "1",
+        "fcity": [],
+        "goldmerchant": false,
+        "official": false,
+        "shipping": [
+            "10",
+            "12",
+            "13"
+        ],
+        "preorder": false
+    },
+    "last_login_active": false,
+    "last_login_days": 5,
+    "point": [
+        10,
+        20
+    ]
+}

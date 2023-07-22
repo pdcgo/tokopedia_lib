@@ -1,0 +1,19 @@
+{
+    "limit_grab": 100,
+    "last_review_active": false,
+    "last_review_days": 10,
+    "penjualan": 0,
+    "prosentase": 0,
+    "stock": 0,
+    "blacklist_username": {
+        "active": false,
+        "shopee": {
+            "data": [],
+            "filename": "tokoblacklist.txt"
+        },
+        "tokopedia": {
+            "data": [],
+            "filename": ""
+        }
+    }
+}

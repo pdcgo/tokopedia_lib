@@ -1,7 +1,7 @@
 package model_public
 
 type SearchProductVar struct {
-	Sort           int    `json:"ob,omitempty"`    // 23
+	Sort           string `json:"ob,omitempty"`    // 23
 	Page           int    `json:"page"`            // 1
 	Rows           int    `json:"rows,omitempty"`  // 80
 	Device         string `json:"device"`          // desktop
@@ -14,16 +14,18 @@ type SearchProductVar struct {
 	TopadsBucket   bool   `json:"topads_bucket"`   // true
 	PriceMin       int    `json:"pmin,omitempty"`
 	PriceMax       int    `json:"pmax,omitempty"`
-	Rate           int    `json:"rt,omitempty"`
+	Rate           string `json:"rt,omitempty"`
 	Query          string `json:"q,omitempty"`
-	Locations      []int  `json:"fcity,omitempty"`
-	Condition      []int  `json:"condition,omitempty"`
-	ShopTier       []int  `json:"shop_tier,omitempty"`
+	Locations      string `json:"fcity,omitempty"`
+	Condition      string `json:"condition,omitempty"`
+	ShopTier       string `json:"shop_tier,omitempty"`
 	CategoryId     int    `json:"sc,omitempty"`
 	Start          int    `json:"start,omitempty"`
 	Identifier     string `json:"identifier,omitempty"`
 	Navsource      string `json:"navsource"`
 	UniqueId       string `json:"unique_id"`
+	Shipping       string `json:"shipping,omitempty"`
+	PreOrder       bool   `json:"preorder,omitempty"`
 }
 
 type SearchProductAdParams struct {
