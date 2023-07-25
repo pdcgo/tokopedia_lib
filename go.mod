@@ -32,7 +32,6 @@ require (
 	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/emersion/go-imap v1.2.1 // indirect
 	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead // indirect
-	github.com/faiface/beep v1.1.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gen2brain/shm v0.0.0-20200228170931-49f9650110c5 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -40,16 +39,11 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/gocarina/gocsv v0.0.0-20230513223533-9ddd7fd60602 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/gomodule/redigo v1.8.4 // indirect
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
 	github.com/google/s2a-go v0.1.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/google/wire v0.5.0 // indirect
-	github.com/googollee/go-socket.io v1.7.0 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/hajimehoshi/oto v0.7.1 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/jezek/xgb v1.0.0 // indirect
@@ -96,8 +90,6 @@ require (
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.10.0 // indirect
-	golang.org/x/exp/shiny v0.0.0-20230321023759-10a507213a29 // indirect
-	golang.org/x/mobile v0.0.0-20201217150744-e6ae53a27f4f // indirect
 	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/term v0.9.0 // indirect
 	golang.org/x/tools v0.10.0 // indirect
@@ -112,7 +104,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/logging v1.7.0 // indirect
 	cloud.google.com/go/longrunning v0.5.1 // indirect
-	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/chromedp/cdproto v0.0.0-20230620000757-8605e5981815
 	github.com/chromedp/chromedp v0.9.1
@@ -143,8 +134,7 @@ require (
 	github.com/robotn/xgb v0.0.0-20190912153532-2cb92d044934 // indirect
 	github.com/robotn/xgbutil v0.0.0-20190912154524-c861d6f87770 // indirect
 	github.com/rs/zerolog v1.29.1 // indirect
-	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
-	github.com/sirupsen/logrus v1.9.2
+	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
