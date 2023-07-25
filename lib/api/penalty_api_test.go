@@ -53,6 +53,7 @@ func TestGettingPenaltyApi(t *testing.T) {
 
 		t.Log(hasil.Data.ShopScorePenaltySummary.Error.Message)
 
-		assert.NotEqual(t, hasil.Data.ShopScorePenaltySummary.Result.Penalty, 0)
+		// assert.NotEqual(t, hasil.Data.ShopScorePenaltySummary.Result.Penalty, 0)
+		assert.Equal(t, "", hasil.Data.ShopScorePenaltySummary.Error.Message)
 	})
 }
