@@ -1,4 +1,34 @@
-package socket_test
+package chat_test
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/lib/chat"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestRunningSocket(t *testing.T) {
+	driver, err := tokopedia_lib.NewDriverAccount("pdcthoni@gmail.com", "SilentIsMyMantra", "IULIWGH6TIK3CZBKHGE27DBRLQ5LR5WQ")
+	assert.Nil(t, err)
+
+	api, saveSession, err := driver.CreateApi()
+	assert.Nil(t, err)
+
+	defer saveSession()
+
+	cha := chat.NewSocketClient(api)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	cha.Connect(ctx, func(socket *chat.SocketClient, event *chat.RcvEventSocket) error {
+		return nil
+	})
+
+}
 
 // import (
 // 	"context"
