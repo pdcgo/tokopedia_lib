@@ -17,6 +17,7 @@ import (
 	sapi_public "github.com/pdcgo/go_v2_shopeelib/lib/public_api"
 	"github.com/pdcgo/go_v2_shopeelib/lib/shopee_dp"
 	"github.com/pdcgo/tokopedia_lib/app/services"
+	"github.com/pdcgo/tokopedia_lib/app/shopee/shopee_repo"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/app/web"
@@ -102,7 +103,8 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	api.RegisterCheckVerifApi(g, baseData)
 	api.RegisterSubmitApi(g.Group("autosubmit"), baseData)
 
-	mapetalase := services.NewEtalaseMapService(db)
+	shopeeagg := shopee_repo.NewProductAggregate(productRepo.Collection)
+	mapetalase := services.NewEtalaseMapService(db, shopeeagg)
 	etalaseApi := api.NewEtalaseMapApi(mapetalase)
 
 	etalaseApi.RegisterApi(g.Group("etalase_map"))

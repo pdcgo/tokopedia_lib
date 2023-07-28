@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
+	"github.com/pdcgo/tokopedia_lib/app/shopee/shopee_repo"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/shopee_flow"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -31,7 +32,18 @@ func runUploadShopeeToped(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	flow := shopee_flow.NewShopeeToTopedFlow(rootBase, context.Background(), mdb, sqlitedb, concurent, publicapi)
+
+	shopeeagg := shopee_repo.NewProductAggregate(mdb.Collection("item"))
+
+	flow := shopee_flow.NewShopeeToTopedFlow(
+		rootBase,
+		context.Background(),
+		mdb,
+		sqlitedb,
+		concurent,
+		publicapi,
+		shopeeagg,
+	)
 
 	return flow.Run()
 

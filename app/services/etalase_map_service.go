@@ -1,9 +1,8 @@
 package services
 
 import (
-	"errors"
-	"log"
-
+	"github.com/pdcgo/tokopedia_lib/app/config"
+	"github.com/pdcgo/tokopedia_lib/app/shopee/shopee_repo"
 	"gorm.io/gorm"
 )
 
@@ -14,11 +13,14 @@ type EtalaseMapItem struct {
 }
 
 type EtalaseMapService struct {
-	db *gorm.DB
+	db         *gorm.DB
+	shopeePAgg shopee_repo.ProductAggregate
+	mapconfig  *config.ShopeeMapper
 }
 
 func NewEtalaseMapService(
 	db *gorm.DB,
+	shopeePAgg shopee_repo.ProductAggregate,
 ) *EtalaseMapService {
 
 	db.AutoMigrate(
@@ -26,15 +28,50 @@ func NewEtalaseMapService(
 	)
 
 	service := EtalaseMapService{
-		db: db,
+		db:         db,
+		shopeePAgg: shopeePAgg,
 	}
 
 	return &service
 }
 
-type EtalasePayload struct {
-	Etalase string `json:"etalase"`
-	CatIDs  []int  `json:"cat_ids"`
+type ShopeeEtalaseMapItem struct {
+	ShopeeID              int64 `json:"shopee_id"`
+	TokopediaID           int   `json:"tokpedia_id"`
+	Count                 int   `json:"product_count"`
+	CategoryNoMapping     bool  `json:"category_no_mapping"`
+	ShopeeCategoryName    []string
+	TokopediaCategoryName []string
+	EtalaseName           string
+}
+
+func (service *EtalaseMapService) GetListMap(namespace string) ([]*ShopeeEtalaseMapItem, error) {
+	hasil := []*ShopeeEtalaseMapItem{}
+
+	err := service.shopeePAgg.IterCategory(namespace, func(shopeeID int64, count int, name []string) error {
+		item := ShopeeEtalaseMapItem{
+			ShopeeID:           shopeeID,
+			Count:              count,
+			ShopeeCategoryName: name,
+		}
+
+		mapitem, err := service.mapconfig.GetTokopediaID(shopeeID)
+		if err != nil {
+			item.CategoryNoMapping = true
+			return nil
+		}
+
+		item.TokopediaID = mapitem.TokopediaID
+
+		etamap, _ := service.GetEtalase(item.TokopediaID)
+		item.EtalaseName = etamap.EtalaseName
+
+		hasil = append(hasil, &item)
+
+		return nil
+	})
+
+	return hasil, err
 }
 
 func (service *EtalaseMapService) GetEtalase(catID int) (*EtalaseMapItem, error) {
@@ -43,15 +80,18 @@ func (service *EtalaseMapService) GetEtalase(catID int) (*EtalaseMapItem, error)
 	}
 
 	err := service.db.Where(&mapitem).First(&mapitem).Error
-	log.Println(mapitem)
 	return &mapitem, err
-
 }
 
 func (service *EtalaseMapService) DeleteEtalase(name string) error {
 	return service.db.Where(&EtalaseMapItem{
 		EtalaseName: name,
 	}).Delete(&EtalaseMapItem{}).Error
+}
+
+type EtalasePayload struct {
+	Etalase string `json:"etalase"`
+	CatIDs  []int  `json:"cat_ids"`
 }
 
 func (service *EtalaseMapService) ListEtalase() ([]*EtalasePayload, error) {
@@ -78,10 +118,9 @@ func (service *EtalaseMapService) ListEtalase() ([]*EtalasePayload, error) {
 	return hasil, nil
 }
 
-func (service *EtalaseMapService) UpdateBulkMap(payload []*EtalaseMapItem) []error {
-	hasil := make([]error, len(payload))
+func (service *EtalaseMapService) UpdateBulkMap(payload []*EtalaseMapItem) error {
 
-	for ind, item := range payload {
+	for _, item := range payload {
 		err := service.db.Transaction(func(tx *gorm.DB) error {
 			etalaseName := item.EtalaseName
 
@@ -89,39 +128,11 @@ func (service *EtalaseMapService) UpdateBulkMap(payload []*EtalaseMapItem) []err
 			item.EtalaseName = etalaseName
 			return tx.Save(item).Error
 		})
-
-		hasil[ind] = err
-	}
-
-	return hasil
-}
-
-func (service *EtalaseMapService) List() ([]*EtalaseMapItem, error) {
-	hasil := []*EtalaseMapItem{}
-	err := service.db.Find(&hasil).Error
-	return hasil, err
-}
-
-func (service *EtalaseMapService) AddMap(payload *EtalasePayload) error {
-	return service.db.Transaction(func(tx *gorm.DB) error {
-		for _, catID := range payload.CatIDs {
-			etalasename := payload.Etalase
-			mapitem := EtalaseMapItem{
-				EtalaseName: etalasename,
-				CategoryID:  catID,
-			}
-
-			err := tx.Where(&mapitem).First(&mapitem).Error
-
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				err = tx.Save(&mapitem).Error
-			}
-
-			if err != nil {
-				return err
-			}
+		if err != nil {
+			return err
 		}
 
-		return nil
-	})
+	}
+
+	return nil
 }

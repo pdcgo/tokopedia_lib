@@ -27,15 +27,9 @@ func (api *EtalaseMapApi) RegisterApi(gr *v2_gots_sdk.SdkGroup) {
 	gr.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodGet,
 		RelativePath: "list",
-		Response:     &EtalaseListMapRes{},
-	}, api.ListEtalase)
-
-	gr.Register(&v2_gots_sdk.Api{
-		Method:       http.MethodPost,
-		RelativePath: "add",
-		Payload:      &services.EtalasePayload{},
-		Response:     &Response{},
-	}, api.AddEtalase)
+		Response:     &ListMapEtalaseRes{},
+		Query:        ListMapEtalaseQuery{},
+	}, api.ListMapEtalase)
 
 	gr.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodDelete,
@@ -45,13 +39,7 @@ func (api *EtalaseMapApi) RegisterApi(gr *v2_gots_sdk.SdkGroup) {
 
 	gr.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodGet,
-		RelativePath: "listmap",
-		Response:     []*services.EtalaseMapItem{},
-	}, api.ListMap)
-
-	gr.Register(&v2_gots_sdk.Api{
-		Method:       http.MethodGet,
-		RelativePath: "update_map_item",
+		RelativePath: "update",
 		Response:     &Response{},
 		Payload:      []*services.EtalaseMapItem{},
 	}, api.UpdateMapEtalase)
@@ -74,33 +62,25 @@ func (api *EtalaseMapApi) UpdateMapEtalase(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, errs)
 }
 
-type EtalaseListMapRes struct {
-	Data []*services.EtalasePayload `json:"data"`
+type ListMapEtalaseRes struct {
+	Data []*services.ShopeeEtalaseMapItem `json:"data"`
 }
 
-func (api *EtalaseMapApi) ListMap(ctx *gin.Context) {
-	hasil, _ := api.service.List()
-
-	ctx.JSON(http.StatusOK, hasil)
+type ListMapEtalaseQuery struct {
+	Namespace string `json:"namespace" form:"namespace"`
 }
 
-func (api *EtalaseMapApi) ListEtalase(ctx *gin.Context) {
-	hasil := EtalaseListMapRes{
-		Data: []*services.EtalasePayload{},
+func (api *EtalaseMapApi) ListMapEtalase(ctx *gin.Context) {
+	query := ListMapEtalaseQuery{}
+	ctx.BindQuery(&query)
+
+	hasil := ListMapEtalaseRes{
+		Data: []*services.ShopeeEtalaseMapItem{},
 	}
-	data, _ := api.service.ListEtalase()
+	data, _ := api.service.GetListMap(query.Namespace)
 	hasil.Data = data
 
 	ctx.JSON(http.StatusOK, &hasil)
-}
-
-func (api *EtalaseMapApi) AddEtalase(ctx *gin.Context) {
-	var payload services.EtalasePayload
-
-	ctx.BindJSON(&payload)
-
-	api.service.AddMap(&payload)
-	ctx.JSON(http.StatusOK, &Response{})
 }
 
 type DeleteEtalaseQuery struct {

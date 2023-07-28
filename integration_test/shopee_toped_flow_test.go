@@ -6,6 +6,7 @@ import (
 
 	shopeeupapp "github.com/pdcgo/go_v2_shopeelib/app/upload_app"
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
+	"github.com/pdcgo/tokopedia_lib/app/shopee/shopee_repo"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/shopee_flow"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/datasource"
@@ -49,11 +50,19 @@ func TestUploadFlow(t *testing.T) {
 	}
 
 	mdb := mongorepo.NewDatabase(context.Background(), cfg.MongoUri, "kampretcode2")
-
+	shopeeagg := shopee_repo.NewProductAggregate(mdb.Collection("item"))
 	publicapi, err := api_public.NewTokopediaApiPublic()
 
 	assert.Nil(t, err)
-	flow := shopee_flow.NewShopeeToTopedFlow(rootBase, context.Background(), mdb, sqlitedb, &concurent, publicapi)
+	flow := shopee_flow.NewShopeeToTopedFlow(
+		rootBase,
+		context.Background(),
+		mdb,
+		sqlitedb,
+		&concurent,
+		publicapi,
+		shopeeagg,
+	)
 	flow.AkunIterator.Reset()
 	t.Run("test getting double account", func(t *testing.T) {
 		akun, _, _, _ := flow.AkunIterator.Get()
