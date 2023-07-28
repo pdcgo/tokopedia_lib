@@ -12,6 +12,7 @@ const client = axios.create({
 });
 
 export type UseQueryOptions<D = any, E = Error> = {
+    signal?: AbortSignal
     onSuccess?: (data: D) => void
     onError?: (err: E) => void
 }
@@ -31,6 +32,7 @@ function useRequestRaw<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, 
                 data: config.payload,
                 url: config.path,
                 params: config.params,
+                signal: senderOptions?.signal
             });
 
             if (data?.error) {
@@ -69,6 +71,7 @@ function useRequest<T extends keyof SdkConfig, K extends SdkConfig>(_key: T, opt
                 data: config.payload,
                 url: config.path,
                 params: config.params,
+                signal: senderOptions?.signal
             });
 
             if (data?.error) {

@@ -75,13 +75,7 @@ export interface BaseResponse {
     message?: string;
     status?: string;
 }
-export interface SettingSpinData {
-    smin: number;
-    smax: number;
-    merek_ins_t: boolean;
-    title: string;
-    desc: string;
-}
+
 export interface DataSpinDeleteQuery {
     name: string;
 }
@@ -89,6 +83,13 @@ export interface DataSpinDeleteQuery {
 export interface SettingSpinTitlePool {
     name: string;
     data: string;
+}
+export interface SettingSpinData {
+    smin: number;
+    smax: number;
+    merek_ins_t: boolean;
+    title: string;
+    desc: string;
 }
 export interface SettingSpinResponse {
     data?: SettingSpinData;
@@ -248,7 +249,18 @@ export interface CategoryItem {
     main: CategoryMain;
     sub: CategorySub[];
 }
-export interface ShopeeCategoryRegionSetting {
+export interface CategoryTreeItem {
+    id: number;
+    name: string;
+    display_name: string;
+    parent_id: number;
+    has_active_children: boolean;
+    has_children: boolean;
+    region_setting?: RegionSetting;
+    is_prohibit: boolean;
+    children: CategoryTreeItem[];
+}
+export interface RegionSetting {
     enable_size_chart: boolean;
     low_stock_value: number;
     dimension_mandatory: boolean;
@@ -260,9 +272,9 @@ export interface ShopeeCategory {
     parent_id: number;
     has_active_children: boolean;
     has_children: boolean;
-    children?: any[];
-    region_setting: ShopeeCategoryRegionSetting;
+    region_setting?: RegionSetting;
     is_prohibit: boolean;
+    children: CategoryTreeItem[];
     chain_name: string[];
     chain_ids: number[];
 }
@@ -380,6 +392,13 @@ export interface EtalaseListMapRes {
 export interface DeleteEtalaseQuery {
     name: string;
 }
+export interface EtalaseMapItem {
+    ID: number;
+    etalase_name: string;
+    category_id: number;
+}
+
+
 export type SdkConfig = { 
 
 	GetTokopediaAkunList: {
@@ -457,7 +476,7 @@ export type SdkConfig = {
 	PostApiDataspin: {
 		method: "post"
 		params: undefined
-		payload: SettingSpinData
+		payload: DataSpinItemResponse
 		response: BaseResponse
 		path: "api/dataspin"
 	},
@@ -780,5 +799,21 @@ export type SdkConfig = {
 		payload: undefined
 		response: undefined
 		path: "tokopedia/etalase_map"
+	},
+
+	GetTokopediaEtalaseMapListmap: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: EtalaseMapItem[]
+		path: "tokopedia/etalase_map/listmap"
+	},
+
+	GetTokopediaEtalaseMapUpdateMapItem: {
+		method: "get"
+		params: undefined
+		payload: EtalaseMapItem[]
+		response: Response
+		path: "tokopedia/etalase_map/update_map_item"
 	}
 }

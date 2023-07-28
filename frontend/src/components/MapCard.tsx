@@ -26,7 +26,6 @@ export default function MapCard(props: MapCardProps): React.ReactElement {
             }
             size="small"
             type="inner"
-            hoverable
             title={
                 <Breadcrumb
                     separator="/"
