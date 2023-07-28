@@ -33,17 +33,25 @@ func (api *EtalaseMapApi) RegisterApi(gr *v2_gots_sdk.SdkGroup) {
 
 	gr.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodDelete,
-		RelativePath: "",
+		RelativePath: "delete",
 		Query:        &DeleteEtalaseQuery{},
 	}, api.DeleteEtalase)
 
 	gr.Register(&v2_gots_sdk.Api{
-		Method:       http.MethodGet,
+		Method:       http.MethodPut,
 		RelativePath: "update",
 		Response:     &Response{},
 		Payload:      []*services.EtalaseMapItem{},
 	}, api.UpdateMapEtalase)
 
+	gr.Register(&v2_gots_sdk.Api{
+		Method:       http.MethodGet,
+		RelativePath: "list_etalase",
+		Response:     []*services.EtalasePayload{},
+	}, func(ctx *gin.Context) {
+		data, _ := api.service.ListEtalase()
+		ctx.JSON(http.StatusOK, &data)
+	})
 }
 
 func (api *EtalaseMapApi) UpdateMapEtalase(ctx *gin.Context) {
