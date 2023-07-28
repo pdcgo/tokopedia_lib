@@ -1,6 +1,9 @@
 package grabber
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -16,9 +19,72 @@ type Grabber struct {
 	Api          *api_public.TokopediaApiPublic
 	Filter       *filter.BaseFilter
 	CacheHandler *grab_handler.CacheProductHandler
+	Ctx          context.Context
 }
 
-func (grab *Grabber) generateProductSearchParams() *model_public.SearchProductVar {
+func NewBaseGrabber(api *api_public.TokopediaApiPublic, base *legacy_source.BaseConfig, repo *mongorepo.ProductRepo) *Grabber {
+	filter := filter.CreateBaseFilter(api, base)
+	cacheHandler := grab_handler.NewCacheProductHandler(repo)
+	return &Grabber{
+		Api:          api,
+		Filter:       filter,
+		CacheHandler: cacheHandler,
+	}
+}
+
+func (grab *Grabber) AppliedFilterShop(shopId int, shopDomain string) bool {
+	shopFilter := filter.CreateShopFilter(*grab.Filter, filter.Shop{
+		Id:     shopId,
+		Domain: shopDomain,
+	})
+
+	return shopFilter.ApplyFilter()
+}
+
+func (grab *Grabber) AppliedFilterProduct(prodId int, prodName string, prodUrl string) bool {
+	productFilter := filter.CreateProductFilter(*grab.Filter, filter.ProductFilterModel{
+		ProductId:   prodId,
+		ProductName: prodName,
+		ProductUrl:  prodUrl,
+	})
+	return productFilter.ApplyFilter()
+}
+
+func (grab *Grabber) GetPublicProductLayout(url string) (*model_public.PdpGetlayoutQueryResp, error) {
+	prodVar, _ := ParseProductDetailParamsFromUrl(url)
+	variable := &model_public.PdpGetlayoutQueryVar{
+		ShopDomain: prodVar.ShopDomain,
+		ProductKey: prodVar.ProductKey,
+		APIVersion: 1,
+	}
+	product_detail, err := grab.Api.PdpGetlayoutQuery(variable)
+	if err != nil {
+		fmt.Printf("error [ produk ] : error  mendapatkan produk [ %s ]\n", prodVar.ProductKey)
+		return nil, err
+	}
+
+	if product_detail.Data.PdpGetLayout.BasicInfo.Alias == "" {
+		fmt.Printf("error [ produk ] : produk [ %s ] tidak mempunyai data yang lengkap\n", prodVar.ProductKey)
+		return nil, errors.New("")
+	}
+
+	return product_detail, nil
+}
+
+func (grab *Grabber) GetProductDataP2(pdpSession string, shopId string) (*model_public.PdpGetDataP2Resp, error) {
+
+	payload := &model_public.PdpGetDataP2Var{
+		PdpSession: pdpSession,
+		ProductID:  shopId,
+	}
+	product_p2, err := grab.Api.PdpGetDataP2(payload)
+	if err != nil {
+		fmt.Printf("error [ produk ] : error mendapatkan produk\n")
+	}
+	return product_p2, err
+}
+
+func (grab *Grabber) GenerateProductSearchParams() *model_public.SearchProductVar {
 	locs := arrayConverter(grab.Filter.GrabTokopedia.Query.Fcity)
 	shippings := arrayConverter(grab.Filter.GrabTokopedia.Query.Shipping)
 
@@ -29,6 +95,7 @@ func (grab *Grabber) generateProductSearchParams() *model_public.SearchProductVa
 	if grab.Filter.GrabTokopedia.Query.Official {
 		shopTier = append(shopTier, "2")
 	}
+
 	if grab.Filter.GrabTokopedia.Query.Goldmerchant {
 		shopTier = append(shopTier, "3")
 	}
@@ -57,12 +124,50 @@ func (grab *Grabber) generateProductSearchParams() *model_public.SearchProductVa
 	return &params
 }
 
-func CreateBaseGrabber(api *api_public.TokopediaApiPublic, base *legacy_source.BaseConfig, repo *mongorepo.ProductRepo) *Grabber {
-	filter := filter.CreateBaseFilter(api, base)
-	cacheHandler := grab_handler.NewCacheProductHandler(repo)
-	return &Grabber{
-		Api:          api,
-		Filter:       filter,
-		CacheHandler: cacheHandler,
+func ParseProductDetailParamsFromUrl(uri string) (*model_public.PdpGetlayoutQueryVar, error) {
+	u, err := url.Parse(uri)
+	if err != nil {
+		return nil, err
 	}
+	path := u.EscapedPath()
+	query := u.Query()
+
+	splitPath := strings.Split(path, "/")
+	shopDomain := splitPath[len(splitPath)-2]
+	productKey := splitPath[len(splitPath)-1]
+
+	payload := &model_public.PdpGetlayoutQueryVar{
+		ShopDomain: shopDomain,
+		ProductKey: productKey,
+		APIVersion: 1,
+		ExtParam:   url.QueryEscape(query.Get("extParam")),
+	}
+	return payload, nil
+}
+
+func GenerateShopProductVar() *model_public.ShopProductVar {
+	params := &model_public.ShopProductVar{
+		Page:           1,
+		PerPage:        100,
+		EtalaseID:      "etalase",
+		Sort:           1,
+		Sid:            "",
+		UserDistrictID: "176",
+		UserCityID:     "2274",
+		UserLat:        "",
+		UserLong:       "",
+	}
+	return params
+}
+
+func GenerateShopCoreInfoParamsFormUrl(uri string) (*model_public.ShopCoreInfoVar, error) {
+	u, err := url.Parse(uri)
+	if err != nil {
+		return nil, err
+	}
+	params := &model_public.ShopCoreInfoVar{
+		ID:     0,
+		Domain: strings.Replace(u.Path, "/", "", -1),
+	}
+	return params, nil
 }

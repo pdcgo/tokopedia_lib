@@ -59,9 +59,21 @@ func (filter *ShopFilter) FilterPoint() bool {
 
 }
 
+func (filter *ShopFilter) FilterBlacklistUsername() bool {
+	if !filter.BaseFilter.GrabBasic.BlacklistUsername.Active {
+		return false
+	}
+	if filter.BlacklistUsername(filter.Shop.Domain) {
+		fmt.Printf("filter [ shop ] : toko [ %s ] termasuk blacklist\n", filter.Shop.Domain)
+		return true
+	}
+	return false
+}
+
 func (filter *ShopFilter) ApplyFilter() bool {
 	filters := []func() bool{
 		filter.FilterPoint,
+		filter.FilterBlacklistUsername,
 	}
 	for _, filter := range filters {
 		if filter() {

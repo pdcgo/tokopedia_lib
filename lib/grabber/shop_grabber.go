@@ -3,161 +3,141 @@ package grabber
 import (
 	"errors"
 	"fmt"
-	"net/url"
 	"strconv"
-	"strings"
 
-	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
-	"github.com/pdcgo/tokopedia_lib/lib/api_public"
-	"github.com/pdcgo/tokopedia_lib/lib/filter"
+	"github.com/pdcgo/go_v2_shopeelib/helper"
 	"github.com/pdcgo/tokopedia_lib/lib/grab_handler"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
 
 type ShopGrabber struct {
-	Api    *api_public.TokopediaApiPublic
-	params *model_public.ShopProductVar
-	Filter *filter.BaseFilter
+	*Grabber
 }
 
-func generateShopProductVar() *model_public.ShopProductVar {
-	params := &model_public.ShopProductVar{
-		Page:           1,
-		PerPage:        100,
-		EtalaseID:      "etalase",
-		Sort:           1,
-		Sid:            "",
-		UserDistrictID: "176",
-		UserCityID:     "2274",
-		UserLat:        "",
-		UserLong:       "",
-	}
-	return params
-}
-
-func generateShopCoreInfoParams(uri string) (*model_public.ShopCoreInfoVar, error) {
-	u, err := url.Parse(uri)
+func (grab *ShopGrabber) getShopCoreInfo(domain string) (*model_public.ShopCoreInfoResp, error) {
+	variable, err := GenerateShopCoreInfoParamsFormUrl(domain)
 	if err != nil {
 		return nil, err
 	}
-	params := &model_public.ShopCoreInfoVar{
-		ID:     0,
-		Domain: strings.Replace(u.Path, "/", "", -1),
+	fmt.Printf("grab [ shop ] : memulai grab shop [ %s ]\n", variable.Domain)
+	shopCoreInfo, err := grab.Api.ShopCoreInfo(variable)
+	if err != nil {
+		return nil, err
 	}
-	return params, nil
+	return shopCoreInfo, nil
 }
 
-func (grab *ShopGrabber) RunShopGrabber(prodResp chan<- model_public.ShopProductData) error {
-	defer close(prodResp)
+func (grab *ShopGrabber) IterateProductPages(params *model_public.ShopProductVar) (<-chan *model_public.ShopProductData, *helper.ChannelError) {
+	res := make(chan *model_public.ShopProductData)
+	errChan := helper.NewChannelError()
+	go func() {
+		defer close(res)
+		defer errChan.Raise()
 
-	hasMore := true
-	for hasMore {
-		resp, err := grab.Api.ShopProducts(grab.params)
-		if err != nil {
-			return err
-		}
+	Parent:
+		for {
+			resp, err := grab.Api.ShopProducts(params)
+			if err != nil {
+				errChan.SetError(err)
+				fmt.Println(err)
+				break Parent
+			}
 
-		products := resp.Data.GetShopProduct.Data
-		if len(products) == 0 {
-			return errors.New("halaman kosong")
-		}
+			products := resp.Data.GetShopProduct.Data
+			if len(products) == 0 {
+				errChan.SetError(errors.New("halaman kosong"))
+				fmt.Println(err)
+				break Parent
+			}
 
-		for _, product := range products {
-			prodResp <- product
+			for _, product := range products {
+				res <- &product
+			}
+			if resp.Data.GetShopProduct.Links.Next == "" {
+				fmt.Println(err)
+				break Parent
+			}
+			params.Page += 1
 		}
-		if resp.Data.GetShopProduct.Links.Next == "" {
-			hasMore = false
-		}
-		grab.params.Page += 1
-	}
-	return nil
+	}()
+	return res, errChan
 }
 
 type ShopListGrabber struct {
 	ShopGrabber
-	Shops    []string
-	Pathfile string
+	Shops []string
 }
 
-func (grab *ShopListGrabber) Run(prodResp chan<- grab_handler.ShopGrabberResp) error {
-	if grab.params == nil {
-		grab.params = generateShopProductVar()
+func CreateShopListGrabber(
+	grabber *Grabber,
+	shops []string) *ShopListGrabber {
+
+	return &ShopListGrabber{
+		ShopGrabber: ShopGrabber{
+			Grabber: grabber,
+		},
+		Shops: shops,
+	}
+}
+
+func (grab *ShopListGrabber) ProcessProduct(shopCore *model_public.ShopCoreInfoResp, product *model_public.ShopProductData) error {
+	prodId, _ := strconv.Atoi(product.ProductID)
+	if grab.AppliedFilterProduct(prodId, product.Name, product.ProductURL) {
+		return errors.New("terkena filter produk")
+	}
+	pubProduct, err := grab.GetPublicProductLayout(product.ProductURL)
+	if err != nil {
+		return err
 	}
 
-	for _, domain := range grab.Shops {
-		variable, err := generateShopCoreInfoParams(domain)
-		if err != nil {
-			return err
-		}
-		shopCoreInfo, err := grab.Api.ShopCoreInfo(variable)
-		if err != nil {
-			return err
-		}
-		grab.params.Sid = shopCoreInfo.Data.ShopInfoByID.Result[0].ShopCore.ShopID
-
-		shopId, _ := strconv.Atoi(grab.params.Sid)
-		shopFilter := filter.CreateShopFilter(*grab.Filter, filter.Shop{
-			Id:     shopId,
-			Domain: variable.Domain,
-		})
-
-		if shopFilter.ApplyFilter() {
-			continue
-		}
-
-		products := make(chan model_public.ShopProductData)
-		go grab.RunShopGrabber(products)
-		for product := range products {
-			prodVar, _ := parseProductDetailParamsFromUrl(product.ProductURL)
-			variable := &model_public.PdpGetlayoutQueryVar{
-				ShopDomain: variable.Domain,
-				ProductKey: prodVar.ProductKey,
-				APIVersion: 1,
-			}
-			product_detail, err := grab.Api.PdpGetlayoutQuery(variable)
-			if err != nil {
-				fmt.Printf("error [ produk ] : error  mendapatkan produk [ %s ]\n", product.Name)
-				continue
-			}
-
-			if product_detail.Data.PdpGetLayout.BasicInfo.Alias == "" {
-				fmt.Printf("error [ produk ] : produk [ %s ] tidak mempunyai data yang lengkap\n", product.Name)
-				continue
-			}
-
-			productFilter := filter.CreateProductLayoutFilter(*grab.Filter, product_detail.Data.PdpGetLayout)
-			if productFilter.ApplyFilter() {
-				continue
-			}
-			res := grab_handler.ShopGrabberResp{
-				Shop:    *shopCoreInfo,
-				Product: *product_detail,
-			}
-			prodResp <- res
-
-		}
-
-		grab.params.Page = 1
-	}
+	grab.Save("", &grab_handler.ShopGrabberResp{
+		Shop:    shopCore,
+		Product: pubProduct,
+	})
+	fmt.Printf("grab [ shop ] : mendapatkan produk [ %s ]\n", product.Name)
 	return nil
 }
 
-func CreateShopListGrabber(shops []string, pathfile string) (*ShopListGrabber, error) {
-	base := legacy_source.BaseConfig{
-		BaseData: "../..",
+func (grab *ShopListGrabber) Save(namespace string, product *grab_handler.ShopGrabberResp) error {
+	return grab.CacheHandler.AddItemProductShop(namespace, product)
+}
+
+func (grab *ShopListGrabber) Run() {
+Shop:
+	for _, shopUrl := range grab.Shops {
+
+		limit := int32(grab.Grabber.Filter.GrabBasic.LimitGrab)
+		limiter := helper.NewLimiter(limit)
+
+		shopCoreInfo, err := grab.getShopCoreInfo(shopUrl)
+		if err != nil {
+			continue Shop
+		}
+		shopId, _ := strconv.Atoi(shopCoreInfo.Data.Result[0].ShopCore.ShopID)
+		if grab.AppliedFilterShop(shopId, shopCoreInfo.Data.Result[0].ShopCore.Domain) {
+			continue Shop
+		}
+
+		params := GenerateShopProductVar()
+		params.Sid = fmt.Sprintf("%d", shopId)
+		products, errChan := grab.IterateProductPages(params)
+		for product := range products {
+			if limiter.LimitReached() {
+				fmt.Println("filter [ produk ] : telah mencapai batas grab")
+				return
+			}
+			err := grab.ProcessProduct(shopCoreInfo, product)
+			if err != nil {
+				continue
+			}
+
+			limiter.Add()
+
+		}
+		err = errChan.GetError()
+		if err != nil {
+			fmt.Println(err)
+			continue Shop
+		}
 	}
-	api, err := api_public.NewTokopediaApiPublic()
-	if err != nil {
-		return nil, err
-	}
-	shopListGrabber := &ShopListGrabber{
-		ShopGrabber: ShopGrabber{
-			Api:    api,
-			params: generateShopProductVar(),
-			Filter: filter.CreateBaseFilter(api, &base),
-		},
-		Shops:    shops,
-		Pathfile: pathfile,
-	}
-	return shopListGrabber, nil
 }

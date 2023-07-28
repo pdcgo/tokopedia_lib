@@ -11,18 +11,18 @@ type UrlGrabberResp struct {
 }
 
 type ShopGrabberResp struct {
-	Shop    model_public.ShopCoreInfoResp
-	Product model_public.PdpGetlayoutQueryResp
+	Shop    *model_public.ShopCoreInfoResp
+	Product *model_public.PdpGetlayoutQueryResp
 }
 
 type ProductListGrabberResp struct {
-	Product       model_public.ProductSearch
-	ProductDetail model_public.PdpGetlayoutQueryResp
+	Product       *model_public.ProductSearch
+	ProductDetail *model_public.PdpGetlayoutQueryResp
 }
 
 type ProductCategoryGrabResp struct {
-	ProductCategory model_public.CategoryProduct
-	ProductDetail   model_public.PdpGetlayoutQueryResp
+	ProductCategory *model_public.CategoryProduct
+	ProductDetail   *model_public.PdpGetlayoutQueryResp
 }
 
 type CacheProductHandler struct {
@@ -36,6 +36,9 @@ func NewCacheProductHandler(repo *mongorepo.ProductRepo) *CacheProductHandler {
 }
 
 func (handler *CacheProductHandler) addItem(cache mongorepo.CacheProduct) error {
+	if cache.Namespace == "" {
+		cache.Namespace = handler.repo.Collection.Name()
+	}
 	r := handler.repo
 	_, err := r.Collection.InsertOne(r.Ctx, cache)
 	if err != nil {

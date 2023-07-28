@@ -24,7 +24,7 @@ type ProductParser struct {
 	Categories     []mongorepo.ProductCategory
 }
 
-func parseComponentsPDPProductLayout(product model_public.PdpGetlayoutQueryResp) ProductParser {
+func parseComponentsPDPProductLayout(product *model_public.PdpGetlayoutQueryResp) ProductParser {
 	shopId, _ := strconv.Atoi(product.Data.PdpGetLayout.BasicInfo.ShopID)
 	productId, _ := strconv.Atoi(product.Data.PdpGetLayout.BasicInfo.ID)
 	catId, _ := strconv.Atoi(product.Data.PdpGetLayout.BasicInfo.Category.ID)
@@ -77,7 +77,7 @@ func parseComponentsPDPProductLayout(product model_public.PdpGetlayoutQueryResp)
 	}
 }
 
-func createCacheProduct(product model_public.PdpGetlayoutQueryResp) mongorepo.CacheProduct {
+func createCacheProduct(product *model_public.PdpGetlayoutQueryResp) mongorepo.CacheProduct {
 	productParser := parseComponentsPDPProductLayout(product)
 
 	oriPrice := productParser.ProductContent.Data[0].Campaign.OriginalPrice
@@ -116,7 +116,7 @@ func createCacheProduct(product model_public.PdpGetlayoutQueryResp) mongorepo.Ca
 }
 
 func CreateCacheProductUrl(namespace string, product *UrlGrabberResp) mongorepo.CacheProduct {
-	cacheProduct := createCacheProduct(*product.Product)
+	cacheProduct := createCacheProduct(product.Product)
 	cacheProduct.Namespace = namespace
 	cacheProduct.Shop.Location = product.ProductP2.Data.PdpGetData.ShopInfo.Location
 	cacheProduct.ShopLocation = product.ProductP2.Data.PdpGetData.ShopInfo.Location
