@@ -40,6 +40,7 @@ export default function MapCard(props: MapCardProps): React.ReactElement {
                         value={props.catsValue}
                         onChange={props.onChangeCatsValue}
                         options={props.optionsCats}
+                        placeholder="Category Tree"
                         showSearch
                         style={{ width: "100%" }}
                     />

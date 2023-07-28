@@ -380,25 +380,34 @@ export interface AutoSubmit {
     base_ktp: string;
     filename: string;
 }
-export interface EtalasePayload {
-    etalase: string;
-    cat_ids: number[];
+export interface ListMapEtalaseQuery {
+    namespace: string;
 }
-export interface EtalaseListMapRes {
-    data: EtalasePayload[];
+export interface ShopeeEtalaseMapItem {
+    shopee_id: number;
+    tokpedia_id: number;
+    product_count: number;
+    category_no_mapping: boolean;
+    ShopeeCategoryName: string[];
+    TokopediaCategoryName: string[];
+    EtalaseName: string;
 }
-
-
+export interface ListMapEtalaseRes {
+    data: ShopeeEtalaseMapItem[];
+}
 export interface DeleteEtalaseQuery {
     name: string;
 }
+
 export interface EtalaseMapItem {
     ID: number;
     etalase_name: string;
     category_id: number;
 }
-
-
+export interface EtalasePayload {
+    etalase: string;
+    cat_ids: number[];
+}
 export type SdkConfig = { 
 
 	GetTokopediaAkunList: {
@@ -779,41 +788,33 @@ export type SdkConfig = {
 
 	GetTokopediaEtalaseMapList: {
 		method: "get"
-		params: undefined
+		params: ListMapEtalaseQuery
 		payload: undefined
-		response: EtalaseListMapRes
+		response: ListMapEtalaseRes
 		path: "tokopedia/etalase_map/list"
 	},
 
-	PostTokopediaEtalaseMapAdd: {
-		method: "post"
-		params: undefined
-		payload: EtalasePayload
-		response: Response
-		path: "tokopedia/etalase_map/add"
-	},
-
-	DeleteTokopediaEtalaseMap: {
+	DeleteTokopediaEtalaseMapDelete: {
 		method: "delete"
 		params: DeleteEtalaseQuery
 		payload: undefined
 		response: undefined
-		path: "tokopedia/etalase_map"
+		path: "tokopedia/etalase_map/delete"
 	},
 
-	GetTokopediaEtalaseMapListmap: {
-		method: "get"
-		params: undefined
-		payload: undefined
-		response: EtalaseMapItem[]
-		path: "tokopedia/etalase_map/listmap"
-	},
-
-	GetTokopediaEtalaseMapUpdateMapItem: {
-		method: "get"
+	PutTokopediaEtalaseMapUpdate: {
+		method: "put"
 		params: undefined
 		payload: EtalaseMapItem[]
 		response: Response
-		path: "tokopedia/etalase_map/update_map_item"
+		path: "tokopedia/etalase_map/update"
+	},
+
+	GetTokopediaEtalaseMapListEtalase: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: EtalasePayload[]
+		path: "tokopedia/etalase_map/list_etalase"
 	}
 }

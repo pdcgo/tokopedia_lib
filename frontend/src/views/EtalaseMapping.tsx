@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from "react"
 
+import { a, useTrail } from "@react-spring/web"
 import { Card, Divider, Result } from "antd"
 import { useRequest } from "../client"
 import { useListStore } from "../store/listMapper"
@@ -20,6 +21,20 @@ export default function EtalaseMapping(props: { activePage?: string }) {
         s.pendingInitEffect,
     ])
     const { sender, response } = useRequest("GetTokopediaCategoryList")
+    const { sender: getEtalases, response: etalasesResponse } = useRequest(
+        "GetTokopediaEtalaseMapListEtalase"
+    )
+
+    const etalases = React.useMemo(() => {
+        if (etalasesResponse) {
+            return etalasesResponse.map((e) => ({
+                label: e.etalase,
+                value: e.etalase,
+            }))
+        }
+
+        return []
+    }, [etalasesResponse])
 
     React.useEffect(() => {
         const controller = new AbortController()
@@ -35,6 +50,14 @@ export default function EtalaseMapping(props: { activePage?: string }) {
     }, [])
 
     React.useEffect(() => {
+        if (props.activePage == "etalase_map")
+            getEtalases({
+                method: "get",
+                path: "tokopedia/etalase_map/list_etalase",
+            })
+    }, [props.activePage])
+
+    React.useEffect(() => {
         const controller = new AbortController()
 
         if (namespace != "" && response && props.activePage == "etalase_map") {
@@ -45,6 +68,13 @@ export default function EtalaseMapping(props: { activePage?: string }) {
             controller.abort()
         }
     }, [namespace, response])
+
+    const trail = useTrail(list.length, {
+        config: { mass: 5, tension: 2000, friction: 200, duration: 80 },
+        opacity: list.length ? 1 : 0,
+        y: list.length ? 0 : -10,
+        from: { opacity: 0, y: -10 },
+    })
 
     return (
         <FlexColumn>
@@ -64,17 +94,16 @@ export default function EtalaseMapping(props: { activePage?: string }) {
             >
                 {!pending &&
                     namespace != "" &&
-                    list.map((l) => (
-                        <React.Suspense
-                            key={l.shopeeCategoryId}
-                            fallback={loader}
-                        >
-                            <EtalaseMapCard
-                                productCount={l.productCount}
-                                shopeeCatNames={l.shopeeCategoryName}
-                                key={l.shopeeCategoryId}
-                            />
-                        </React.Suspense>
+                    trail.map(({ ...styles }, i) => (
+                        <a.div key={list[i].shopeeCategoryId} style={styles}>
+                            <React.Suspense fallback={loader}>
+                                <EtalaseMapCard
+                                    productCount={list[i].productCount}
+                                    shopeeCatNames={list[i].shopeeCategoryName}
+                                    etalases={etalases}
+                                />
+                            </React.Suspense>
+                        </a.div>
                     ))}
             </div>
             {!pending && namespace != "" && list.length < 1 && (

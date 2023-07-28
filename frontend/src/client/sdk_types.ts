@@ -75,13 +75,7 @@ export interface BaseResponse {
     message?: string;
     status?: string;
 }
-export interface SettingSpinData {
-    smin: number;
-    smax: number;
-    merek_ins_t: boolean;
-    title: string;
-    desc: string;
-}
+
 export interface DataSpinDeleteQuery {
     name: string;
 }
@@ -89,6 +83,13 @@ export interface DataSpinDeleteQuery {
 export interface SettingSpinTitlePool {
     name: string;
     data: string;
+}
+export interface SettingSpinData {
+    smin: number;
+    smax: number;
+    merek_ins_t: boolean;
+    title: string;
+    desc: string;
 }
 export interface SettingSpinResponse {
     data?: SettingSpinData;
@@ -248,7 +249,18 @@ export interface CategoryItem {
     main: CategoryMain;
     sub: CategorySub[];
 }
-export interface ShopeeCategoryRegionSetting {
+export interface CategoryTreeItem {
+    id: number;
+    name: string;
+    display_name: string;
+    parent_id: number;
+    has_active_children: boolean;
+    has_children: boolean;
+    region_setting?: RegionSetting;
+    is_prohibit: boolean;
+    children: CategoryTreeItem[];
+}
+export interface RegionSetting {
     enable_size_chart: boolean;
     low_stock_value: number;
     dimension_mandatory: boolean;
@@ -260,9 +272,9 @@ export interface ShopeeCategory {
     parent_id: number;
     has_active_children: boolean;
     has_children: boolean;
-    children?: any[];
-    region_setting: ShopeeCategoryRegionSetting;
+    region_setting?: RegionSetting;
     is_prohibit: boolean;
+    children: CategoryTreeItem[];
     chain_name: string[];
     chain_ids: number[];
 }
@@ -368,17 +380,33 @@ export interface AutoSubmit {
     base_ktp: string;
     filename: string;
 }
+export interface ListMapEtalaseQuery {
+    namespace: string;
+}
+export interface ShopeeEtalaseMapItem {
+    shopee_id: number;
+    tokpedia_id: number;
+    product_count: number;
+    category_no_mapping: boolean;
+    ShopeeCategoryName: string[];
+    TokopediaCategoryName: string[];
+    EtalaseName: string;
+}
+export interface ListMapEtalaseRes {
+    data: ShopeeEtalaseMapItem[];
+}
+export interface DeleteEtalaseQuery {
+    name: string;
+}
+
+export interface EtalaseMapItem {
+    ID: number;
+    etalase_name: string;
+    category_id: number;
+}
 export interface EtalasePayload {
     etalase: string;
     cat_ids: number[];
-}
-export interface EtalaseListMapRes {
-    data: EtalasePayload[];
-}
-
-
-export interface DeleteEtalaseQuery {
-    name: string;
 }
 export type SdkConfig = { 
 
@@ -457,7 +485,7 @@ export type SdkConfig = {
 	PostApiDataspin: {
 		method: "post"
 		params: undefined
-		payload: SettingSpinData
+		payload: DataSpinItemResponse
 		response: BaseResponse
 		path: "api/dataspin"
 	},
@@ -760,25 +788,33 @@ export type SdkConfig = {
 
 	GetTokopediaEtalaseMapList: {
 		method: "get"
-		params: undefined
+		params: ListMapEtalaseQuery
 		payload: undefined
-		response: EtalaseListMapRes
+		response: ListMapEtalaseRes
 		path: "tokopedia/etalase_map/list"
 	},
 
-	PostTokopediaEtalaseMapAdd: {
-		method: "post"
-		params: undefined
-		payload: EtalasePayload
-		response: Response
-		path: "tokopedia/etalase_map/add"
-	},
-
-	DeleteTokopediaEtalaseMap: {
+	DeleteTokopediaEtalaseMapDelete: {
 		method: "delete"
 		params: DeleteEtalaseQuery
 		payload: undefined
 		response: undefined
-		path: "tokopedia/etalase_map"
+		path: "tokopedia/etalase_map/delete"
+	},
+
+	PutTokopediaEtalaseMapUpdate: {
+		method: "put"
+		params: undefined
+		payload: EtalaseMapItem[]
+		response: Response
+		path: "tokopedia/etalase_map/update"
+	},
+
+	GetTokopediaEtalaseMapListEtalase: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: EtalasePayload[]
+		path: "tokopedia/etalase_map/list_etalase"
 	}
 }
