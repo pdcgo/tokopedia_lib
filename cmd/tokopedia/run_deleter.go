@@ -50,7 +50,7 @@ func runDeleteCommand(ctx *cli.Context) error {
 
 	log.Println("running deleter")
 	runner.Run()
-
+	// time.Sleep(time.Hour)
 	return nil
 
 }

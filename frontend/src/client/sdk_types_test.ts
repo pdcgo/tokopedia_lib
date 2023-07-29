@@ -62,14 +62,13 @@ export interface UploadAppStatus {
     count_upload: number;
     limit_upload: number;
 }
+export interface DataSpinQuery {
+    name: string;
+}
 export interface DataSpinItemResponse {
     name: string;
     data: string[];
 }
-export interface DataSpinQuery {
-    name: string;
-}
-
 export interface BaseResponse {
     errcode: number;
     message?: string;
@@ -134,36 +133,6 @@ export interface MarkupGetResponse {
 
 
 
-export interface ProductNamespaceAgg {
-    count: number;
-    price_min: number;
-    price_max: number;
-    name: string;
-}
-export interface ProductPriceRangeAgg {
-    _id: number[];
-    count: number;
-}
-export interface ProductCategoryAgg {
-    _id: number;
-    price_min: number;
-    price_max: number;
-    count: number;
-    name: string[];
-}
-export interface ProductCityAgg {
-    _id: string;
-    price_min: number;
-    price_max: number;
-    count: number;
-}
-export interface ShopeeCategoryOld {
-    parent_category: number;
-    catid: number;
-    parent_display_name: string;
-    display_name: string;
-    status: string;
-}
 export interface ProductMatchStageQuery {
     is_public: boolean;
     kota: string;
@@ -172,7 +141,12 @@ export interface ProductMatchStageQuery {
     pmax: number;
     pmin: number;
 }
-
+export interface ProductNamespaceAgg {
+    count: number;
+    price_min: number;
+    price_max: number;
+    name: string;
+}
 export interface ProductPriceRangeAggQuery {
     is_public: boolean;
     kota: string;
@@ -182,17 +156,37 @@ export interface ProductPriceRangeAggQuery {
     pmin: number;
     range_price: number;
 }
+export interface ProductPriceRangeAgg {
+    _id: number[];
+    count: number;
+}
+
+export interface ProductCategoryAgg {
+    _id: number;
+    price_min: number;
+    price_max: number;
+    count: number;
+    name: string[];
+}
+
+export interface ProductCityAgg {
+    _id: string;
+    price_min: number;
+    price_max: number;
+    count: number;
+}
 
 
 
 
 
-
-
-
-
-
-
+export interface ShopeeCategoryOld {
+    parent_category: number;
+    catid: number;
+    parent_display_name: string;
+    display_name: string;
+    status: string;
+}
 
 
 export interface PredictWeightResponse {
@@ -217,7 +211,6 @@ export interface SearchFilterDynamicShipping {
     display_name: string;
     item_tag_ids: number[];
 }
-
 export interface CategorySubSub {
     catid: number;
     display_name: string;

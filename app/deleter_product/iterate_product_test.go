@@ -44,3 +44,23 @@ func TestIterateViolation(t *testing.T) {
 	assert.NotEmpty(t, names)
 	assert.Nil(t, err)
 }
+
+// func TestIterateDeleteDapetSedikit(t *testing.T) {
+// 	driver, err := tokopedia_lib.NewDriverAccount("acetylenetqshop@umkmevent.my.id", "Manis123", "U4WRB7E4DSCRVXDCRJ47MZDDGE77WMW4")
+// 	assert.Nil(t, err)
+// 	sellerapi, save, err := driver.CreateApi()
+// 	assert.Nil(t, err)
+// 	defer save()
+
+// 	err = deleter_product.IterateProduct(sellerapi, func(page int, product *model.SellerProductItem, delete func() int) error {
+
+// 		t.Log(product.Name)
+
+// 		return nil
+// 	}, model.Filter{
+// 		ID:    "status",
+// 		Value: []string{string(model.ActiveStatus)},
+// 	})
+
+// 	assert.Nil(t, err)
+// }
