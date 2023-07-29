@@ -23,6 +23,11 @@ func TestEtalase(t *testing.T) {
 				shopeeAgg := shopee_repo.NewProductAggregate(mongodb.Collection("item"))
 				service := services.NewEtalaseMapService(db, shopeeAgg)
 
+				t.Run("test getting list etalase", func(t *testing.T) {
+					_, err := service.GetListMap("default")
+					assert.Nil(t, err)
+				})
+
 				t.Run("testing add map etalase", func(t *testing.T) {
 					err := service.UpdateBulkMap([]*services.EtalaseMapItem{
 						{EtalaseName: "test etalase", CategoryID: 1},

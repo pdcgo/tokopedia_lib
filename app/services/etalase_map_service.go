@@ -30,6 +30,7 @@ func NewEtalaseMapService(
 	service := EtalaseMapService{
 		db:         db,
 		shopeePAgg: shopeePAgg,
+		mapconfig:  config.NewShopeeMapper(db),
 	}
 
 	return &service

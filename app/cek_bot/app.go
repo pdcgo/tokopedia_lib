@@ -53,9 +53,12 @@ func setupPdcLogger() {
 func cekbot(driver *report.CekReport) {
 	loginMutex.Lock()
 	defer loginMutex.Unlock()
+	log.Println("login", driver.Username)
 	apiclient, saveSession, err := driver.CreateApi()
+	log.Println("login finish", driver.Username)
 	if err != nil {
 		pdc_common.ReportError(err)
+		return
 	}
 
 	driver.ShopName = apiclient.AuthenticatedData.UserShopInfo.Info.ShopName
