@@ -69,7 +69,7 @@ func NewShopeeToTopedFlow(
 		BaseData: rootBase,
 	}, db, concurent)
 
-	productRepo := mongorepo.NewProductRepo(ctx, db)
+	productRepo := mongorepo.NewProductRepo(db)
 
 	iterator := repo.NewAkunUploadIterator(sqlitedb)
 	shopeemapper := config.NewShopeeMapper(sqlitedb)

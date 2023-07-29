@@ -21,7 +21,7 @@ func TestRunningSocket(t *testing.T) {
 
 	cha := chat.NewSocketClient(api)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	cha.Connect(ctx, func(socket *chat.SocketClient, event *chat.RcvEventSocket) error {

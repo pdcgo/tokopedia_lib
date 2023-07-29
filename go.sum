@@ -271,10 +271,14 @@ github.com/pdcgo/autoupdater v1.3.0 h1:ReRXZ7CDCz9lYcKcTck3ThvCGV0xoe6rvWGChBrYQ
 github.com/pdcgo/autoupdater v1.3.0/go.mod h1:E6QUO7Vfxmhol+bKeDt5h36Y0K+jYZuul3RDKn8zK/I=
 github.com/pdcgo/common_conf v1.1.0 h1:UckZQrxR3kRXbg1MqoHO9901rTjdPf9fP+NBBkC+33g=
 github.com/pdcgo/common_conf v1.1.0/go.mod h1:TgFv2kM2ecB9iqSEJet2wvmND674Vc8hocDuok9w0vg=
+github.com/pdcgo/common_conf v1.1.1 h1:2H/9+qzIXQMdaIqmxkIzIK5AjQm+RQtmuvn6ykUb6aI=
+github.com/pdcgo/common_conf v1.1.1/go.mod h1:TgFv2kM2ecB9iqSEJet2wvmND674Vc8hocDuok9w0vg=
 github.com/pdcgo/go-mitmproxy v1.0.5 h1:rMb3XZCvfwo/zI5JTmSCpDV3wJFDKSkSQqyDpcg6FMk=
 github.com/pdcgo/go-mitmproxy v1.0.5/go.mod h1:6kYSoO7yIOBHkDoUTeOpHeQ7xnnmwFKRH6jj1YcsaNE=
 github.com/pdcgo/go_v2_shopeelib v1.0.17 h1:TbteJMM+78PSruhZ8trnJU+bJE6Zsi4hgPz0fhTQLKo=
 github.com/pdcgo/go_v2_shopeelib v1.0.17/go.mod h1:cs5LFdWQuhyWfdom8oRrMVw3USezW07z2yjOzrz7Koc=
+github.com/pdcgo/go_v2_shopeelib v1.0.20 h1:EU+wv6v6N8RyEy3V1DM057+Tuqlm6eLb8IBp5wJQrks=
+github.com/pdcgo/go_v2_shopeelib v1.0.20/go.mod h1:X8AsFi7gyXDnzDiJuSmpjuH6LnRNdPhuKbI3mmqh+Tk=
 github.com/pdcgo/v2_gots_sdk v1.2.4 h1:qm9i6ztnB0khfGZchUEJ5wwJAa8271fMy4FrRMpJm4c=
 github.com/pdcgo/v2_gots_sdk v1.2.4/go.mod h1:5BAAOs/jCBPp3TuLroZyZ69MIbXo6E1YzwH+gyeAocc=
 github.com/pelletier/go-toml/v2 v2.0.8 h1:0ctb6s9mE31h0/lhu+J6OPmVeDxJn+kYnJc2jZR9tGQ=

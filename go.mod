@@ -5,8 +5,8 @@ go 1.19
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.14.1
-	github.com/pdcgo/common_conf v1.1.0
-	github.com/pdcgo/go_v2_shopeelib v1.0.17
+	github.com/pdcgo/common_conf v1.1.1
+	github.com/pdcgo/go_v2_shopeelib v1.0.20
 	github.com/pdcgo/v2_gots_sdk v1.2.4
 	github.com/sethvargo/go-retry v0.2.4
 	github.com/zeebo/assert v1.3.0

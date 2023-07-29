@@ -79,15 +79,17 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	browser := runProxyBrowser(baseData)
 	shopeepubapi := sapi_public.NewPublicApi(browser)
 
+	gr := sdk.Group("")
+
 	base := controller.NewBaseController(validate, baseData, shopeepubapi, mdb)
-	controller.RegisterSpinController(sdk, base)
-	controller.RegisterMarkupController(sdk, base)
-	controller.RegisterProductController(sdk, base)
-	controller.RegisterPredictWeightController(sdk, base)
-	controller.RegisterLegacyController(sdk, base)
+	controller.RegisterSpinController(gr, base)
+	controller.RegisterMarkupController(gr, base)
+	controller.RegisterProductController(gr, base)
+	controller.RegisterPredictWeightController(gr, base)
+	controller.RegisterLegacyController(gr, base)
 	api.RegisterShopeeCategoryApi(sdk, baseData)
 
-	productRepo := mongorepo.NewProductRepo(context.TODO(), mdb)
+	productRepo := mongorepo.NewProductRepo(mdb)
 	pubapi, err := api_public.NewTokopediaApiPublic()
 
 	if err != nil {

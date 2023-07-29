@@ -11,6 +11,7 @@ import (
 
 	"github.com/pdcgo/common_conf/auth"
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/report"
 	"github.com/urfave/cli/v2"
@@ -41,7 +42,7 @@ func LisensiLogin(botID int) bool {
 
 func setupPdcLogger() {
 	fname := "data/config.json"
-	pdc_common.SetConfig(fname, Version, LogName, cred)
+	pdc_common.SetConfig(fname, config.Version, "golang_tokopedia_checkbot", config.Cred)
 	pdc_common.InitializeLogger()
 
 	if !LisensiLogin(2) {
@@ -220,7 +221,6 @@ func runCheckAkun(cCtx *cli.Context) error {
 	}
 
 	for _, driver := range akuns {
-		driver.DevMode = devmode
 		waitallakun.Add(1)
 		go cekbot(driver)
 

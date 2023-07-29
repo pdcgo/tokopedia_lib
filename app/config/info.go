@@ -1,4 +1,4 @@
-package cek_bot
+package config
 
 import (
 	_ "embed"
@@ -8,7 +8,9 @@ import (
 var Version = "0.0.1"
 
 //go:embed ..\..\logger_credentials.json
-var cred []byte
+var Cred []byte
 
 var devmode = os.Getenv("DEV_MODE") != ""
 var LogName = "golang_tokopedia_cekbot"
+
+var fname = "data/config.json"
