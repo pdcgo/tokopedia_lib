@@ -402,6 +402,9 @@ export interface DeleteEtalaseQuery {
 export interface EtalaseMapItem {
     ID: number;
     etalase_name: string;
+	/**
+	 * Tokopedia
+	 */
     category_id: number;
 }
 export interface EtalasePayload {

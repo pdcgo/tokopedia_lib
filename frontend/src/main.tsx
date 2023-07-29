@@ -1,6 +1,7 @@
 import ReactDOM from "react-dom/client"
 import App from "./App.tsx"
 import { ConfigProvider, ThemeConfig } from "antd"
+
 import "./index.scss"
 import "antd/dist/reset.css"
 

@@ -4,7 +4,6 @@ import React from "react"
 import { a, useTrail } from "@react-spring/web"
 import { Card, Divider, Result } from "antd"
 import { useRequest } from "../client"
-import { useListStore } from "../store/listMapper"
 import { FlexColumn } from "../styled_components"
 
 const EtalaseMapCard = React.lazy(() => import("../components/EtalaseMapCard"))
@@ -15,15 +14,26 @@ const loader = <Card loading size="small" />
 
 export default function EtalaseMapping(props: { activePage?: string }) {
     const [namespace, setNamespace] = React.useState("")
-    const [initEffect, list, pending] = useListStore((s) => [
-        s.initEffect,
-        s.list,
-        s.pendingInitEffect,
-    ])
-    const { sender, response } = useRequest("GetTokopediaCategoryList")
+    const {
+        sender: listGetter,
+        pending,
+        response: listResponse,
+    } = useRequest("GetTokopediaEtalaseMapList")
     const { sender: getEtalases, response: etalasesResponse } = useRequest(
         "GetTokopediaEtalaseMapListEtalase"
     )
+
+    const list = React.useMemo(() => {
+        if (listResponse) {
+            return listResponse.data.sort((a, b) =>
+                a.ShopeeCategoryName.join(" ") < b.ShopeeCategoryName.join(" ")
+                    ? -1
+                    : 0
+            )
+        }
+
+        return []
+    }, [listResponse])
 
     const etalases = React.useMemo(() => {
         if (etalasesResponse) {
@@ -36,41 +46,45 @@ export default function EtalaseMapping(props: { activePage?: string }) {
         return []
     }, [etalasesResponse])
 
-    React.useEffect(() => {
-        const controller = new AbortController()
-
-        sender(
-            { method: "get", path: "tokopedia/category/list" },
-            { signal: controller.signal }
-        )
-
-        return () => {
-            controller.abort()
-        }
-    }, [])
-
-    React.useEffect(() => {
-        if (props.activePage == "etalase_map")
+    function refetch() {
+        if (props.activePage == "etalase_map") {
             getEtalases({
                 method: "get",
                 path: "tokopedia/etalase_map/list_etalase",
             })
+
+            if (namespace) {
+                listGetter({
+                    method: "get",
+                    path: "tokopedia/etalase_map/list",
+                    params: { namespace },
+                })
+            }
+        }
+    }
+
+    React.useEffect(() => {
+        if (props.activePage == "etalase_map") {
+            getEtalases({
+                method: "get",
+                path: "tokopedia/etalase_map/list_etalase",
+            })
+        }
     }, [props.activePage])
 
     React.useEffect(() => {
-        const controller = new AbortController()
-
-        if (namespace != "" && response && props.activePage == "etalase_map") {
-            initEffect(namespace, response, controller.signal)
+        if (props.activePage == "etalase_map") {
+            if (namespace)
+                listGetter({
+                    method: "get",
+                    path: "tokopedia/etalase_map/list",
+                    params: { namespace },
+                })
         }
+    }, [props.activePage, namespace])
 
-        return () => {
-            controller.abort()
-        }
-    }, [namespace, response])
-
-    const trail = useTrail(list.length, {
-        config: { mass: 5, tension: 2000, friction: 200, duration: 80 },
+    const trail = useTrail(list.length || 0, {
+        config: { mass: 5, tension: 2000, friction: 200, duration: 70 },
         opacity: list.length ? 1 : 0,
         y: list.length ? 0 : -10,
         from: { opacity: 0, y: -10 },
@@ -82,6 +96,7 @@ export default function EtalaseMapping(props: { activePage?: string }) {
                 <Header
                     collection={namespace}
                     onChangeCollection={setNamespace}
+                    refetchFn={refetch}
                 />
             </React.Suspense>
             <Divider dashed style={{ marginBlock: "5px" }} />
@@ -95,11 +110,11 @@ export default function EtalaseMapping(props: { activePage?: string }) {
                 {!pending &&
                     namespace != "" &&
                     trail.map(({ ...styles }, i) => (
-                        <a.div key={list[i].shopeeCategoryId} style={styles}>
+                        <a.div key={list[i].tokpedia_id} style={styles}>
                             <React.Suspense fallback={loader}>
                                 <EtalaseMapCard
-                                    productCount={list[i].productCount}
-                                    shopeeCatNames={list[i].shopeeCategoryName}
+                                    item={list[i]}
+                                    refetchFn={getEtalases}
                                     etalases={etalases}
                                 />
                             </React.Suspense>
