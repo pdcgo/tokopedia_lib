@@ -65,11 +65,14 @@ func (d *DriverAccount) SellerLogin(dctx *DriverContext) error {
 			chromedp.Navigate("https://seller.tokopedia.com/"),
 		)
 	}()
-
-	err := <-errorChan
-	if err == nil {
-		log.Println(d.Username, "login Berhasil")
+	select {
+	case <-dctx.Ctx.Done():
+		return context.Canceled
+	case err := <-errorChan:
+		if err == nil {
+			log.Println(d.Username, "login Berhasil")
+		}
+		return err
 	}
-	return err
 
 }
