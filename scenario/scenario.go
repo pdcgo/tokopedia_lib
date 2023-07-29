@@ -92,3 +92,31 @@ func (scen *Scenario) WithSqliteDatabase(handler func(db *gorm.DB)) {
 
 	handler(db)
 }
+
+func copyFile(src string, dst string) {
+	r, err := os.Open(src)
+	if err != nil {
+		panic(err)
+	}
+	defer r.Close()
+	w, err := os.Create(dst)
+	if err != nil {
+		panic(err)
+	}
+	defer w.Close()
+	w.ReadFrom(r)
+}
+
+func (scen *Scenario) WithCopySqliteDatabase(handler func(db *gorm.DB)) {
+	dbloc := filepath.Join(scen.Base, "tokopedia_test.db")
+	dbdest := filepath.Join(scen.Base, "tokopedia_test_temp.db")
+	copyFile(dbloc, dbdest)
+	db := datasource.NewSqliteDatabase(dbdest)
+	db.AutoMigrate(&repo.AkunItem{})
+
+	defer func() {
+		os.Remove(dbdest)
+	}()
+
+	handler(db)
+}
