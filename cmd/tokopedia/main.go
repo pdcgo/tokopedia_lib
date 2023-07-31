@@ -30,7 +30,7 @@ func main() {
 	checkbotCommand := cek_bot.CreateCheckbotCommand(cred)
 	checkverifCommand := cek_verification.CreateCheckVerifCommand(cred)
 	deleteCommand := createDeleteCommand()
-	submitCommand := autosubmit.CreateSubmitCommand()
+	submitCommand := autosubmit.CreateSubmitCommand(cred)
 
 	app := &cli.App{
 		Name:  "Tokopedia Server Tool",
