@@ -27,8 +27,8 @@ func catch() {
 func main() {
 	defer catch()
 
-	checkbotCommand := cek_bot.CreateCheckbotCommand()
-	checkverifCommand := cek_verification.CreateCheckVerifCommand()
+	checkbotCommand := cek_bot.CreateCheckbotCommand(cred)
+	checkverifCommand := cek_verification.CreateCheckVerifCommand(cred)
 	deleteCommand := createDeleteCommand()
 	submitCommand := autosubmit.CreateSubmitCommand()
 

@@ -1,7 +1,6 @@
 package cek_bot
 
 import (
-	_ "embed"
 	"errors"
 	"log"
 	"os"
@@ -16,9 +15,6 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/report"
 	"github.com/urfave/cli/v2"
 )
-
-//go:embed ..\..\..\logger_credentials.json
-var cred []byte
 
 var concurent = make(chan int, 50)
 var waitallakun sync.WaitGroup
@@ -43,7 +39,7 @@ func LisensiLogin(botID int) bool {
 	return true
 }
 
-func setupPdcLogger() {
+func setupPdcLogger(cred []byte) {
 	fname := "data/config.json"
 	pdc_common.SetConfig(fname, config.Version, "golang_tokopedia_checkbot", cred)
 	pdc_common.InitializeLogger()
@@ -199,43 +195,7 @@ func cekbot(driver *report.CekReport) {
 
 }
 
-func runCheckAkun(cCtx *cli.Context) error {
-	setupPdcLogger()
-	// proxy := tokpedproxy.NewInspectProxy("localhost:8082", context.Background())
-	// go proxy.RunProxy()
-
-	// apiSession, saveSession := scenario.GetTokopediaApiClient()
-	// defer saveSession()
-
-	// hasil, _ := api.IsAutheticated()
-	// log.Println(hasil)
-	// time.Sleep(time.Hour)
-
-	// driver.Proxy = proxy.Addr
-
-	fname := cCtx.String("fname")
-
-	akuns, save, err := report.NewCekReport(fname)
-	defer save()
-	if err != nil {
-		pdc_common.ReportError(err)
-		time.Sleep(time.Minute)
-		return nil
-	}
-
-	for _, driver := range akuns {
-		waitallakun.Add(1)
-		go cekbot(driver)
-
-	}
-
-	waitallakun.Wait()
-	log.Println("cekbot selesai..")
-
-	return nil
-}
-
-func CreateCheckbotCommand() *cli.Command {
+func CreateCheckbotCommand(cred []byte) *cli.Command {
 	command := cli.Command{
 		Name:    "cekbot",
 		Aliases: []string{"cb"},
@@ -251,7 +211,41 @@ func CreateCheckbotCommand() *cli.Command {
 				Value:   "cekbot.txt",
 			},
 		},
-		Action: runCheckAkun,
+		Action: func(cCtx *cli.Context) error {
+			setupPdcLogger(cred)
+			// proxy := tokpedproxy.NewInspectProxy("localhost:8082", context.Background())
+			// go proxy.RunProxy()
+
+			// apiSession, saveSession := scenario.GetTokopediaApiClient()
+			// defer saveSession()
+
+			// hasil, _ := api.IsAutheticated()
+			// log.Println(hasil)
+			// time.Sleep(time.Hour)
+
+			// driver.Proxy = proxy.Addr
+
+			fname := cCtx.String("fname")
+
+			akuns, save, err := report.NewCekReport(fname)
+			defer save()
+			if err != nil {
+				pdc_common.ReportError(err)
+				time.Sleep(time.Minute)
+				return nil
+			}
+
+			for _, driver := range akuns {
+				waitallakun.Add(1)
+				go cekbot(driver)
+
+			}
+
+			waitallakun.Wait()
+			log.Println("cekbot selesai..")
+
+			return nil
+		},
 	}
 	return &command
 }
