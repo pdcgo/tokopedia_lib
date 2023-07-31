@@ -1,10 +1,9 @@
-package main
+package api
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pdcgo/tokopedia_lib/app/web/api"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
 	"gorm.io/gorm"
@@ -53,7 +52,7 @@ type BulkPayload struct {
 
 func (akapi *AkunApi) BulkAdd(ctx *gin.Context) {
 	payload := BulkPayload{}
-	hasil := api.Response{}
+	hasil := Response{}
 
 	err := ctx.BindJSON(&payload)
 	if err != nil {
@@ -91,7 +90,7 @@ type AkunListQuery struct {
 }
 
 type AkunListResponse struct {
-	api.Response
+	Response
 	Data []*repo.AkunItem `json:"data"`
 
 	Pagination Pagination `json:"pagination"`
@@ -141,7 +140,7 @@ func (api *AkunApi) List(ctx *gin.Context) {
 }
 
 func (akapi *AkunApi) Update(ctx *gin.Context) {
-	hasil := api.Response{
+	hasil := Response{
 		Msg: "success",
 	}
 	payload := AkunUpdatePayload{}
@@ -167,7 +166,7 @@ func (akapi *AkunApi) Update(ctx *gin.Context) {
 }
 
 func (akapi *AkunApi) Delete(ctx *gin.Context) {
-	hasil := api.Response{
+	hasil := Response{
 		Msg: "success",
 	}
 	payload := AkunDeletePayload{}
@@ -193,7 +192,7 @@ func (akapi *AkunApi) Delete(ctx *gin.Context) {
 }
 
 func (akapi *AkunApi) ResetAll(ctx *gin.Context) {
-	hasil := api.Response{
+	hasil := Response{
 		Msg: "success",
 	}
 	err := akapi.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Model(&repo.AkunItem{}).Update("count_upload", 0).Error
@@ -225,27 +224,27 @@ func RegisterAkunApi(g *v2_gots_sdk.SdkGroup, db *gorm.DB, repo *repo.AkunRepo) 
 		Method:       http.MethodPost,
 		RelativePath: "bulk_add",
 		Payload:      BulkPayload{},
-		Response:     api.Response{},
+		Response:     Response{},
 	}, akapi.BulkAdd)
 
 	akun.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodPost,
 		RelativePath: "update",
 		Payload:      AkunUpdatePayload{},
-		Response:     api.Response{},
+		Response:     Response{},
 	}, akapi.Update)
 
 	akun.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodPost,
 		RelativePath: "delete",
 		Payload:      AkunDeletePayload{},
-		Response:     api.Response{},
+		Response:     Response{},
 	}, akapi.Delete)
 
 	akun.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodPut,
 		RelativePath: "reset_all_count",
-		Response:     api.Response{},
+		Response:     Response{},
 	}, akapi.ResetAll)
 
 	// akun.Register(&v2_gots_sdk.Api{
@@ -253,6 +252,6 @@ func RegisterAkunApi(g *v2_gots_sdk.SdkGroup, db *gorm.DB, repo *repo.AkunRepo) 
 	// 	RelativePath: "reset",
 	// 	Response:     Response{},
 	// 	Payload:      AkunResetPayload{},
-	// }, api.Reset)
+	// }, Reset)
 
 }
