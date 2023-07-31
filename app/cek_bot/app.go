@@ -50,7 +50,7 @@ func setupPdcLogger(cred []byte) {
 	}
 }
 
-func cekbot(driver *report.CekReport) {
+func Cekbot(driver *report.CekReport) {
 	loginMutex.Lock()
 	defer loginMutex.Unlock()
 	log.Println("login", driver.Username)
@@ -237,7 +237,7 @@ func CreateCheckbotCommand(cred []byte) *cli.Command {
 
 			for _, driver := range akuns {
 				waitallakun.Add(1)
-				go cekbot(driver)
+				go Cekbot(driver)
 
 			}
 

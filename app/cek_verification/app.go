@@ -79,7 +79,7 @@ func CreateCheckVerifCommand(cred []byte) *cli.Command {
 			pdc_common.InitializeLogger()
 
 			fname := cCtx.String("fname")
-			akuns, save, _ := getakunFromFile(fname)
+			akuns, save, _ := GetakunFromFile(fname)
 			log.Println("running checkverif...")
 
 			for _, driver := range akuns {

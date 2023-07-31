@@ -29,7 +29,7 @@ func SaveCekReport(fname string, akuns []*VerifDriverAccount) error {
 	return nil
 }
 
-func getakunFromFile(fname string) ([]*VerifDriverAccount, func(), error) {
+func GetakunFromFile(fname string) ([]*VerifDriverAccount, func(), error) {
 	hasil := []*VerifDriverAccount{}
 	data, _ := os.ReadFile(fname)
 	lines := strings.Split(string(data), "\n")
