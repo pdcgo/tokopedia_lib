@@ -30,7 +30,7 @@ func createDeleteCommand() *cli.Command {
 
 func runDeleteCommand(ctx *cli.Context) error {
 	fname := "data/config.json"
-	pdc_common.SetConfig(fname, config.Version, "golang_tokopedia_delete", config.Cred)
+	pdc_common.SetConfig(fname, config.Version, "golang_tokopedia_delete", cred)
 	pdc_common.InitializeLogger()
 
 	rootBase := ctx.String("b")

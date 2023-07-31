@@ -2,6 +2,7 @@ package autosubmit
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"log"
@@ -18,6 +19,9 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+//go:embed ..\..\..\logger_credentials.json
+var cred []byte
+
 func CreateSubmitCommand() *cli.Command {
 	command := cli.Command{
 		Name:    "submit_ktp",
@@ -31,7 +35,7 @@ func CreateSubmitCommand() *cli.Command {
 		},
 		Action: func(ctx *cli.Context) error {
 			cfgname := "data/config.json"
-			pdc_common.SetConfig(cfgname, config.Version, "golang_tokopedia_submit", config.Cred)
+			pdc_common.SetConfig(cfgname, config.Version, "golang_tokopedia_submit", cred)
 			pdc_common.InitializeLogger()
 
 			base := ctx.String("base")

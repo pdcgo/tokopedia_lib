@@ -19,7 +19,7 @@ import (
 func runUploadShopeeToped(ctx *cli.Context) error {
 
 	cfgname := "data/config.json"
-	pdc_common.SetConfig(cfgname, appcfg.Version, "golang_tokopedia_upload", appcfg.Cred)
+	pdc_common.SetConfig(cfgname, appcfg.Version, "golang_tokopedia_upload", cred)
 	pdc_common.InitializeLogger()
 
 	rootBase := ctx.String("b")

@@ -1,6 +1,7 @@
 package cek_verification
 
 import (
+	_ "embed"
 	"log"
 	"time"
 
@@ -10,6 +11,9 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/urfave/cli/v2"
 )
+
+//go:embed ..\..\..\logger_credentials.json
+var cred []byte
 
 // func reportFile() (func(data string), func()) {
 
@@ -59,7 +63,7 @@ func (driver *VerifDriverAccount) CheckVerif(dctx *tokopedia_lib.DriverContext) 
 
 func runCheckKtp(cCtx *cli.Context) error {
 	cfgname := "data/config.json"
-	pdc_common.SetConfig(cfgname, config.Version, "golang_tokopedia_check_ktp", config.Cred)
+	pdc_common.SetConfig(cfgname, config.Version, "golang_tokopedia_check_ktp", cred)
 	pdc_common.InitializeLogger()
 
 	fname := cCtx.String("fname")

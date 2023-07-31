@@ -17,6 +17,9 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+//go:embed ..\..\..\logger_credentials.json
+var cred []byte
+
 var concurent = make(chan int, 50)
 var waitallakun sync.WaitGroup
 var loginMutex sync.Mutex
@@ -42,7 +45,7 @@ func LisensiLogin(botID int) bool {
 
 func setupPdcLogger() {
 	fname := "data/config.json"
-	pdc_common.SetConfig(fname, config.Version, "golang_tokopedia_checkbot", config.Cred)
+	pdc_common.SetConfig(fname, config.Version, "golang_tokopedia_checkbot", cred)
 	pdc_common.InitializeLogger()
 
 	if !LisensiLogin(2) {

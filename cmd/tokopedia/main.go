@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"log"
 	"os"
 	"time"
@@ -11,6 +12,9 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/cek_verification"
 	"github.com/urfave/cli/v2"
 )
+
+//go:embed ..\..\..\logger_credentials.json
+var cred []byte
 
 func catch() {
 	if r := recover(); r != nil {
