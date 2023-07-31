@@ -2,7 +2,6 @@ package autosubmit
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"errors"
 	"log"
@@ -19,10 +18,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-//go:embed ..\..\..\logger_credentials.json
-var cred []byte
-
-func CreateSubmitCommand() *cli.Command {
+func CreateSubmitCommand(cred []byte) *cli.Command {
 	command := cli.Command{
 		Name:    "submit_ktp",
 		Aliases: []string{"submit"},
