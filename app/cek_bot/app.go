@@ -18,7 +18,7 @@ import (
 )
 
 var concurent = make(chan int, 50)
-var waitallakun sync.WaitGroup
+var Waitallakun sync.WaitGroup
 var loginMutex sync.Mutex
 
 func LisensiLogin(botID int) bool {
@@ -51,7 +51,7 @@ func setupPdcLogger() {
 	}
 }
 
-func cekbot(driver *report.CekReport) {
+func Cekbot(driver *report.CekReport) {
 	loginMutex.Lock()
 	defer loginMutex.Unlock()
 	log.Println("login", driver.Username)
@@ -189,7 +189,7 @@ func cekbot(driver *report.CekReport) {
 		}()
 
 		waitall.Wait()
-		waitallakun.Done()
+		Waitallakun.Done()
 		log.Println(driver.Username, "Berhasil Checking..")
 
 	}()
@@ -221,12 +221,12 @@ func runCheckAkun(cCtx *cli.Context) error {
 	}
 
 	for _, driver := range akuns {
-		waitallakun.Add(1)
-		go cekbot(driver)
+		Waitallakun.Add(1)
+		go Cekbot(driver)
 
 	}
 
-	waitallakun.Wait()
+	Waitallakun.Wait()
 	log.Println("cekbot selesai..")
 
 	return nil
