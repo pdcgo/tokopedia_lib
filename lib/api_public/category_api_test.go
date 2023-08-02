@@ -25,3 +25,13 @@ func TestJarvisRecommendation(t *testing.T) {
 	assert.NotEmpty(t, hasil)
 	assert.Nil(t, err)
 }
+
+func TestHeaderMainData(t *testing.T) {
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
+
+	hasil, err := api.HeaderMainData()
+	t.Log(hasil)
+	assert.NotEmpty(t, hasil)
+	assert.Nil(t, err)
+}

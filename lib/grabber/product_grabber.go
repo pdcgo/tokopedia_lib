@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"sync"
 
 	"github.com/pdcgo/go_v2_shopeelib/helper"
-	"github.com/pdcgo/tokopedia_lib/lib/filter"
+	"github.com/pdcgo/tokopedia_lib/lib/dumper"
 	"github.com/pdcgo/tokopedia_lib/lib/grab_handler"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
@@ -31,7 +30,7 @@ func arrayConverter(datas []interface{}) []string {
 	return results
 }
 
-func (grab *ProductGrabber) getProducts(params *model_public.SearchProductVar) ([]*model_public.ProductSearch, error) {
+func (grab *ProductGrabber) GetProducts(params *model_public.SearchProductVar) ([]*model_public.ProductSearch, error) {
 
 	rawParams, err := json.Marshal(params)
 	if err != nil {
@@ -53,24 +52,6 @@ func (grab *ProductGrabber) getProducts(params *model_public.SearchProductVar) (
 	return products, nil
 }
 
-func (grab *ProductGrabber) AppliedFilterShop(shopId int, shopDomain string) bool {
-	shopFilter := filter.CreateShopFilter(*grab.Filter, filter.Shop{
-		Id:     shopId,
-		Domain: shopDomain,
-	})
-
-	return shopFilter.ApplyFilter()
-}
-
-func (grab *ProductGrabber) AppliedFilterProduct(prodId int, prodName string, prodUrl string) bool {
-	productFilter := filter.CreateProductFilter(*grab.Filter, filter.ProductFilterModel{
-		ProductId:   prodId,
-		ProductName: prodName,
-		ProductUrl:  prodUrl,
-	})
-	return productFilter.ApplyFilter()
-}
-
 func (grab *ProductGrabber) ProcessProduct(product *model_public.ProductSearch) error {
 	prodVar, _ := ParseProductDetailParamsFromUrl(product.URL)
 
@@ -79,7 +60,7 @@ func (grab *ProductGrabber) ProcessProduct(product *model_public.ProductSearch) 
 	}
 
 	if grab.AppliedFilterProduct(int(product.ID), product.Name, product.URL) {
-		return errors.New("terkena filter toko")
+		return errors.New("terkena filter produk")
 	}
 
 	product_detail, err := grab.GetPublicProductLayout(product.URL)
@@ -117,32 +98,32 @@ func (grab *ProductGrabber) ProcessProduct(product *model_public.ProductSearch) 
 // - unit test x
 // - flexible v
 
-func (grab *ProductGrabber) PageIterate(params *model_public.SearchProductVar, handle func(*model_public.ProductSearch) error) error {
-	var errResp error
-	fmt.Printf("grab [ keyword ] : memulai grab keyword [ %s ]\n", params.Query)
+// func (grab *ProductGrabber) PageIterate(params *model_public.SearchProductVar, handle func(*model_public.ProductSearch) error) error {
+// 	var errResp error
+// 	fmt.Printf("grab [ keyword ] : memulai grab keyword [ %s ]\n", params.Query)
 
-Parent:
-	for {
-		products, err := grab.getProducts(params)
-		if err != nil {
-			errResp = err
-			break Parent
-		}
+// Parent:
+// 	for {
+// 		products, err := grab.GetProducts(params)
+// 		if err != nil {
+// 			errResp = err
+// 			break Parent
+// 		}
 
-		if len(products) == 0 {
-			fmt.Printf("finish [ produk ] : halaman ini tidak mempunyai produk\n")
-			break Parent
-		}
+// 		if len(products) == 0 {
+// 			fmt.Printf("finish [ produk ] : halaman ini tidak mempunyai produk\n")
+// 			break Parent
+// 		}
 
-		for _, product := range products {
-			handle(product)
-		}
+// 		for _, product := range products {
+// 			handle(product)
+// 		}
 
-		params.Page += 1
-		params.Start = params.Page * params.Rows
-	}
-	return errResp
-}
+// 		params.Page += 1
+// 		params.Start = params.Page * params.Rows
+// 	}
+// 	return errResp
+// }
 
 func (grab *ProductGrabber) IterateProductPages(params *model_public.SearchProductVar) (<-chan *model_public.ProductSearch, *helper.ChannelError) {
 	res := make(chan *model_public.ProductSearch)
@@ -154,9 +135,13 @@ func (grab *ProductGrabber) IterateProductPages(params *model_public.SearchProdu
 
 	Parent:
 		for {
-			products, err := grab.getProducts(params)
+			products, err := grab.GetProducts(params)
 			if err != nil {
 				fmt.Println(err)
+				break Parent
+			}
+			if len(products) == 0 {
+				fmt.Printf("grab [ produk ] : produk telah habis\n")
 				break Parent
 			}
 			for _, product := range products {
@@ -177,7 +162,6 @@ func (grab *ProductGrabber) Save(namespace string, product *grab_handler.Product
 type ProductListGrabber struct {
 	ProductGrabber
 	Keywords []string
-	wg       *sync.WaitGroup
 }
 
 func NewProductListGrabber(
@@ -188,7 +172,6 @@ func NewProductListGrabber(
 			Grabber: grabber,
 		},
 		Keywords: keywords,
-		wg:       &sync.WaitGroup{},
 	}
 }
 
@@ -259,6 +242,7 @@ func (grab *CategoryGrabber) Run() {
 		if err != nil {
 			continue
 		}
+
 		fmt.Printf("grab [ kategori ] : mendapatkan produk [ %s ]\n", product.Name)
 		limiter.Add()
 	}
@@ -269,4 +253,47 @@ func (grab *CategoryGrabber) Run() {
 		return
 	}
 
+}
+
+type CategoryCsvGrabber struct {
+	CategoryGrabber
+	*dumper.CategoryCsvDumper
+}
+
+func NewCategoryCsvGrabber(grabber *Grabber, pathfile string) *CategoryCsvGrabber {
+	return &CategoryCsvGrabber{
+		CategoryGrabber: CategoryGrabber{
+			ProductGrabber: ProductGrabber{
+				Grabber: grabber,
+			},
+		},
+		CategoryCsvDumper: dumper.NewCategoryCsvDumper(grabber.Api, grabber.Base, pathfile),
+	}
+}
+
+func (g *CategoryCsvGrabber) Run() {
+	categories, err := g.Load()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Printf("grab [ file kategori ] : memulai grab file kategori\n")
+Categories:
+	for _, c := range categories {
+		if c.Status == "grabbed" {
+			continue Categories
+		}
+
+		categ := g.GetCategoryByUrl(nil, c.Url)
+		for i := range categ {
+			g.CatId = i.ID
+			break
+		}
+
+		fmt.Printf("grab [ file kategori ] : memulai grab dari kategori [ %s ]\n", c.Name)
+		g.CategoryGrabber.Run()
+		c.Status = "grabbed"
+		g.Save()
+	}
 }

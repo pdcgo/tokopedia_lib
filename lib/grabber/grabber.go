@@ -18,6 +18,7 @@ import (
 type Grabber struct {
 	Api          *api_public.TokopediaApiPublic
 	Filter       *filter.BaseFilter
+	Base         *legacy_source.BaseConfig
 	CacheHandler *grab_handler.CacheProductHandler
 	Ctx          context.Context
 }
@@ -28,6 +29,7 @@ func NewBaseGrabber(api *api_public.TokopediaApiPublic, base *legacy_source.Base
 	return &Grabber{
 		Api:          api,
 		Filter:       filter,
+		Base:         base,
 		CacheHandler: cacheHandler,
 	}
 }
