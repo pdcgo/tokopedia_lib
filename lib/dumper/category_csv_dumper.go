@@ -1,29 +1,19 @@
 package dumper
 
 import (
-	"errors"
-	"os"
 	"sync"
 
-	"github.com/gocarina/gocsv"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
+	"github.com/pdcgo/tokopedia_lib/lib/csv"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
-
-type Category struct {
-	Type       string `csv:"type" json:"type"`
-	ParentName string `csv:"parent_name" json:"parent_name"`
-	Name       string `csv:"name" json:"name"`
-	Url        string `csv:"url" json:"url"`
-	Status     string `csv:"status" json:"status"`
-}
 
 type CategoryCsvDumper struct {
 	Api      *api_public.TokopediaApiPublic
 	base     *legacy_source.BaseConfig
 	Pathfile string
-	Data     []*Category
+	Data     []*csv.CategoryCsv
 }
 
 func NewCategoryCsvDumper(api *api_public.TokopediaApiPublic, base *legacy_source.BaseConfig, pathfile string) *CategoryCsvDumper {
@@ -49,19 +39,19 @@ func (d *CategoryCsvDumper) GetCategories() []*model_public.Categories {
 
 }
 
-func (d *CategoryCsvDumper) IterateGroup(categories []*model_public.Categories, groups []*Category) <-chan []*Category {
+func (d *CategoryCsvDumper) IterateGroup(categories []*model_public.Categories, groups []*csv.CategoryCsv) <-chan []*csv.CategoryCsv {
 	if categories == nil {
 		categories = d.GetCategories()
 	}
 
-	cGroupChan := make(chan []*Category)
+	cGroupChan := make(chan []*csv.CategoryCsv)
 
 	go func() {
 		defer close(cGroupChan)
 
 		for _, categ := range categories {
 			if groups == nil {
-				groups = []*Category{}
+				groups = []*csv.CategoryCsv{}
 			}
 
 			parentName := ""
@@ -69,7 +59,7 @@ func (d *CategoryCsvDumper) IterateGroup(categories []*model_public.Categories, 
 				parentName = groups[0].Name
 			}
 
-			groupsClone := append(groups, &Category{
+			groupsClone := append(groups, &csv.CategoryCsv{
 				Type:       "category",
 				ParentName: parentName,
 				Name:       categ.Name,
@@ -92,7 +82,7 @@ func (d *CategoryCsvDumper) IterateGroup(categories []*model_public.Categories, 
 func (d *CategoryCsvDumper) DumpCategory() {
 	categories := d.IterateGroup(nil, nil)
 	for c := range categories {
-		category := &Category{
+		category := &csv.CategoryCsv{
 			Type:       "category",
 			ParentName: c[len(c)-1].ParentName,
 			Name:       c[len(c)-1].Name,
@@ -105,71 +95,9 @@ func (d *CategoryCsvDumper) DumpCategory() {
 }
 
 func (d *CategoryCsvDumper) Save() error {
-	path := d.base.Path(d.Pathfile)
-	_, err := os.Stat(path)
-	if errors.Is(os.ErrNotExist, err) {
-		os.Create(path)
-	}
-
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0755)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	err = gocsv.MarshalFile(d.Data, file)
-	if err != nil {
-		return err
-	}
-	return nil
+	return csv.SaveCategoryCsv(d.base, d.Data)
 }
 
-func (d *CategoryCsvDumper) Load() ([]*Category, error) {
-	path := d.base.Path(d.Pathfile)
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	err = gocsv.UnmarshalFile(file, &d.Data)
-	if err != nil {
-		return nil, err
-	}
-	return d.Data, nil
-}
-
-func GetFullCategory(categs []*Category) []string {
-	name := []string{}
-	for _, c := range categs {
-		name = append(name, c.Name)
-	}
-	return name
-}
-
-func (d *CategoryCsvDumper) GetCategoryByUrl(categories []*model_public.Categories, url string) <-chan *model_public.Categories {
-	if categories == nil {
-		categories = d.GetCategories()
-	}
-
-	category := make(chan *model_public.Categories)
-	go func() {
-		defer close(category)
-
-	Loop:
-		for _, categ := range categories {
-			if categ.URL == url {
-				category <- categ
-				break Loop
-			}
-			if len(categ.Children) != 0 {
-				childsGroup := d.GetCategoryByUrl(categ.Children, url)
-				for child := range childsGroup {
-					category <- child
-					break Loop
-				}
-			}
-		}
-	}()
-	return category
+func (d *CategoryCsvDumper) Load() ([]*csv.CategoryCsv, error) {
+	return csv.LoadCategoryCsv(d.base)
 }

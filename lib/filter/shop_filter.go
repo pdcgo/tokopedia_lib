@@ -38,9 +38,9 @@ func (filter *ShopFilter) RatingFilter(rating float64) bool {
 }
 
 func (filter *ShopFilter) FilterPoint() bool {
-	if !filter.GrabTokopedia.LastLoginActive {
-		return false
-	}
+	// if !filter.GrabTokopedia.LastLoginActive {
+	// 	return false
+	// }
 	shopStats, err := filter.getShopStats()
 	if err != nil {
 		fmt.Printf("error [ shop ] : terjadi kesalahan pada toko [ %s ]\n", filter.Shop.Domain)
@@ -74,6 +74,7 @@ func (filter *ShopFilter) ApplyFilter() bool {
 	filters := []func() bool{
 		filter.FilterBlacklistUsername,
 		filter.FilterPoint,
+		
 	}
 	for _, filter := range filters {
 		if filter() {

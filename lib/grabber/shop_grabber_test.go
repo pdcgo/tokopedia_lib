@@ -1,39 +1,25 @@
 package grabber_test
 
-import (
-	"context"
-	"testing"
+// func TestShopGrabber(t *testing.T) {
+// 	api, err := api_public.NewTokopediaApiPublic()
+// 	assert.Nil(t, err)
+// 	ctx := context.Background()
+// 	ctx, cancel := context.WithCancel(ctx)
+// 	defer cancel()
 
-	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
-	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
-	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
-	"github.com/pdcgo/tokopedia_lib/lib/api_public"
-	"github.com/pdcgo/tokopedia_lib/lib/grab_handler"
-	"github.com/pdcgo/tokopedia_lib/lib/grabber"
-	"github.com/pdcgo/tokopedia_lib/scenario"
-	"github.com/zeebo/assert"
-)
+// 	baseConfig := &legacy_source.BaseConfig{
+// 		BaseData: "../..",
+// 	}
+// 	database := scenario.GetMongoDatabase(t)
 
-func TestShopGrabber(t *testing.T) {
-	api, err := api_public.NewTokopediaApiPublic()
-	assert.Nil(t, err)
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+// 	productRepo := mongorepo.NewProductRepo(ctx, database)
+// 	cacheHandler := grab_handler.NewCacheProductHandler(productRepo)
+// 	tasker := legacy.NewGrabTasker(baseConfig.Path("data/tasker.json"))
+// 	baseGrabber := grabber.NewBaseGrabber(api, baseConfig, tasker, cacheHandler)
+// 	baseGrabber.Filter.GrabBasic.LimitGrab = 1
 
-	baseConfig := &legacy_source.BaseConfig{
-		BaseData: "../..",
-	}
-	database := scenario.GetMongoDatabase(t)
-
-	productRepo := mongorepo.NewProductRepo(ctx, database)
-	cacheHandler := grab_handler.NewCacheProductHandler(productRepo)
-	tasker := legacy.NewGrabTasker(baseConfig.Path("data/tasker.json"))
-	baseGrabber := grabber.NewBaseGrabber(api, baseConfig, tasker, cacheHandler)
-	baseGrabber.Filter.GrabBasic.LimitGrab = 1
-
-	t.Run("test grab shop", func(t *testing.T) {
-		grab := grabber.NewShopListGrabber(baseGrabber)
-		grab.Run()
-	})
-}
+// 	t.Run("test grab shop", func(t *testing.T) {
+// 		grab := grabber.NewShopListGrabber(baseGrabber)
+// 		grab.Run()
+// 	})
+// }

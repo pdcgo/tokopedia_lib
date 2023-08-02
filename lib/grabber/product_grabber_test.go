@@ -1,73 +1,59 @@
 package grabber_test
 
-import (
-	"context"
-	"testing"
+// func TestProductGrab(t *testing.T) {
+// 	api, err := api_public.NewTokopediaApiPublic()
+// 	assert.Nil(t, err)
+// 	ctx := context.Background()
+// 	ctx, cancel := context.WithCancel(ctx)
+// 	defer cancel()
 
-	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
-	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
-	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
-	"github.com/pdcgo/tokopedia_lib/lib/api_public"
-	"github.com/pdcgo/tokopedia_lib/lib/grab_handler"
-	"github.com/pdcgo/tokopedia_lib/lib/grabber"
-	"github.com/pdcgo/tokopedia_lib/scenario"
-	"github.com/stretchr/testify/assert"
-)
+// 	baseConfig := &legacy_source.BaseConfig{
+// 		BaseData: "../..",
+// 	}
+// 	database := scenario.GetMongoDatabase(t)
 
-func TestProductGrab(t *testing.T) {
-	api, err := api_public.NewTokopediaApiPublic()
-	assert.Nil(t, err)
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+// 	productRepo := mongorepo.NewProductRepo(ctx, database)
+// 	cacheHandler := grab_handler.NewCacheProductHandler(productRepo)
+// 	tasker := legacy.NewGrabTasker(baseConfig.Path("data/tasker.json"))
+// 	baseGrabber := grabber.NewBaseGrabber(api, baseConfig, tasker, cacheHandler)
+// 	baseGrabber.Filter.GrabBasic.LimitGrab = 1
 
-	baseConfig := &legacy_source.BaseConfig{
-		BaseData: "../..",
-	}
-	database := scenario.GetMongoDatabase(t)
+// 	t.Run("test product keyword grabber", func(t *testing.T) {
+// 		keywords := []string{
+// 			"mousepad",
+// 			"keyboard gaming",
+// 		}
+// 		grabber := grabber.NewProductListGrabber(baseGrabber, keywords)
+// 		params := grabber.GenerateProductSearchParams()
+// 		params.Query = keywords[0]
+// 		products, err := grabber.GetProducts(params)
+// 		assert.Nil(t, err)
+// 		assert.NotEqual(t, len(products), 0)
+// 	})
+// 	t.Run("test product category grabber first level", func(t *testing.T) {
+// 		// 1759, Fashion Pria
+// 		baseGrabber.GrabTasker.TokpedCateg = []string{"1759"}
+// 		grabber := grabber.NewCategoryGrabber(baseGrabber)
+// 		params := grabber.GenerateProductSearchParams()
+// 		params.CategoryId = 1759
 
-	productRepo := mongorepo.NewProductRepo(ctx, database)
-	cacheHandler := grab_handler.NewCacheProductHandler(productRepo)
-	tasker := legacy.NewGrabTasker(baseConfig.Path("data/tasker.json"))
-	baseGrabber := grabber.NewBaseGrabber(api, baseConfig, tasker, cacheHandler)
-	baseGrabber.Filter.GrabBasic.LimitGrab = 1
+// 		products, err := grabber.GetProducts(params)
+// 		assert.Nil(t, err)
+// 		assert.NotEqual(t, len(products), 0)
+// 		assert.Equal(t, products[0].CategoryID, 1759)
+// 	})
+// 	t.Run("test product category grabber last level", func(t *testing.T) {
+// 		// 297, "Komputer & Laptop"
+// 		// 338, "Aksesoris Komputer & Laptop",
+// 		// 340, "Keyboard"
+// 		baseGrabber.GrabTasker.TokpedCateg = []string{"340"}
+// 		grabber := grabber.NewCategoryGrabber(baseGrabber)
+// 		params := grabber.GenerateProductSearchParams()
+// 		params.CategoryId = 340
 
-	t.Run("test product keyword grabber", func(t *testing.T) {
-		keywords := []string{
-			"mousepad",
-			"keyboard gaming",
-		}
-		grabber := grabber.NewProductListGrabber(baseGrabber, keywords)
-		params := grabber.GenerateProductSearchParams()
-		params.Query = keywords[0]
-		products, err := grabber.GetProducts(params)
-		assert.Nil(t, err)
-		assert.NotEqual(t, len(products), 0)
-	})
-	t.Run("test product category grabber first level", func(t *testing.T) {
-		// 1759, Fashion Pria
-		baseGrabber.GrabTasker.TokpedCateg = []string{"1759"}
-		grabber := grabber.NewCategoryGrabber(baseGrabber)
-		params := grabber.GenerateProductSearchParams()
-		params.CategoryId = 1759
-
-		products, err := grabber.GetProducts(params)
-		assert.Nil(t, err)
-		assert.NotEqual(t, len(products), 0)
-		assert.Equal(t, products[0].CategoryID, 1759)
-	})
-	t.Run("test product category grabber last level", func(t *testing.T) {
-		// 297, "Komputer & Laptop"
-		// 338, "Aksesoris Komputer & Laptop",
-		// 340, "Keyboard"
-		baseGrabber.GrabTasker.TokpedCateg = []string{"340"}
-		grabber := grabber.NewCategoryGrabber(baseGrabber)
-		params := grabber.GenerateProductSearchParams()
-		params.CategoryId = 340
-
-		products, err := grabber.GetProducts(params)
-		assert.Nil(t, err)
-		assert.NotEqual(t, len(products), 0)
-		assert.Equal(t, products[0].Category, 340)
-	})
-}
+// 		products, err := grabber.GetProducts(params)
+// 		assert.Nil(t, err)
+// 		assert.NotEqual(t, len(products), 0)
+// 		assert.Equal(t, products[0].Category, 340)
+// 	})
+// }

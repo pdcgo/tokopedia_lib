@@ -69,3 +69,15 @@ func (handler *CacheProductHandler) AddItemProductSearch(namespace string, sourc
 	cache := CreateCacheProductSearch(namespace, source)
 	return handler.addItem(cache)
 }
+
+func (h *CacheProductHandler) AddProductItem(
+	namespace string,
+	layout *model_public.PdpGetlayoutQueryResp,
+	pdpDataP2 *model_public.PdpGetDataP2Resp,
+) error {
+	cache := createCacheProduct(layout)
+	cache.Namespace = namespace
+	cache.Shop.Location = pdpDataP2.Data.PdpGetData.ShopInfo.Location
+	cache.ShopLocation = pdpDataP2.Data.PdpGetData.ShopInfo.Location
+	return h.addItem(cache)
+}
