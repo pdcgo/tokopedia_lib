@@ -39,14 +39,12 @@ func (grab *ShopGrabber) IterateProductPages(params *model_public.ShopProductVar
 			resp, err := grab.Api.ShopProducts(params)
 			if err != nil {
 				errChan.SetError(err)
-				fmt.Println(err)
 				break Parent
 			}
 
 			products := resp.Data.GetShopProduct.Data
 			if len(products) == 0 {
 				errChan.SetError(errors.New("halaman kosong"))
-				fmt.Println(err)
 				break Parent
 			}
 
@@ -54,7 +52,6 @@ func (grab *ShopGrabber) IterateProductPages(params *model_public.ShopProductVar
 				res <- &product
 			}
 			if resp.Data.GetShopProduct.Links.Next == "" {
-				fmt.Println(err)
 				break Parent
 			}
 			params.Page += 1
@@ -63,48 +60,58 @@ func (grab *ShopGrabber) IterateProductPages(params *model_public.ShopProductVar
 	return res, errChan
 }
 
-type ShopListGrabber struct {
-	ShopGrabber
-	Shops []string
+func (grab *ShopGrabber) Save(product *grab_handler.ShopGrabberResp) error {
+	return grab.CacheHandler.AddItemProductShop(grab.GrabTasker.Namespace, product)
 }
 
-func CreateShopListGrabber(
-	grabber *Grabber,
-	shops []string) *ShopListGrabber {
+type ShopListGrabber struct {
+	*ShopGrabber
+}
+
+func NewShopListGrabber(
+	grabber *Grabber) *ShopListGrabber {
 
 	return &ShopListGrabber{
-		ShopGrabber: ShopGrabber{
+		ShopGrabber: &ShopGrabber{
 			Grabber: grabber,
 		},
-		Shops: shops,
 	}
 }
 
 func (grab *ShopListGrabber) ProcessProduct(shopCore *model_public.ShopCoreInfoResp, product *model_public.ShopProductData) error {
 	prodId, _ := strconv.Atoi(product.ProductID)
-	if grab.AppliedFilterProduct(prodId, product.Name, product.ProductURL) {
-		return errors.New("terkena filter produk")
+	if grab.GrabTasker.UseFilter {
+		if grab.AppliedFilterProduct(prodId, product.Name, product.ProductURL) {
+			return errors.New("terkena filter produk")
+		}
 	}
+
 	pubProduct, err := grab.GetPublicProductLayout(product.ProductURL)
 	if err != nil {
 		return err
 	}
 
-	grab.Save("", &grab_handler.ShopGrabberResp{
+	err = grab.Save(&grab_handler.ShopGrabberResp{
 		Shop:    shopCore,
 		Product: pubProduct,
 	})
+	if err != nil {
+		return err
+	}
+
 	fmt.Printf("grab [ shop ] : mendapatkan produk [ %s ]\n", product.Name)
 	return nil
 }
 
-func (grab *ShopListGrabber) Save(namespace string, product *grab_handler.ShopGrabberResp) error {
-	return grab.CacheHandler.AddItemProductShop(namespace, product)
-}
+func (grab *ShopListGrabber) Run() error {
+	path := grab.Base.Path(grab.GrabTasker.TokoUsername)
+	shops, err := helper.FileLineStringLoad(path)
+	if err != nil {
+		return err
+	}
 
-func (grab *ShopListGrabber) Run() {
 Shop:
-	for _, shopUrl := range grab.Shops {
+	for _, shopUrl := range shops {
 
 		limit := int32(grab.Grabber.Filter.GrabBasic.LimitGrab)
 		limiter := helper.NewLimiter(limit)
@@ -113,9 +120,12 @@ Shop:
 		if err != nil {
 			continue Shop
 		}
+
 		shopId, _ := strconv.Atoi(shopCoreInfo.Data.Result[0].ShopCore.ShopID)
-		if grab.AppliedFilterShop(shopId, shopCoreInfo.Data.Result[0].ShopCore.Domain) {
-			continue Shop
+		if grab.GrabTasker.UseFilter {
+			if grab.AppliedFilterShop(shopId, shopCoreInfo.Data.Result[0].ShopCore.Domain) {
+				continue Shop
+			}
 		}
 
 		params := GenerateShopProductVar()
@@ -124,20 +134,22 @@ Shop:
 		for product := range products {
 			if limiter.LimitReached() {
 				fmt.Println("filter [ produk ] : telah mencapai batas grab")
-				return
+				continue Shop
 			}
+
 			err := grab.ProcessProduct(shopCoreInfo, product)
 			if err != nil {
 				continue
 			}
 
 			limiter.Add()
-
 		}
+
 		err = errChan.GetError()
 		if err != nil {
 			fmt.Println(err)
 			continue Shop
 		}
 	}
+	return nil
 }

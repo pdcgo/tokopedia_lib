@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/pdcgo/go_v2_shopeelib/helper"
@@ -55,12 +56,14 @@ func (grab *ProductGrabber) GetProducts(params *model_public.SearchProductVar) (
 func (grab *ProductGrabber) ProcessProduct(product *model_public.ProductSearch) error {
 	prodVar, _ := ParseProductDetailParamsFromUrl(product.URL)
 
-	if grab.AppliedFilterShop(product.Shop.ShopID, prodVar.ShopDomain) {
-		return errors.New("terkena filter toko")
-	}
+	if grab.GrabTasker.UseFilter {
+		if grab.AppliedFilterShop(product.Shop.ShopID, prodVar.ShopDomain) {
+			return errors.New("terkena filter toko")
+		}
 
-	if grab.AppliedFilterProduct(int(product.ID), product.Name, product.URL) {
-		return errors.New("terkena filter produk")
+		if grab.AppliedFilterProduct(int(product.ID), product.Name, product.URL) {
+			return errors.New("terkena filter produk")
+		}
 	}
 
 	product_detail, err := grab.GetPublicProductLayout(product.URL)
@@ -68,62 +71,13 @@ func (grab *ProductGrabber) ProcessProduct(product *model_public.ProductSearch) 
 		fmt.Printf("error [ produk ] : error  mendapatkan produk [ %s ]\n", product.Name)
 		return err
 	}
-	grab.Save("", &grab_handler.ProductListGrabberResp{Product: product, ProductDetail: product_detail})
+	err = grab.Save(&grab_handler.ProductListGrabberResp{Product: product, ProductDetail: product_detail})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
-
-// - single responsebility x
-// - filter
-// Stepes:
-//  get Products
-// parse params to string
-// request
-// get data
-//  filter shop
-// create shop filter
-// apply filter
-// check shop tier
-// check last login
-//  filter product
-// create product filter
-// apply filter
-// check stock
-// check persentase
-// check penjualan
-// iterasi next page
-
-// get produk
-//
-
-// - unit test x
-// - flexible v
-
-// func (grab *ProductGrabber) PageIterate(params *model_public.SearchProductVar, handle func(*model_public.ProductSearch) error) error {
-// 	var errResp error
-// 	fmt.Printf("grab [ keyword ] : memulai grab keyword [ %s ]\n", params.Query)
-
-// Parent:
-// 	for {
-// 		products, err := grab.GetProducts(params)
-// 		if err != nil {
-// 			errResp = err
-// 			break Parent
-// 		}
-
-// 		if len(products) == 0 {
-// 			fmt.Printf("finish [ produk ] : halaman ini tidak mempunyai produk\n")
-// 			break Parent
-// 		}
-
-// 		for _, product := range products {
-// 			handle(product)
-// 		}
-
-// 		params.Page += 1
-// 		params.Start = params.Page * params.Rows
-// 	}
-// 	return errResp
-// }
 
 func (grab *ProductGrabber) IterateProductPages(params *model_public.SearchProductVar) (<-chan *model_public.ProductSearch, *helper.ChannelError) {
 	res := make(chan *model_public.ProductSearch)
@@ -154,8 +108,8 @@ func (grab *ProductGrabber) IterateProductPages(params *model_public.SearchProdu
 	return res, errChan
 }
 
-func (grab *ProductGrabber) Save(namespace string, product *grab_handler.ProductListGrabberResp) {
-	grab.CacheHandler.AddItemProductSearch(namespace, product)
+func (grab *ProductGrabber) Save(product *grab_handler.ProductListGrabberResp) error {
+	return grab.CacheHandler.AddItemProductSearch(grab.GrabTasker.Namespace, product)
 }
 
 // Product List
@@ -197,6 +151,7 @@ Keywords:
 			if err != nil {
 				continue
 			}
+
 			fmt.Printf("grab [ keyword ] : mendapatkan produk [ %s ] [ %d ]\n", product.Name, counter.Total)
 			limiter.Add()
 			counter.Add()
@@ -212,47 +167,52 @@ Keywords:
 
 type CategoryGrabber struct {
 	ProductGrabber
-	CatId int
+	CatIds []string
 }
 
-func NewCategoryGrabber(grabber *Grabber, catId int) *CategoryGrabber {
+func NewCategoryGrabber(grabber *Grabber) *CategoryGrabber {
 	return &CategoryGrabber{
 		ProductGrabber: ProductGrabber{
 			Grabber: grabber,
 		},
-		CatId: catId,
+		CatIds: grabber.GrabTasker.TokpedCateg,
 	}
 }
 
-func (grab *CategoryGrabber) Run() {
-	params := grab.GenerateProductSearchParams()
-	params.CategoryId = grab.CatId
+func (grab *CategoryGrabber) Run() error {
 
-	limit := int32(grab.Filter.GrabBasic.LimitGrab)
-	limiter := helper.NewLimiter(limit)
+Category:
+	for _, c := range grab.CatIds {
+		catId, _ := strconv.Atoi(c)
+		params := grab.GenerateProductSearchParams()
+		params.CategoryId = catId
 
-	products, errChan := grab.IterateProductPages(params)
-	for product := range products {
-		if limiter.LimitReached() {
-			fmt.Println("filter [ produk ] : telah mencapai batas grab")
-			return
+		limit := int32(grab.Filter.GrabBasic.LimitGrab)
+		limiter := helper.NewLimiter(limit)
+
+		products, errChan := grab.IterateProductPages(params)
+		for product := range products {
+			if limiter.LimitReached() {
+				fmt.Println("filter [ produk ] : telah mencapai batas grab")
+				continue Category
+			}
+
+			err := grab.ProcessProduct(product)
+			if err != nil {
+				continue
+			}
+
+			fmt.Printf("grab [ kategori ] : mendapatkan produk [ %s ]\n", product.Name)
+			limiter.Add()
 		}
-
-		err := grab.ProcessProduct(product)
+		err := errChan.GetError()
 		if err != nil {
-			continue
+			fmt.Println(err.Error())
+			return err
 		}
-
-		fmt.Printf("grab [ kategori ] : mendapatkan produk [ %s ]\n", product.Name)
-		limiter.Add()
 	}
 
-	err := errChan.GetError()
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
+	return nil
 }
 
 type CategoryCsvGrabber struct {
@@ -271,11 +231,11 @@ func NewCategoryCsvGrabber(grabber *Grabber, pathfile string) *CategoryCsvGrabbe
 	}
 }
 
-func (g *CategoryCsvGrabber) Run() {
+func (g *CategoryCsvGrabber) Run() error {
 	categories, err := g.Load()
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 
 	fmt.Printf("grab [ file kategori ] : memulai grab file kategori\n")
@@ -287,7 +247,7 @@ Categories:
 
 		categ := g.GetCategoryByUrl(nil, c.Url)
 		for i := range categ {
-			g.CatId = i.ID
+			g.CatIds = []string{fmt.Sprintf("%d", i.ID)}
 			break
 		}
 
@@ -296,4 +256,5 @@ Categories:
 		c.Status = "grabbed"
 		g.Save()
 	}
+	return nil
 }

@@ -22,8 +22,8 @@ type BaseFilter struct {
 func (filter *BaseFilter) getDataBlacklistUsername() []string {
 	if filter.GrabBasic.BlacklistUsername.Tokopedia.Filename == "" {
 		return filter.GrabBasic.BlacklistUsername.Tokopedia.Data
-
 	}
+
 	path := filter.base.Path(filter.GrabBasic.BlacklistUsername.Tokopedia.Filename)
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -87,10 +87,7 @@ func (filter *BaseFilter) BlacklistUsername(username string) bool {
 		return false
 	}
 	blUsername := filter.getDataBlacklistUsername()
-	if slices.Contains(blUsername, username) {
-		return true
-	}
-	return false
+	return slices.Contains(blUsername, username)
 }
 
 func CreateBaseFilter(api *api_public.TokopediaApiPublic, base *legacy_source.BaseConfig) *BaseFilter {

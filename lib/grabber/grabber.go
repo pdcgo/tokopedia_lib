@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
-	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
+	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/filter"
 	"github.com/pdcgo/tokopedia_lib/lib/grab_handler"
@@ -19,19 +20,30 @@ type Grabber struct {
 	Api          *api_public.TokopediaApiPublic
 	Filter       *filter.BaseFilter
 	Base         *legacy_source.BaseConfig
+	GrabTasker   *legacy.GrabTasker
 	CacheHandler *grab_handler.CacheProductHandler
 	Ctx          context.Context
 }
 
-func NewBaseGrabber(api *api_public.TokopediaApiPublic, base *legacy_source.BaseConfig, repo *mongorepo.ProductRepo) *Grabber {
+func NewBaseGrabber(api *api_public.TokopediaApiPublic, base *legacy_source.BaseConfig, tasker *legacy.GrabTasker, cacheHandler *grab_handler.CacheProductHandler) *Grabber {
 	filter := filter.CreateBaseFilter(api, base)
-	cacheHandler := grab_handler.NewCacheProductHandler(repo)
 	return &Grabber{
 		Api:          api,
 		Filter:       filter,
 		Base:         base,
 		CacheHandler: cacheHandler,
+		GrabTasker:   tasker,
 	}
+}
+
+func (g *Grabber) GetKeywords() ([]string, error) {
+	path := g.Base.Path(g.GrabTasker.ProductURL)
+	file, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	keywords := strings.Split(string(file), "\n")
+	return keywords, nil
 }
 
 func (grab *Grabber) AppliedFilterShop(shopId int, shopDomain string) bool {

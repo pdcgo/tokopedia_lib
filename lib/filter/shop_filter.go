@@ -72,8 +72,8 @@ func (filter *ShopFilter) FilterBlacklistUsername() bool {
 
 func (filter *ShopFilter) ApplyFilter() bool {
 	filters := []func() bool{
-		filter.FilterPoint,
 		filter.FilterBlacklistUsername,
+		filter.FilterPoint,
 	}
 	for _, filter := range filters {
 		if filter() {
