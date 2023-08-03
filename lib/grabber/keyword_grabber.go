@@ -1,7 +1,6 @@
 package grabber
 
 import (
-	"context"
 	"errors"
 	"log"
 	"sync"
@@ -13,19 +12,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type ShopGrabber struct {
+type KeywordGrabber struct {
 	*BaseGrabber
 }
 
-func NewShopGrabber(base *BaseGrabber) *ShopGrabber {
-	return &ShopGrabber{
+func NewKeywordGrabber(base *BaseGrabber) *KeywordGrabber {
+	return &KeywordGrabber{
 		base,
 	}
 }
 
-func (g *ShopGrabber) Run() error {
-	fname := g.Base.Path(g.GrabTasker.TokoUsername)
-
+func (g *KeywordGrabber) Run() error {
 	filterLimit, limiter := filter.CreateLimiter(g.Base)
 	filtersOpt := []filter.FilterHandler{
 		filter.CreateSoldFilter(g.Base),
@@ -40,24 +37,22 @@ func (g *ShopGrabber) Run() error {
 	filters := []filter.FilterHandler{
 		filterLimit,
 	}
+
 	if g.GrabTasker.UseFilter {
 		filters = append(filters, filtersOpt...)
 	}
-
 	filterItem := filter.NewFilterItem(filters...)
 
 	lock := sync.Mutex{}
 
-	return iterator.IterateShops(g.Api, fname, func(item *model_public.ShopCoreInfoResp) error {
+	return iterator.IterateKeywords(g.Base, g.GrabTasker, func(item string) error {
 		limiter.ResetLimiter()
-		shopId := item.Data.Result[0].ShopCore.ShopID
+		searchVar := CreateGrabSearchVar(g.Base)
+		searchVar.Query = item
 
-		searchVar := GenerateShopProductVar()
-		searchVar.Sid = shopId
+		// ctx, cancel := context.WithCancel(context.Background())
 
-		ctx, cancel := context.WithCancel(context.Background())
-
-		err := iterator.IterateProductShopPage(g.Api, ctx, searchVar, func(item *model_public.ShopProductData) error {
+		err := iterator.IterateSearchPage(g.Api, limiter, searchVar, func(item *model_public.ProductSearch) error {
 			g.wg.Add(1)
 
 			go func() {
@@ -66,7 +61,7 @@ func (g *ShopGrabber) Run() error {
 					<-g.limitGuard
 				}()
 
-				layoutVar, _ := ParseProductDetailParamsFromUrl(item.ProductURL)
+				layoutVar, _ := ParseProductDetailParamsFromUrl(item.URL)
 				lock.Lock()
 				layout, err := g.Api.PdpGetlayoutQuery(layoutVar)
 				lock.Unlock()
@@ -88,7 +83,7 @@ func (g *ShopGrabber) Run() error {
 				cek, reason, err := filterItem(layout, pdp)
 				if err != nil {
 					if errors.Is(filter.ErrLimiterReached, err) {
-						cancel()
+						// cancel()
 						return
 					}
 					pdc_common.ReportError(err)
@@ -110,7 +105,7 @@ func (g *ShopGrabber) Run() error {
 				}
 
 				log.Printf("[ scraped ] item saved")
-				limiter.Add()
+				// limiter.Add()
 			}()
 
 			return nil

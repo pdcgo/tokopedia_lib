@@ -114,39 +114,3 @@ func createCacheProduct(product *model_public.PdpGetlayoutQueryResp) mongorepo.C
 	}
 	return res
 }
-
-func CreateCacheProductUrl(namespace string, product *UrlGrabberResp) mongorepo.CacheProduct {
-	cacheProduct := createCacheProduct(product.Product)
-	cacheProduct.Namespace = namespace
-	cacheProduct.Shop.Location = product.ProductP2.Data.PdpGetData.ShopInfo.Location
-	cacheProduct.ShopLocation = product.ProductP2.Data.PdpGetData.ShopInfo.Location
-
-	return cacheProduct
-}
-
-func CreateCacheProductCategory(namespace string, product *ProductCategoryGrabResp) mongorepo.CacheProduct {
-	cacheProduct := createCacheProduct(product.ProductDetail)
-	cacheProduct.Namespace = namespace
-	cacheProduct.Shop.Location = product.ProductCategory.Shop.Location
-	cacheProduct.ShopLocation = product.ProductCategory.Shop.Location
-
-	return cacheProduct
-}
-
-func CreateCacheProductShop(namespace string, product *ShopGrabberResp) mongorepo.CacheProduct {
-	cacheProduct := createCacheProduct(product.Product)
-	cacheProduct.Namespace = namespace
-	cacheProduct.Shop.Location = product.Shop.Data.ShopInfoByID.Result[0].Location
-	cacheProduct.ShopLocation = product.Shop.Data.ShopInfoByID.Result[0].Location
-
-	return cacheProduct
-}
-
-func CreateCacheProductSearch(namespace string, product *ProductListGrabberResp) mongorepo.CacheProduct {
-	cacheProduct := createCacheProduct(product.ProductDetail)
-	cacheProduct.Namespace = namespace
-	cacheProduct.Shop.Location = product.Product.Shop.City
-	cacheProduct.ShopLocation = product.Product.Shop.City
-
-	return cacheProduct
-}

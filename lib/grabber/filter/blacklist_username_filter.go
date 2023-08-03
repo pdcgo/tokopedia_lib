@@ -15,11 +15,18 @@ func CreateBlacklistUsernameFilter(base *legacy_source.BaseConfig) FilterHandler
 			return false, "", nil
 		}
 
+		var blUsername []string
+
 		fname := grabBasic.BlacklistUsername.Tokopedia.Filename
-		pathfile := base.Path(fname)
-		blUsername, err := helper.FileLoadLineString(pathfile)
-		if err != nil {
-			return true, "filter blacklist username", nil
+		if fname != "" {
+			pathfile := base.Path(fname)
+			results, err := helper.FileLoadLineString(pathfile)
+			if err != nil {
+				return true, "filter blacklist username", err
+			}
+			blUsername = results
+		} else {
+			blUsername = grabBasic.BlacklistUsername.Tokopedia.Data
 		}
 
 		shopDomain := pdp.Data.PdpGetData.ShopInfo.ShopCore.Domain

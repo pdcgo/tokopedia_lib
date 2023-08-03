@@ -17,13 +17,13 @@ func IterateCategoryCsv(base *legacy_source.BaseConfig, handler CategoryCsvHandl
 		return err
 	}
 	setGrabbed := func(category *csv.CategoryCsv) error {
-		category.Status = "grabbed"
+		category.Status = csv.STATUS_GRAB_CATEGORY_GRABBED
 		err := csv.SaveCategoryCsv(base, categories)
 		return err
 	}
 
 	for _, category := range categories {
-		if category.Status == "grabbed" {
+		if category.Status == csv.STATUS_GRAB_CATEGORY_GRABBED {
 			continue
 		}
 

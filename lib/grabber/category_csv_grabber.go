@@ -1,13 +1,16 @@
 package grabber
 
 import (
+	"errors"
 	"log"
+	"sync"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/csv"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/iterator"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type CategoryCsvGrabber struct {
@@ -19,9 +22,9 @@ func NewCategoryCsvGrabber(base *BaseGrabber) *CategoryCsvGrabber {
 }
 
 func (g *CategoryCsvGrabber) Run() error {
-	limiter, addCount := filter.CreateLimiter(g.Base)
+	filterLimit, limiter := filter.CreateLimiter(g.Base)
 	filters := []filter.FilterHandler{
-		limiter,
+		filterLimit,
 		filter.CreateSoldFilter(g.Base),
 		filter.CreateSoldPercentageFilter(g.Base),
 		filter.CreateStockFilter(g.Base),
@@ -43,13 +46,17 @@ func (g *CategoryCsvGrabber) Run() error {
 		return category.ID
 	}
 
+	lock := sync.Mutex{}
+
 	return iterator.IterateCategoryCsv(g.Base, func(category *csv.CategoryCsv) error {
 
 		searchVar := CreateGrabSearchVar(g.Base)
 		categoryId := getCategoryId(category.Url)
 		searchVar.CategoryId = categoryId
 
-		err := iterator.IterateSearchPage(g.Api, searchVar, func(item *model_public.ProductSearch) error {
+		// ctx, cancel := context.WithCancel(context.Background())
+
+		err := iterator.IterateSearchPage(g.Api, limiter, searchVar, func(item *model_public.ProductSearch) error {
 
 			g.wg.Add(1)
 			g.limitGuard <- 1
@@ -61,7 +68,9 @@ func (g *CategoryCsvGrabber) Run() error {
 				}()
 
 				layoutVar, _ := ParseProductDetailParamsFromUrl(item.URL)
+				lock.Lock()
 				layout, err := g.Api.PdpGetlayoutQuery(layoutVar)
+				lock.Unlock()
 				if err != nil {
 					pdc_common.ReportError(err)
 					return
@@ -78,26 +87,31 @@ func (g *CategoryCsvGrabber) Run() error {
 				}
 
 				cek, reason, err := filterItem(layout, pdp)
-
 				if err != nil {
+					if errors.Is(filter.ErrLimiterReached, err) {
+						// cancel()
+						return
+					}
 					pdc_common.ReportError(err)
 					return
 				}
-
 				if cek {
-					log.Printf("[ %s ] %s", reason, item.Name)
+					log.Printf("[ %s ] %s", reason, layoutVar.ProductKey)
 					return
 				}
 
-				// TODO:save item
 				err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
 				if err != nil {
+					if mongo.IsDuplicateKeyError(err) {
+						log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, layoutVar.ProductKey)
+						return
+					}
 					pdc_common.ReportError(err)
 					return
 				}
-				addCount()
-				// save berhasil -> addCount
 
+				log.Printf("[ scraped ] item saved")
+				// limiter.Add()
 			}()
 
 			return nil

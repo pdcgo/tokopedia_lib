@@ -3,6 +3,7 @@ package helper
 import (
 	"bufio"
 	"os"
+	"strings"
 )
 
 func FileLoadLineString(path string) ([]string, error) {
@@ -19,4 +20,17 @@ func FileLoadLineString(path string) ([]string, error) {
 	}
 
 	return lines, scanner.Err()
+}
+
+func FileSaveLineString(fname string, lines []string) error {
+	file, err := os.Create(fname)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	content := strings.Join(lines, "\n")
+	_, err = file.Write([]byte(content))
+
+	return err
 }

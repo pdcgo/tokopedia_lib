@@ -80,18 +80,6 @@ func GenerateShopProductVar() *model_public.ShopProductVar {
 	return params
 }
 
-func GenerateShopCoreInfoParamsFormUrl(uri string) (*model_public.ShopCoreInfoVar, error) {
-	u, err := url.Parse(uri)
-	if err != nil {
-		return nil, err
-	}
-	params := &model_public.ShopCoreInfoVar{
-		ID:     0,
-		Domain: strings.Replace(u.Path, "/", "", -1),
-	}
-	return params, nil
-}
-
 // func (g *Grabber) GetKeywords() ([]string, error) {
 // 	path := g.Base.Path(g.GrabTasker.ProductURL)
 // 	file, err := os.ReadFile(path)

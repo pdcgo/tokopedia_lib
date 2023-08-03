@@ -8,12 +8,19 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
 
+type StatusGrabCategoryCsv string
+
+const (
+	STATUS_GRAB_CATEGORY_GRABBED   StatusGrabCategoryCsv = "grabbed"
+	STATUS_GRAB_CATEGORY_UNGRABBED StatusGrabCategoryCsv = ""
+)
+
 type CategoryCsv struct {
-	Type       string `csv:"type" json:"type"`
-	ParentName string `csv:"parent_name" json:"parent_name"`
-	Name       string `csv:"name" json:"name"`
-	Url        string `csv:"url" json:"url"`
-	Status     string `csv:"status" json:"status"`
+	Type       string                `csv:"type" json:"type"`
+	ParentName string                `csv:"parent_name" json:"parent_name"`
+	Name       string                `csv:"name" json:"name"`
+	Url        string                `csv:"url" json:"url"`
+	Status     StatusGrabCategoryCsv `csv:"status" json:"status"`
 }
 
 func LoadCategoryCsv(base *legacy_source.BaseConfig) ([]*CategoryCsv, error) {
