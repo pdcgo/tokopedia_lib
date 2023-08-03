@@ -401,6 +401,12 @@ export interface EtalasePayload {
     etalase: string;
     cat_ids: number[];
 }
+export interface ExportSupplierQuery {
+    namespace: string;
+}
+export interface ExportUrlQuery {
+    namespace: string;
+}
 export type SdkConfig = { 
 
 	GetTokopediaAkunList: {
@@ -809,5 +815,21 @@ export type SdkConfig = {
 		payload: undefined
 		response: EtalasePayload[]
 		path: "tokopedia/etalase_map/list_etalase"
+	},
+
+	PutShopeeV5ProductExportSupplier: {
+		method: "put"
+		params: ExportSupplierQuery
+		payload: undefined
+		response: undefined
+		path: "shopee/v5/product/export_supplier"
+	},
+
+	PutShopeeV5ProductExportUrl: {
+		method: "put"
+		params: ExportUrlQuery
+		payload: undefined
+		response: undefined
+		path: "shopee/v5/product/export_url"
 	}
 }

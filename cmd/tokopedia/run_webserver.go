@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/go_v2_shopeelib/api_v5"
 	"github.com/pdcgo/go_v2_shopeelib/app/app_config"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/controller"
@@ -110,6 +111,10 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	etalaseApi := api.NewEtalaseMapApi(mapetalase)
 
 	etalaseApi.RegisterApi(g.Group("etalase_map"))
+	// register shopee v5
+	shopeeV5 := sdk.Group("shopee/v5")
+	productapi := api_v5.NewProductApi(baseData, productRepo)
+	productapi.RegisterApi(shopeeV5.Group("product"))
 
 	web.RegisterTokopediaFrontend(r, prefix)
 
