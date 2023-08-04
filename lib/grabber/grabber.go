@@ -61,13 +61,22 @@ func (g *BaseGrabber) GetProductLayout(ctx context.Context, url string) *model_p
 	}
 }
 
-func (g *BaseGrabber) GetPdpDataP2(ctx context.Context, pdpSession string, prodId string) *model_public.PdpGetDataP2Resp {
+func (g *BaseGrabber) GetPdpDataP2(ctx context.Context, layout *model_public.PdpGetlayoutQueryResp) *model_public.PdpGetDataP2Resp {
 	select {
 	case <-ctx.Done():
 		return nil
 	default:
+		var pdpSess string
+		var prodId string
+		if layout.Data.PdpGetLayout.PdpSession != "" {
+			pdpSess = layout.Data.PdpGetLayout.PdpSession
+		}
+		if layout.Data.PdpGetLayout.BasicInfo.ID != "" {
+			prodId = layout.Data.PdpGetLayout.BasicInfo.ID
+		}
+
 		pdpVar := &model_public.PdpGetDataP2Var{
-			PdpSession: pdpSession,
+			PdpSession: pdpSess,
 			ProductID:  prodId,
 		}
 		pdp, err := g.Api.PdpGetDataP2(pdpVar)

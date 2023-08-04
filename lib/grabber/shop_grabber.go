@@ -40,7 +40,7 @@ func (g *ShopGrabber) Run() error {
 	lock := sync.Mutex{}
 	counter := helper.NewCounter()
 
-	return iterator.IterateShops(g.Api, fname, func(item *model_public.ShopCoreInfoResp) error {
+	return iterator.IterateShops(g.Api, fname, func(shopCore *model_public.ShopCoreInfoResp) error {
 		filterLimit, addCount := filter.CreateLimiter(g.Base)
 		filters := []filter.FilterHandler{
 			filterLimit,
@@ -49,7 +49,7 @@ func (g *ShopGrabber) Run() error {
 			filters = append(filters, filtersOpt...)
 		}
 
-		shopId := item.Data.Result[0].ShopCore.ShopID
+		shopId := shopCore.Data.Result[0].ShopCore.ShopID
 		searchVar := GenerateShopProductVar()
 		searchVar.Sid = shopId
 
@@ -72,15 +72,7 @@ func (g *ShopGrabber) Run() error {
 					return
 				}
 
-				var pdpSess string
-				var prodId string
-				if layout.Data.PdpGetLayout.PdpSession != "" {
-					pdpSess = layout.Data.PdpGetLayout.PdpSession
-				}
-				if layout.Data.PdpGetLayout.BasicInfo.ID != "" {
-					prodId = layout.Data.PdpGetLayout.BasicInfo.ID
-				}
-				pdp := g.GetPdpDataP2(ctx, pdpSess, prodId)
+				pdp := g.GetPdpDataP2(ctx, layout)
 				if layout == nil {
 					return
 				}

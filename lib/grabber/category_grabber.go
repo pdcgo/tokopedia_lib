@@ -87,15 +87,7 @@ func (g *CategoryGrabber) Run() error {
 				return
 			}
 
-			var pdpSess string
-			var prodId string
-			if layout.Data.PdpGetLayout.PdpSession != "" {
-				pdpSess = layout.Data.PdpGetLayout.PdpSession
-			}
-			if layout.Data.PdpGetLayout.BasicInfo.ID != "" {
-				prodId = layout.Data.PdpGetLayout.BasicInfo.ID
-			}
-			pdp := g.GetPdpDataP2(ctx, pdpSess, prodId)
+			pdp := g.GetPdpDataP2(ctx, layout)
 			if layout == nil {
 				return
 			}

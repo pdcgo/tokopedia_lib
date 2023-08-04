@@ -11,7 +11,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
 
-type ShopHandler func(item *model_public.ShopCoreInfoResp) error
+type ShopHandler func(shopCore *model_public.ShopCoreInfoResp) error
 
 func generateShopCoreInfoParamsFormUrl(uri string) (*model_public.ShopCoreInfoVar, error) {
 	u, err := url.Parse(uri)

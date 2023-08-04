@@ -36,7 +36,7 @@ Parent:
 				case <-ctx.Done():
 					break Parent
 				default:
-					err := handler(&item)
+					err := handler(item)
 					if err != nil {
 						return err
 					}
