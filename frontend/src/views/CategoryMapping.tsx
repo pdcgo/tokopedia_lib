@@ -15,16 +15,16 @@ const MapperHeader = React.lazy(
 )
 const MapCard = React.lazy(() => import("../components/MapCard"))
 
-export default function CategoryMapping(): React.ReactElement {
+export default function CategoryMapping(props: { activePage?: string }): React.ReactElement {
     const [showAsk, setShowAsk] = useState(false)
-    const [list_, initEffect_, updateSingleList_, listPending_] = useListStore(
-        (state) => [
+    const [list_, initEffect_, updateSingleList_, listPending_, reset_] =
+        useListStore((state) => [
             state.list,
             state.initEffect,
             state.updateSingleList,
             state.pendingInitEffect,
-        ]
-    )
+            state.reset,
+        ])
 
     const { sender, response: catListTokopedia } = useRequest(
         "GetTokopediaCategoryList"
@@ -60,13 +60,15 @@ export default function CategoryMapping(): React.ReactElement {
                 },
             }
         )
+
+        return () => reset_()
     }, [])
 
     useEffect(() => {
-        if (selectedNamespacem) {
+        if (selectedNamespacem && props.activePage == "category_map") {
             initEffect_(selectedNamespacem, catListTokopedia)
         }
-    }, [selectedNamespacem])
+    }, [selectedNamespacem, catListTokopedia])
 
     const namespaces = useMemo(() => {
         if (response) {

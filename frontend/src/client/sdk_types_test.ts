@@ -62,26 +62,19 @@ export interface UploadAppStatus {
     count_upload: number;
     limit_upload: number;
 }
+export interface DataSpinQuery {
+    name: string;
+}
 export interface DataSpinItemResponse {
     name: string;
     data: string[];
 }
-export interface DataSpinQuery {
-    name: string;
-}
-
 export interface BaseResponse {
     errcode: number;
     message?: string;
     status?: string;
 }
-export interface SettingSpinData {
-    smin: number;
-    smax: number;
-    merek_ins_t: boolean;
-    title: string;
-    desc: string;
-}
+
 export interface DataSpinDeleteQuery {
     name: string;
 }
@@ -89,6 +82,13 @@ export interface DataSpinDeleteQuery {
 export interface SettingSpinTitlePool {
     name: string;
     data: string;
+}
+export interface SettingSpinData {
+    smin: number;
+    smax: number;
+    merek_ins_t: boolean;
+    title: string;
+    desc: string;
 }
 export interface SettingSpinResponse {
     data?: SettingSpinData;
@@ -133,36 +133,6 @@ export interface MarkupGetResponse {
 
 
 
-export interface ProductNamespaceAgg {
-    count: number;
-    price_min: number;
-    price_max: number;
-    name: string;
-}
-export interface ProductPriceRangeAgg {
-    _id: number[];
-    count: number;
-}
-export interface ProductCategoryAgg {
-    _id: number;
-    price_min: number;
-    price_max: number;
-    count: number;
-    name: string[];
-}
-export interface ProductCityAgg {
-    _id: string;
-    price_min: number;
-    price_max: number;
-    count: number;
-}
-export interface ShopeeCategoryOld {
-    parent_category: number;
-    catid: number;
-    parent_display_name: string;
-    display_name: string;
-    status: string;
-}
 export interface ProductMatchStageQuery {
     is_public: boolean;
     kota: string;
@@ -171,7 +141,12 @@ export interface ProductMatchStageQuery {
     pmax: number;
     pmin: number;
 }
-
+export interface ProductNamespaceAgg {
+    count: number;
+    price_min: number;
+    price_max: number;
+    name: string;
+}
 export interface ProductPriceRangeAggQuery {
     is_public: boolean;
     kota: string;
@@ -181,17 +156,37 @@ export interface ProductPriceRangeAggQuery {
     pmin: number;
     range_price: number;
 }
+export interface ProductPriceRangeAgg {
+    _id: number[];
+    count: number;
+}
+
+export interface ProductCategoryAgg {
+    _id: number;
+    price_min: number;
+    price_max: number;
+    count: number;
+    name: string[];
+}
+
+export interface ProductCityAgg {
+    _id: string;
+    price_min: number;
+    price_max: number;
+    count: number;
+}
 
 
 
 
 
-
-
-
-
-
-
+export interface ShopeeCategoryOld {
+    parent_category: number;
+    catid: number;
+    parent_display_name: string;
+    display_name: string;
+    status: string;
+}
 
 
 export interface PredictWeightResponse {
@@ -216,7 +211,6 @@ export interface SearchFilterDynamicShipping {
     display_name: string;
     item_tag_ids: number[];
 }
-
 export interface CategorySubSub {
     catid: number;
     display_name: string;
@@ -248,7 +242,18 @@ export interface CategoryItem {
     main: CategoryMain;
     sub: CategorySub[];
 }
-export interface ShopeeCategoryRegionSetting {
+export interface CategoryTreeItem {
+    id: number;
+    name: string;
+    display_name: string;
+    parent_id: number;
+    has_active_children: boolean;
+    has_children: boolean;
+    region_setting?: RegionSetting;
+    is_prohibit: boolean;
+    children: CategoryTreeItem[];
+}
+export interface RegionSetting {
     enable_size_chart: boolean;
     low_stock_value: number;
     dimension_mandatory: boolean;
@@ -260,9 +265,9 @@ export interface ShopeeCategory {
     parent_id: number;
     has_active_children: boolean;
     has_children: boolean;
-    children?: any[];
-    region_setting: ShopeeCategoryRegionSetting;
+    region_setting?: RegionSetting;
     is_prohibit: boolean;
+    children: CategoryTreeItem[];
     chain_name: string[];
     chain_ids: number[];
 }
@@ -368,17 +373,39 @@ export interface AutoSubmit {
     base_ktp: string;
     filename: string;
 }
+export interface ListMapEtalaseQuery {
+    namespace: string;
+}
+export interface ShopeeEtalaseMapItem {
+    shopee_id: number;
+    tokpedia_id: number;
+    product_count: number;
+    category_no_mapping: boolean;
+    ShopeeCategoryName: string[];
+    TokopediaCategoryName: string[];
+    EtalaseName: string;
+}
+export interface ListMapEtalaseRes {
+    data: ShopeeEtalaseMapItem[];
+}
+export interface DeleteEtalaseQuery {
+    name: string;
+}
+
+export interface EtalaseMapItem {
+    ID: number;
+    etalase_name: string;
+    category_id: number;
+}
 export interface EtalasePayload {
     etalase: string;
     cat_ids: number[];
 }
-export interface EtalaseListMapRes {
-    data: EtalasePayload[];
+export interface ExportSupplierQuery {
+    namespace: string;
 }
-
-
-export interface DeleteEtalaseQuery {
-    name: string;
+export interface ExportUrlQuery {
+    namespace: string;
 }
 export type SdkConfig = { 
 
@@ -457,7 +484,7 @@ export type SdkConfig = {
 	PostApiDataspin: {
 		method: "post"
 		params: undefined
-		payload: SettingSpinData
+		payload: DataSpinItemResponse
 		response: BaseResponse
 		path: "api/dataspin"
 	},
@@ -760,25 +787,49 @@ export type SdkConfig = {
 
 	GetTokopediaEtalaseMapList: {
 		method: "get"
-		params: undefined
+		params: ListMapEtalaseQuery
 		payload: undefined
-		response: EtalaseListMapRes
+		response: ListMapEtalaseRes
 		path: "tokopedia/etalase_map/list"
 	},
 
-	PostTokopediaEtalaseMapAdd: {
-		method: "post"
-		params: undefined
-		payload: EtalasePayload
-		response: Response
-		path: "tokopedia/etalase_map/add"
-	},
-
-	DeleteTokopediaEtalaseMap: {
+	DeleteTokopediaEtalaseMapDelete: {
 		method: "delete"
 		params: DeleteEtalaseQuery
 		payload: undefined
 		response: undefined
-		path: "tokopedia/etalase_map"
+		path: "tokopedia/etalase_map/delete"
+	},
+
+	PutTokopediaEtalaseMapUpdate: {
+		method: "put"
+		params: undefined
+		payload: EtalaseMapItem[]
+		response: Response
+		path: "tokopedia/etalase_map/update"
+	},
+
+	GetTokopediaEtalaseMapListEtalase: {
+		method: "get"
+		params: undefined
+		payload: undefined
+		response: EtalasePayload[]
+		path: "tokopedia/etalase_map/list_etalase"
+	},
+
+	PutShopeeV5ProductExportSupplier: {
+		method: "put"
+		params: ExportSupplierQuery
+		payload: undefined
+		response: undefined
+		path: "shopee/v5/product/export_supplier"
+	},
+
+	PutShopeeV5ProductExportUrl: {
+		method: "put"
+		params: ExportUrlQuery
+		payload: undefined
+		response: undefined
+		path: "shopee/v5/product/export_url"
 	}
 }

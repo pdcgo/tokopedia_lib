@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/chromedp/chromedp"
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/urfave/cli/v2"
 )
 
@@ -56,6 +58,10 @@ func (driver *VerifDriverAccount) CheckVerif(dctx *tokopedia_lib.DriverContext) 
 }
 
 func runCheckKtp(cCtx *cli.Context) error {
+	cfgname := "data/config.json"
+	pdc_common.SetConfig(cfgname, config.Version, "golang_tokopedia_check_ktp", config.Cred)
+	pdc_common.InitializeLogger()
+
 	fname := cCtx.String("fname")
 	akuns, save, _ := getakunFromFile(fname)
 	log.Println("running checkverif...")

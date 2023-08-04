@@ -1,6 +1,8 @@
 package grab_handler
 
 import (
+	"context"
+
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
@@ -20,7 +22,7 @@ func (handler *CacheProductHandler) addItem(cache mongorepo.CacheProduct) error 
 		cache.Namespace = handler.repo.Collection.Name()
 	}
 	r := handler.repo
-	_, err := r.Collection.InsertOne(r.Ctx, cache)
+	_, err := r.Collection.InsertOne(context.TODO(), cache)
 	if err != nil {
 		return err
 	}

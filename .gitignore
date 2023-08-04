@@ -49,3 +49,6 @@ credentials.json
 dist/bin/tokopedia.upx
 
 dist/
+
+app/web/assets/frontend
+test/temp/

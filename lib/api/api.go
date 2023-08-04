@@ -22,6 +22,7 @@ type Session interface {
 	Update(cookies []*http.Cookie) error
 	AddToHttpRequest(req *http.Request)
 	UserAgent() string
+	GetCookies() []*http.Cookie
 }
 
 type TokopediaApi struct {

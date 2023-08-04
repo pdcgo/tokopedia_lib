@@ -120,7 +120,9 @@ func NewShopeeMapSuggestItem(db *gorm.DB, data *mongorepo.ProductCategoryAgg) *S
 }
 
 func (item *ShopeeMapSuggestItem) SetTokopediaID(categid int) error {
-	var mapcateg config.ShopeeMapItem
+	mapcateg := config.ShopeeMapItem{
+		ShopeeID: item.data.ID,
+	}
 
 	item.db.First(&mapcateg, item.data.ID)
 

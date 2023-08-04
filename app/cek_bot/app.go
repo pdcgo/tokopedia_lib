@@ -11,13 +11,14 @@ import (
 
 	"github.com/pdcgo/common_conf/auth"
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/report"
 	"github.com/urfave/cli/v2"
 )
 
 var concurent = make(chan int, 50)
-var waitallakun sync.WaitGroup
+var Waitallakun sync.WaitGroup
 var loginMutex sync.Mutex
 
 func LisensiLogin(botID int) bool {
@@ -41,7 +42,7 @@ func LisensiLogin(botID int) bool {
 
 func setupPdcLogger() {
 	fname := "data/config.json"
-	pdc_common.SetConfig(fname, Version, LogName, cred)
+	pdc_common.SetConfig(fname, config.Version, "golang_tokopedia_checkbot", config.Cred)
 	pdc_common.InitializeLogger()
 
 	if !LisensiLogin(2) {
@@ -50,10 +51,16 @@ func setupPdcLogger() {
 	}
 }
 
-func cekbot(driver *report.CekReport) {
+func Cekbot(driver *report.CekReport) {
 	loginMutex.Lock()
 	defer loginMutex.Unlock()
-	apiclient, saveSession, _ := driver.CreateApi()
+	log.Println("login", driver.Username)
+	apiclient, saveSession, err := driver.CreateApi()
+	log.Println("login finish", driver.Username)
+	if err != nil {
+		pdc_common.ReportError(err)
+		return
+	}
 
 	driver.ShopName = apiclient.AuthenticatedData.UserShopInfo.Info.ShopName
 
@@ -182,7 +189,7 @@ func cekbot(driver *report.CekReport) {
 		}()
 
 		waitall.Wait()
-		waitallakun.Done()
+		Waitallakun.Done()
 		log.Println(driver.Username, "Berhasil Checking..")
 
 	}()
@@ -214,13 +221,12 @@ func runCheckAkun(cCtx *cli.Context) error {
 	}
 
 	for _, driver := range akuns {
-		driver.DevMode = devmode
-		waitallakun.Add(1)
-		go cekbot(driver)
+		Waitallakun.Add(1)
+		go Cekbot(driver)
 
 	}
 
-	waitallakun.Wait()
+	Waitallakun.Wait()
 	log.Println("cekbot selesai..")
 
 	return nil

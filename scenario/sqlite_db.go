@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TODO: bakalan deprecated soale ada test scenario
 func GetDb() *gorm.DB {
 	db := datasource.NewSqliteDatabase(GetBaseTestAsset("tokopedia_test.db"))
 	db.AutoMigrate(&repo.AkunItem{}, &config.ShopeeMapItem{})

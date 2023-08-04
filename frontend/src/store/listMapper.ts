@@ -27,10 +27,12 @@ export type ListMapperState = {
 export type ListMapperActions = {
     /** Digunakan untuk mendapatkan data awal mapping.
      * @tutorial Gunakan dalam fungsi `React.useEffect` */
-    initEffect: (namespace: string, topedCategories: CategoryAllListLiteRes | null) => void
+    initEffect: (namespace: string, topedCategories: CategoryAllListLiteRes | null, signal?: AbortSignal) => void
     /** Digunakan untuk update salah satu data list.
      * @description Gunakan ketika list update, contoh -> `Saat update tokopediaCategoryIds` */
     updateSingleList: (shopeeCategoryId: number, change?: Partial<ListMapper>) => void
+    /** Digunakan untuk reset state. */
+    reset: () => void
 }
 
 export const useListStore = create<ListMapperState & ListMapperActions>(
@@ -48,8 +50,8 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
         return {
             list: [],
             pendingInitEffect: false,
-            initEffect: (namespace, topedCategories) => {
-                set(s => ({ ...s, pendingInitEffect: true, list: [] }))
+            initEffect: (namespace, topedCategories, signal) => {
+                set({ pendingInitEffect: true, list: [] })
                 // dapatkan data dulu dari koleksi terkait
                 getInitialMapData({
                     method: "get",
@@ -63,10 +65,14 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
                         pmin: 0
                     }
                 }, {
+                    signal,
                     onError: () => { set(s => ({ ...s, pendingInitEffect: false })) },
                     onSuccess: (data) => {
                         if (data) {
-                            if (!data.length) set(s => ({ ...s, pendingInitEffect: false, list: [] }))
+                            if (!data.length) {
+                                set({ pendingInitEffect: false, list: [] })
+                                return
+                            }
 
                             const newList = data.map<ListMapper>(map => ({ productCount: map.count, shopeeCategoryId: map._id, shopeeCategoryName: map.name, tokopediaCategoryIds: [] }))
                             set(s => ({ ...s, pendingInitEffect: false, list: newList }))
@@ -79,6 +85,7 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
                                     collection: namespace,
                                 }
                             }, {
+                                signal,
                                 onSuccess(data) {
                                     if (topedCategories) {
                                         const flattenCats = categoryFlatten(topedCategories.data.categoryAllListLite?.categories)
@@ -115,6 +122,7 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
                     })
                 }))
             },
+            reset: () => set({ list: [], pendingInitEffect: false })
         }
     }
 )

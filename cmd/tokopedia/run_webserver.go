@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/go_v2_shopeelib/api_v5"
 	"github.com/pdcgo/go_v2_shopeelib/app/app_config"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/controller"
@@ -17,6 +18,7 @@ import (
 	sapi_public "github.com/pdcgo/go_v2_shopeelib/lib/public_api"
 	"github.com/pdcgo/go_v2_shopeelib/lib/shopee_dp"
 	"github.com/pdcgo/tokopedia_lib/app/services"
+	"github.com/pdcgo/tokopedia_lib/app/shopee/shopee_repo"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/app/web"
@@ -78,15 +80,17 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	browser := runProxyBrowser(baseData)
 	shopeepubapi := sapi_public.NewPublicApi(browser)
 
+	gr := sdk.Group("")
+
 	base := controller.NewBaseController(validate, baseData, shopeepubapi, mdb)
-	controller.RegisterSpinController(sdk, base)
-	controller.RegisterMarkupController(sdk, base)
-	controller.RegisterProductController(sdk, base)
-	controller.RegisterPredictWeightController(sdk, base)
-	controller.RegisterLegacyController(sdk, base)
+	controller.RegisterSpinController(gr, base)
+	controller.RegisterMarkupController(gr, base)
+	controller.RegisterProductController(gr, base)
+	controller.RegisterPredictWeightController(gr, base)
+	controller.RegisterLegacyController(gr, base)
 	api.RegisterShopeeCategoryApi(sdk, baseData)
 
-	productRepo := mongorepo.NewProductRepo(context.TODO(), mdb)
+	productRepo := mongorepo.NewProductRepo(mdb)
 	pubapi, err := api_public.NewTokopediaApiPublic()
 
 	if err != nil {
@@ -102,10 +106,15 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	api.RegisterCheckVerifApi(g, baseData)
 	api.RegisterSubmitApi(g.Group("autosubmit"), baseData)
 
-	mapetalase := services.NewEtalaseMapService(db)
+	shopeeagg := shopee_repo.NewProductAggregate(productRepo.Collection)
+	mapetalase := services.NewEtalaseMapService(db, shopeeagg)
 	etalaseApi := api.NewEtalaseMapApi(mapetalase)
 
 	etalaseApi.RegisterApi(g.Group("etalase_map"))
+	// register shopee v5
+	shopeeV5 := sdk.Group("shopee/v5")
+	productapi := api_v5.NewProductApi(baseData, productRepo)
+	productapi.RegisterApi(shopeeV5.Group("product"))
 
 	web.RegisterTokopediaFrontend(r, prefix)
 

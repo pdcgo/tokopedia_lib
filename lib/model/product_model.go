@@ -210,9 +210,9 @@ type TxStats struct {
 }
 
 type ManageProductData struct {
-	IsStockGuaranteed bool   `json:"isStockGuaranteed"`
-	ScoreV3           int    `json:"scoreV3"`
-	Typename          string `json:"__typename"`
+	IsStockGuaranteed bool    `json:"isStockGuaranteed"`
+	ScoreV3           float32 `json:"scoreV3"`
+	Typename          string  `json:"__typename"`
 }
 
 type SellerProductItemShop struct {

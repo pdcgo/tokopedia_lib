@@ -15,6 +15,7 @@ import (
 	shopeeuploader "github.com/pdcgo/go_v2_shopeelib/lib/uploader"
 	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/pdcgo/tokopedia_lib/app/services"
+	"github.com/pdcgo/tokopedia_lib/app/shopee/shopee_repo"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/tokopedia_lib/lib/uploader"
@@ -53,14 +54,22 @@ type ShopeeToTopedFlow struct {
 	etalasemap     *services.EtalaseMapService
 }
 
-func NewShopeeToTopedFlow(rootBase string, ctx context.Context, db *mongo.Database, sqlitedb *gorm.DB, concurent *shopee_upapp.UploadConcurencyConfig, publicapi *api_public.TokopediaApiPublic) *ShopeeToTopedFlow {
+func NewShopeeToTopedFlow(
+	rootBase string,
+	ctx context.Context,
+	db *mongo.Database,
+	sqlitedb *gorm.DB,
+	concurent *shopee_upapp.UploadConcurencyConfig,
+	publicapi *api_public.TokopediaApiPublic,
+	shopeePAgg shopee_repo.ProductAggregate,
+) *ShopeeToTopedFlow {
 	cctx, cancel := context.WithCancel(ctx)
 
 	configFlow := shopee_upapp.InitUploadFlowConfig(&legacy_source.BaseConfig{
 		BaseData: rootBase,
 	}, db, concurent)
 
-	productRepo := mongorepo.NewProductRepo(ctx, db)
+	productRepo := mongorepo.NewProductRepo(db)
 
 	iterator := repo.NewAkunUploadIterator(sqlitedb)
 	shopeemapper := config.NewShopeeMapper(sqlitedb)
@@ -78,7 +87,7 @@ func NewShopeeToTopedFlow(rootBase string, ctx context.Context, db *mongo.Databa
 		Ctx:            cctx,
 		CacheApi:       NewCacheApiDriver(),
 		CancelCtx:      cancel,
-		etalasemap:     services.NewEtalaseMapService(sqlitedb),
+		etalasemap:     services.NewEtalaseMapService(sqlitedb, shopeePAgg),
 	}
 }
 
