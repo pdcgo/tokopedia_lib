@@ -5,6 +5,8 @@ import (
 	"os"
 	"time"
 
+	_ "embed"
+
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/app/autosubmit"
 	"github.com/pdcgo/tokopedia_lib/app/cek_bot"
@@ -19,6 +21,11 @@ func catch() {
 		time.Sleep(time.Minute)
 	}
 }
+
+var AppID = 2
+
+// go:embed ..\..\logger_credentials.json
+var Cred []byte
 
 func main() {
 	defer catch()
