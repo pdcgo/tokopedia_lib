@@ -14,7 +14,6 @@ import (
 	"github.com/go-vgo/robotgo"
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib"
-	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/urfave/cli/v2"
 )
 
@@ -30,9 +29,9 @@ func CreateSubmitCommand() *cli.Command {
 			},
 		},
 		Action: func(ctx *cli.Context) error {
-			cfgname := "data/config.json"
-			pdc_common.SetConfig(cfgname, config.Version, "golang_tokopedia_submit", config.Cred)
-			pdc_common.InitializeLogger()
+			// cfgname := "data/config.json"
+			// pdc_common.SetConfig(cfgname, config.Version, "golang_tokopedia_submit", config.Cred)
+			// pdc_common.InitializeLogger()
 
 			base := ctx.String("base")
 
