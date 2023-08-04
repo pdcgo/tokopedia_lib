@@ -9,6 +9,7 @@ import (
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/iterator"
+	"github.com/pdcgo/tokopedia_lib/lib/helper"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -26,36 +27,34 @@ func NewShopGrabber(base *BaseGrabber) *ShopGrabber {
 func (g *ShopGrabber) Run() error {
 	fname := g.Base.Path(g.GrabTasker.TokoUsername)
 
-	filterLimit, limiter := filter.CreateLimiter(g.Base)
 	filtersOpt := []filter.FilterHandler{
+		filter.CreateBlacklistUsernameFilter(g.Base),
 		filter.CreateSoldFilter(g.Base),
 		filter.CreateSoldPercentageFilter(g.Base),
 		filter.CreateStockFilter(g.Base),
 		filter.CreatePointFilter(g.Api, g.Base),
-		filter.CreateBlacklistUsernameFilter(g.Base),
 		filter.CreateLastLoginFilter(g.Base),
 		filter.CreateLastReviewFilter(g.Api, g.Base),
 	}
 
-	filters := []filter.FilterHandler{
-		filterLimit,
-	}
-	if g.GrabTasker.UseFilter {
-		filters = append(filters, filtersOpt...)
-	}
-
-	filterItem := filter.NewFilterItem(filters...)
-
 	lock := sync.Mutex{}
+	counter := helper.NewCounter()
 
 	return iterator.IterateShops(g.Api, fname, func(item *model_public.ShopCoreInfoResp) error {
-		limiter.ResetLimiter()
-		shopId := item.Data.Result[0].ShopCore.ShopID
+		filterLimit, addCount := filter.CreateLimiter(g.Base)
+		filters := []filter.FilterHandler{
+			filterLimit,
+		}
+		if g.GrabTasker.UseFilter {
+			filters = append(filters, filtersOpt...)
+		}
 
+		shopId := item.Data.Result[0].ShopCore.ShopID
 		searchVar := GenerateShopProductVar()
 		searchVar.Sid = shopId
 
 		ctx, cancel := context.WithCancel(context.Background())
+		filterItem := filter.NewFilterItem(ctx, filters...)
 
 		err := iterator.IterateProductShopPage(g.Api, ctx, searchVar, func(item *model_public.ShopProductData) error {
 			g.wg.Add(1)
@@ -66,22 +65,23 @@ func (g *ShopGrabber) Run() error {
 					<-g.limitGuard
 				}()
 
-				layoutVar, _ := ParseProductDetailParamsFromUrl(item.ProductURL)
 				lock.Lock()
-				layout, err := g.Api.PdpGetlayoutQuery(layoutVar)
+				layout := g.GetProductLayout(ctx, item.ProductURL)
 				lock.Unlock()
-				if err != nil {
-					pdc_common.ReportError(err)
+				if layout == nil {
 					return
 				}
 
-				pdpVar := &model_public.PdpGetDataP2Var{
-					PdpSession: layout.Data.PdpGetLayout.PdpSession,
-					ProductID:  layout.Data.PdpGetLayout.BasicInfo.ID,
+				var pdpSess string
+				var prodId string
+				if layout.Data.PdpGetLayout.PdpSession != "" {
+					pdpSess = layout.Data.PdpGetLayout.PdpSession
 				}
-				pdp, err := g.Api.PdpGetDataP2(pdpVar)
-				if err != nil {
-					pdc_common.ReportError(err)
+				if layout.Data.PdpGetLayout.BasicInfo.ID != "" {
+					prodId = layout.Data.PdpGetLayout.BasicInfo.ID
+				}
+				pdp := g.GetPdpDataP2(ctx, pdpSess, prodId)
+				if layout == nil {
 					return
 				}
 
@@ -91,26 +91,35 @@ func (g *ShopGrabber) Run() error {
 						cancel()
 						return
 					}
+					if errors.Is(filter.ErrFilterCancel, err) {
+						return
+					}
+					if errors.Is(filter.ErrBlacklistUsername, err) {
+						log.Printf("[ %s ] %s", reason, item.Name)
+						cancel()
+						return
+					}
 					pdc_common.ReportError(err)
 					return
 				}
 				if cek {
-					log.Printf("[ %s ] %s", reason, layoutVar.ProductKey)
+					log.Printf("[ %s ] %s", reason, item.Name)
 					return
 				}
 
 				err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
 				if err != nil {
 					if mongo.IsDuplicateKeyError(err) {
-						log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, layoutVar.ProductKey)
+						log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, item.Name)
 						return
 					}
 					pdc_common.ReportError(err)
 					return
 				}
 
-				log.Printf("[ scraped ] item saved")
-				limiter.Add()
+				addCount()
+				counter.Add()
+				log.Printf("[ scraped ] %d item saved", counter.Count())
 			}()
 
 			return nil

@@ -1,6 +1,7 @@
 package grabber
 
 import (
+	"context"
 	"errors"
 	"log"
 	"sync"
@@ -22,9 +23,7 @@ func NewCategoryCsvGrabber(base *BaseGrabber) *CategoryCsvGrabber {
 }
 
 func (g *CategoryCsvGrabber) Run() error {
-	filterLimit, limiter := filter.CreateLimiter(g.Base)
-	filters := []filter.FilterHandler{
-		filterLimit,
+	filtersOpt := []filter.FilterHandler{
 		filter.CreateSoldFilter(g.Base),
 		filter.CreateSoldPercentageFilter(g.Base),
 		filter.CreateStockFilter(g.Base),
@@ -33,7 +32,6 @@ func (g *CategoryCsvGrabber) Run() error {
 		filter.CreateLastLoginFilter(g.Base),
 		filter.CreateLastReviewFilter(g.Api, g.Base),
 	}
-	filterItem := filter.NewFilterItem(filters...)
 
 	categories, err := g.Api.HeaderMainData()
 	if err != nil {
@@ -49,14 +47,22 @@ func (g *CategoryCsvGrabber) Run() error {
 	lock := sync.Mutex{}
 
 	return iterator.IterateCategoryCsv(g.Base, func(category *csv.CategoryCsv) error {
+		filterLimit, addCount := filter.CreateLimiter(g.Base)
+		filters := []filter.FilterHandler{
+			filterLimit,
+		}
+		if g.GrabTasker.UseFilter {
+			filters = append(filters, filtersOpt...)
+		}
 
 		searchVar := CreateGrabSearchVar(g.Base)
 		categoryId := getCategoryId(category.Url)
 		searchVar.CategoryId = categoryId
 
-		// ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(context.Background())
+		filterItem := filter.NewFilterItem(ctx, filters...)
 
-		err := iterator.IterateSearchPage(g.Api, limiter, searchVar, func(item *model_public.ProductSearch) error {
+		err := iterator.IterateSearchPage(g.Api, ctx, searchVar, func(item *model_public.ProductSearch) error {
 
 			g.wg.Add(1)
 			g.limitGuard <- 1
@@ -67,43 +73,47 @@ func (g *CategoryCsvGrabber) Run() error {
 					<-g.limitGuard
 				}()
 
-				layoutVar, _ := ParseProductDetailParamsFromUrl(item.URL)
 				lock.Lock()
-				layout, err := g.Api.PdpGetlayoutQuery(layoutVar)
+				layout := g.GetProductLayout(ctx, item.URL)
 				lock.Unlock()
-				if err != nil {
-					pdc_common.ReportError(err)
+				if layout == nil {
 					return
 				}
 
-				pdpVar := &model_public.PdpGetDataP2Var{
-					PdpSession: layout.Data.PdpGetLayout.PdpSession,
-					ProductID:  layout.Data.PdpGetLayout.BasicInfo.ID,
+				var pdpSess string
+				var prodId string
+				if layout.Data.PdpGetLayout.PdpSession != "" {
+					pdpSess = layout.Data.PdpGetLayout.PdpSession
 				}
-				pdp, err := g.Api.PdpGetDataP2(pdpVar)
-				if err != nil {
-					pdc_common.ReportError(err)
+				if layout.Data.PdpGetLayout.BasicInfo.ID != "" {
+					prodId = layout.Data.PdpGetLayout.BasicInfo.ID
+				}
+				pdp := g.GetPdpDataP2(ctx, pdpSess, prodId)
+				if layout == nil {
 					return
 				}
 
 				cek, reason, err := filterItem(layout, pdp)
 				if err != nil {
 					if errors.Is(filter.ErrLimiterReached, err) {
-						// cancel()
+						cancel()
+						return
+					}
+					if errors.Is(filter.ErrFilterCancel, err) {
 						return
 					}
 					pdc_common.ReportError(err)
 					return
 				}
 				if cek {
-					log.Printf("[ %s ] %s", reason, layoutVar.ProductKey)
+					log.Printf("[ %s ] %s", reason, item.Name)
 					return
 				}
 
 				err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
 				if err != nil {
 					if mongo.IsDuplicateKeyError(err) {
-						log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, layoutVar.ProductKey)
+						log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, item.Name)
 						return
 					}
 					pdc_common.ReportError(err)
@@ -111,7 +121,7 @@ func (g *CategoryCsvGrabber) Run() error {
 				}
 
 				log.Printf("[ scraped ] item saved")
-				// limiter.Add()
+				addCount()
 			}()
 
 			return nil

@@ -1,6 +1,7 @@
 package grabber
 
 import (
+	"context"
 	"errors"
 	"log"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/iterator"
+	"github.com/pdcgo/tokopedia_lib/lib/helper"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -24,7 +26,7 @@ func NewCategoryGrabber(base *BaseGrabber) *CategoryGrabber {
 }
 
 func (g *CategoryGrabber) Run() error {
-	filterLimit, limiter := filter.CreateLimiter(g.Base)
+	filterLimit, addCount := filter.CreateLimiter(g.Base)
 	filtersOpt := []filter.FilterHandler{
 		filter.CreateSoldFilter(g.Base),
 		filter.CreateSoldPercentageFilter(g.Base),
@@ -42,8 +44,10 @@ func (g *CategoryGrabber) Run() error {
 		filters = append(filters, filtersOpt...)
 	}
 
-	filterItem := filter.NewFilterItem(filters...)
+	ctx, cancel := context.WithCancel(context.Background())
+	filterItem := filter.NewFilterItem(ctx, filters...)
 
+	counter := helper.NewCounter()
 	lock := sync.Mutex{}
 
 	filterCatId := func(ids []string) []string {
@@ -59,15 +63,14 @@ func (g *CategoryGrabber) Run() error {
 	catId := filterCatId(g.GrabTasker.TokpedCateg)
 	catIdInt, err := strconv.Atoi(catId[len(catId)-1])
 	if err != nil {
+		cancel()
 		return err
 	}
 
 	searchVar := CreateGrabSearchVar(g.Base)
 	searchVar.CategoryId = catIdInt
 
-	// ctx, cancel := context.WithCancel(context.Background())
-
-	err = iterator.IterateSearchPage(g.Api, limiter, searchVar, func(item *model_public.ProductSearch) error {
+	err = iterator.IterateSearchPage(g.Api, ctx, searchVar, func(item *model_public.ProductSearch) error {
 		g.wg.Add(1)
 		g.limitGuard <- 1
 
@@ -77,51 +80,56 @@ func (g *CategoryGrabber) Run() error {
 				<-g.limitGuard
 			}()
 
-			layoutVar, _ := ParseProductDetailParamsFromUrl(item.URL)
 			lock.Lock()
-			layout, err := g.Api.PdpGetlayoutQuery(layoutVar)
+			layout := g.GetProductLayout(ctx, item.URL)
 			lock.Unlock()
-			if err != nil {
-				pdc_common.ReportError(err)
+			if layout == nil {
 				return
 			}
 
-			pdpVar := &model_public.PdpGetDataP2Var{
-				PdpSession: layout.Data.PdpGetLayout.PdpSession,
-				ProductID:  layout.Data.PdpGetLayout.BasicInfo.ID,
+			var pdpSess string
+			var prodId string
+			if layout.Data.PdpGetLayout.PdpSession != "" {
+				pdpSess = layout.Data.PdpGetLayout.PdpSession
 			}
-			pdp, err := g.Api.PdpGetDataP2(pdpVar)
-			if err != nil {
-				pdc_common.ReportError(err)
+			if layout.Data.PdpGetLayout.BasicInfo.ID != "" {
+				prodId = layout.Data.PdpGetLayout.BasicInfo.ID
+			}
+			pdp := g.GetPdpDataP2(ctx, pdpSess, prodId)
+			if layout == nil {
 				return
 			}
 
 			cek, reason, err := filterItem(layout, pdp)
 			if err != nil {
 				if errors.Is(filter.ErrLimiterReached, err) {
-					// cancel()
+					cancel()
+					return
+				}
+				if errors.Is(filter.ErrFilterCancel, err) {
 					return
 				}
 				pdc_common.ReportError(err)
 				return
 			}
 			if cek {
-				log.Printf("[ %s ] %s", reason, layoutVar.ProductKey)
+				log.Printf("[ %s ] %s", reason, item.Name)
 				return
 			}
 
 			err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
 			if err != nil {
 				if mongo.IsDuplicateKeyError(err) {
-					log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, layoutVar.ProductKey)
+					log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, item.Name)
 					return
 				}
 				pdc_common.ReportError(err)
 				return
 			}
 
-			log.Printf("[ scraped ] item saved")
-			// limiter.Add()
+			addCount()
+			counter.Add()
+			log.Printf("[ scraped ] %d item saved", counter.Count())
 		}()
 
 		return nil

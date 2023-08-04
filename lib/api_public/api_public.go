@@ -12,10 +12,6 @@ import (
 var ClientApi *http.Client = &http.Client{
 	Transport: &http.Transport{
 		MaxIdleConnsPerHost: 5,
-		// Proxy: http.ProxyURL(&url.URL{
-		// 	Scheme: "http",
-		// 	Host:   "localhost:8888",
-		// }),
 	},
 	Timeout: 30 * time.Second,
 }

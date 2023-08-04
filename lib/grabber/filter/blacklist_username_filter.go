@@ -1,12 +1,16 @@
 package filter
 
 import (
+	"errors"
+
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/lib/helper"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"golang.org/x/exp/slices"
 )
+
+var ErrBlacklistUsername = errors.New("filter blacklist username")
 
 func CreateBlacklistUsernameFilter(base *legacy_source.BaseConfig) FilterHandler {
 	return func(layout *model_public.PdpGetlayoutQueryResp, pdp *model_public.PdpGetDataP2Resp) (cek bool, reason string, err error) {
@@ -31,7 +35,7 @@ func CreateBlacklistUsernameFilter(base *legacy_source.BaseConfig) FilterHandler
 
 		shopDomain := pdp.Data.PdpGetData.ShopInfo.ShopCore.Domain
 		if slices.Contains(blUsername, shopDomain) {
-			return true, "filter blacklist username", nil
+			return true, "filter blacklist username", ErrBlacklistUsername
 		}
 
 		return false, "", nil

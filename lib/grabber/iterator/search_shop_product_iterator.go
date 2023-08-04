@@ -16,9 +16,11 @@ func IterateProductShopPage(
 	handler ProductShopHandler,
 ) error {
 
-	hasMore := true
+	itemCount := searchVar.PerPage
+	currentCount := 0
+
 Parent:
-	for hasMore {
+	for currentCount < itemCount {
 		select {
 		case <-ctx.Done():
 			break Parent
@@ -28,7 +30,8 @@ Parent:
 				return err
 			}
 
-			for _, item := range resp.Data.GetShopProduct.Data {
+			products := resp.Data.GetShopProduct.Data
+			for _, item := range products {
 				select {
 				case <-ctx.Done():
 					break Parent
@@ -40,11 +43,13 @@ Parent:
 				}
 			}
 
-			if resp.Data.GetShopProduct.Links.Next != "" {
-				hasMore = false
-			}
-
+			itemCount = searchVar.PerPage * len(products)
+			currentCount = searchVar.PerPage * searchVar.Page
 			searchVar.Page += 1
+
+			if itemCount == 0 {
+				break Parent
+			}
 		}
 
 	}
