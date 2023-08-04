@@ -64,8 +64,8 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	defer save()
 
 	g := sdk.Group(prefix)
-	RegisterAkunApi(g, db, repo)
-	RegisterCommand(g, app, webtoped.Base)
+	api.RegisterAkunApi(g, db, repo)
+	api.RegisterCommand(g, app, webtoped.Base)
 
 	// bagian hendra
 	validate := validator.New()

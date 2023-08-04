@@ -1,4 +1,4 @@
-package main
+package api_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"github.com/pdcgo/v2_gots_sdk"
 )
 
-func TestApi(t *testing.T) {
+func TestApiAkun(t *testing.T) {
 	scenario.RunWebSdk(t, func(sdk *v2_gots_sdk.ApiSdk, sendApi scenario.SendRequest) error {
 		return nil
 	})
