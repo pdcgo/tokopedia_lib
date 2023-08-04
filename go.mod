@@ -5,18 +5,18 @@ go 1.19
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.14.1
-	github.com/pdcgo/common_conf v1.1.1
-	github.com/pdcgo/go_v2_shopeelib v1.0.23
+	github.com/google/uuid v1.3.0
+	github.com/pdcgo/common_conf v1.1.3
+	github.com/pdcgo/go_v2_shopeelib v1.0.24
 	github.com/pdcgo/v2_gots_sdk v1.2.4
 	github.com/sethvargo/go-retry v0.2.4
-	github.com/zeebo/assert v1.3.0
 	go.mongodb.org/mongo-driver v1.11.3
-	gorm.io/gorm v1.25.2-0.20230530020048-26663ab9bf55
+	gorm.io/gorm v1.25.2
 	nhooyr.io/websocket v1.8.7
 )
 
 require (
-	cloud.google.com/go/bigquery v1.51.2 // indirect
+	cloud.google.com/go/bigquery v1.53.0 // indirect
 	cloud.google.com/go/iam v1.1.1 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
@@ -42,7 +42,6 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
 	github.com/google/s2a-go v0.1.4 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/google/wire v0.5.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
@@ -52,7 +51,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kbinani/screenshot v0.0.0-20210720154843-7d3a670d8329 // indirect
 	github.com/klauspost/asmfmt v1.3.2 // indirect
-	github.com/klauspost/compress v1.16.6 // indirect
+	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lufia/plan9stats v0.0.0-20230326075908-cb1d2100619a // indirect
@@ -89,23 +88,23 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.10.0 // indirect
-	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/term v0.9.0 // indirect
-	golang.org/x/tools v0.10.0 // indirect
+	golang.org/x/crypto v0.11.0 // indirect
+	golang.org/x/mod v0.12.0 // indirect
+	golang.org/x/term v0.10.0 // indirect
+	golang.org/x/tools v0.11.1 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230803162519-f966b187b2e5 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230803162519-f966b187b2e5 // indirect
 )
 
 require (
-	cloud.google.com/go v0.110.3 // indirect
-	cloud.google.com/go/compute v1.20.1 // indirect
+	cloud.google.com/go v0.110.7 // indirect
+	cloud.google.com/go/compute v1.23.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/logging v1.7.0 // indirect
 	cloud.google.com/go/longrunning v0.5.1 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
-	github.com/chromedp/cdproto v0.0.0-20230620000757-8605e5981815
+	github.com/chromedp/cdproto v0.0.0-20230802225258-3cf4e6d46a89
 	github.com/chromedp/chromedp v0.9.1
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -118,7 +117,7 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect
-	github.com/googleapis/gax-go/v2 v2.11.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gorilla/schema v1.2.0
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/lqqyt2423/go-mitmproxy v1.6.0
@@ -133,7 +132,7 @@ require (
 	github.com/pquerna/otp v1.4.0
 	github.com/robotn/xgb v0.0.0-20190912153532-2cb92d044934 // indirect
 	github.com/robotn/xgbutil v0.0.0-20190912154524-c861d6f87770 // indirect
-	github.com/rs/zerolog v1.29.1 // indirect
+	github.com/rs/zerolog v1.30.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
@@ -145,16 +144,16 @@ require (
 	github.com/vcaesar/tt v0.20.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/image v0.9.0 // indirect
-	golang.org/x/net v0.11.0 // indirect
-	golang.org/x/oauth2 v0.9.0 // indirect
+	golang.org/x/net v0.13.0 // indirect
+	golang.org/x/oauth2 v0.10.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
-	google.golang.org/api v0.128.0 // indirect
+	google.golang.org/api v0.134.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230530153820-e85fd2cbaebc // indirect
-	google.golang.org/grpc v1.56.1 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	google.golang.org/genproto v0.0.0-20230803162519-f966b187b2e5 // indirect
+	google.golang.org/grpc v1.57.0 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/sqlite v1.5.2
 )
