@@ -27,6 +27,37 @@ func (api *TokopediaApiPublic) PdpGetlayoutQuery(payload *model_public.PdpGetlay
 	return &hasil, err
 }
 
+func (api *TokopediaApiPublic) PdpGetlayoutQueryBatch(payloads []*model_public.PdpGetlayoutQueryVar) ([]*model_public.PdpGetlayoutQueryResp, error) {
+
+	gqlQuerys := []*GraphqlPayload{}
+
+	for _, payload := range payloads {
+
+		query := GraphqlPayload{
+			Variables: payload,
+			Query:     query.PdpGetLayoutQuery,
+		}
+		gqlQuerys = append(gqlQuerys, &query)
+	}
+
+	req, err := api.NewGraphqlReqBatch("PDPGetLayoutQuery", gqlQuerys)
+	if err != nil {
+		return []*model_public.PdpGetlayoutQueryResp{}, err
+	}
+
+	headers := map[string]string{
+		"X-Tkpd-Akamai": "pdpGetLayout",
+		"X-Device":      "desktop",
+	}
+	for key, val := range headers {
+		req.Header.Set(key, val)
+	}
+
+	var hasil []*model_public.PdpGetlayoutQueryResp
+	err = api.SendRequest(req, &hasil)
+	return hasil, err
+}
+
 func (api *TokopediaApiPublic) PdpGetDataP2(payload *model_public.PdpGetDataP2Var) (*model_public.PdpGetDataP2Resp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "PDPGetDataP2",
