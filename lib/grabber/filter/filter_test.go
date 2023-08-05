@@ -36,7 +36,7 @@ func TestFilterStock(t *testing.T) {
 	stockFilter := filter.CreateStockFilter(&base)
 	cek, reason, err := stockFilter(layout, pdp)
 	assert.Nil(t, err)
-	assert.Equal(t, reason, "")
+	assert.Equal(t, "", reason)
 	assert.False(t, cek)
 
 }

@@ -2,6 +2,7 @@ package iterator
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"strings"
 
@@ -36,7 +37,8 @@ func ParseProductDetailParamsFromUrl(uri string) (*model_public.PdpGetlayoutQuer
 func IterateBatchLayout(
 	api *api_public.TokopediaApiPublic,
 	ctx context.Context,
-	urls []string, handler BatchLayoutHandler,
+	urls []string, 
+	handler BatchLayoutHandler,
 ) error {
 
 	var layoutVars []*model_public.PdpGetlayoutQueryVar
@@ -56,6 +58,9 @@ Urls:
 
 	resp, err := api.PdpGetlayoutQueryBatch(layoutVars)
 	if err != nil {
+		if errors.Is(api_public.ErrGraphqlBatchNoQuery, err) {
+			return nil
+		}
 		pdc_common.ReportError(err)
 		return err
 	}

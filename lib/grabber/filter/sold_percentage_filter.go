@@ -14,8 +14,14 @@ func CreateSoldPercentageFilter(base *legacy_source.BaseConfig) FilterHandler {
 
 	return func(layout *model_public.PdpGetlayoutQueryResp, pdp *model_public.PdpGetDataP2Resp) (cek bool, reason string, err error) {
 
-		productSold, _ := strconv.Atoi(layout.Data.PdpGetLayout.BasicInfo.TxStats.CountSold)
-		productSuccessSold, _ := strconv.Atoi(layout.Data.PdpGetLayout.BasicInfo.TxStats.TransactionSuccess)
+		productSold, err := strconv.Atoi(layout.Data.PdpGetLayout.BasicInfo.TxStats.CountSold)
+		if err != nil {
+			return true, "filter prosentase", err
+		}
+		productSuccessSold, err := strconv.Atoi(layout.Data.PdpGetLayout.BasicInfo.TxStats.TransactionSuccess)
+		if err != nil {
+			return true, "filter prosentase", err
+		}
 		soldPercentage := (float64(productSuccessSold) / float64(productSold)) * 100
 		if grabBasic.Prosentase > int(soldPercentage) {
 			return true, "filter prosentase", nil
