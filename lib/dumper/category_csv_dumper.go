@@ -10,17 +10,15 @@ import (
 )
 
 type CategoryCsvDumper struct {
-	Api      *api_public.TokopediaApiPublic
-	base     *legacy_source.BaseConfig
-	Pathfile string
-	Data     []*csv.CategoryCsv
+	Api  *api_public.TokopediaApiPublic
+	base *legacy_source.BaseConfig
+	Data []*csv.CategoryCsv
 }
 
-func NewCategoryCsvDumper(api *api_public.TokopediaApiPublic, base *legacy_source.BaseConfig, pathfile string) *CategoryCsvDumper {
+func NewCategoryCsvDumper(api *api_public.TokopediaApiPublic, base *legacy_source.BaseConfig) *CategoryCsvDumper {
 	return &CategoryCsvDumper{
-		Api:      api,
-		base:     base,
-		Pathfile: pathfile,
+		Api:  api,
+		base: base,
 	}
 }
 
@@ -79,7 +77,7 @@ func (d *CategoryCsvDumper) IterateGroup(categories []*model_public.Categories, 
 	return cGroupChan
 }
 
-func (d *CategoryCsvDumper) DumpCategory() {
+func (d *CategoryCsvDumper) DumpCategory() error {
 	categories := d.IterateGroup(nil, nil)
 	for c := range categories {
 		category := &csv.CategoryCsv{
@@ -91,7 +89,8 @@ func (d *CategoryCsvDumper) DumpCategory() {
 		}
 		d.Data = append(d.Data, category)
 	}
-	d.Save()
+	err := d.Save()
+	return err
 }
 
 func (d *CategoryCsvDumper) Save() error {

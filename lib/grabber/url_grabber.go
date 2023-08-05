@@ -3,7 +3,6 @@ package grabber
 import (
 	"context"
 	"log"
-	"sync"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
@@ -40,62 +39,57 @@ func (g *UrlGrabber) Run() error {
 	filterItem := filter.NewFilterItem(ctx, filters...)
 
 	counter := helper.NewCounter()
-	lock := sync.Mutex{}
 
-	err := iterator.IterateUrls(g.Base, g.GrabTasker, func(item string) error {
-		g.wg.Add(1)
+	err := iterator.IterateUrls(g.Base, g.GrabTasker, func(items []string) error {
 
-		go func() {
-			defer g.wg.Done()
+		return iterator.IterateBatchLayout(g.Api, ctx, items, func(layout *model_public.PdpGetlayoutQueryResp) error {
+			g.wg.Add(1)
+			g.limitGuard <- 1
+
 			go func() {
-				<-g.limitGuard
-			}()
+				defer g.wg.Done()
+				go func() {
+					<-g.limitGuard
+				}()
 
-			layoutVar, _ := ParseProductDetailParamsFromUrl(item)
-			lock.Lock()
-			layout, err := g.Api.PdpGetlayoutQuery(layoutVar)
-			lock.Unlock()
-			if err != nil {
-				pdc_common.ReportError(err)
-				return
-			}
-
-			pdpVar := &model_public.PdpGetDataP2Var{
-				PdpSession: layout.Data.PdpGetLayout.PdpSession,
-				ProductID:  layout.Data.PdpGetLayout.BasicInfo.ID,
-			}
-			pdp, err := g.Api.PdpGetDataP2(pdpVar)
-			if err != nil {
-				pdc_common.ReportError(err)
-				return
-			}
-
-			if g.GrabTasker.UseFilter {
-				cek, reason, err := filterItem(layout, pdp)
+				name := layout.Data.PdpGetLayout.BasicInfo.Alias
+				pdpVar := &model_public.PdpGetDataP2Var{
+					PdpSession: layout.Data.PdpGetLayout.PdpSession,
+					ProductID:  layout.Data.PdpGetLayout.BasicInfo.ID,
+				}
+				pdp, err := g.Api.PdpGetDataP2(pdpVar)
 				if err != nil {
 					pdc_common.ReportError(err)
 					return
 				}
-				if cek {
-					log.Printf("[ %s ] %s", reason, layoutVar.ProductKey)
+
+				if g.GrabTasker.UseFilter {
+					cek, reason, err := filterItem(layout, pdp)
+					if err != nil {
+						pdc_common.ReportError(err)
+						return
+					}
+					if cek {
+						log.Printf("[ %s ] %s", reason, name)
+						return
+					}
+				}
+
+				err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
+				if err != nil {
+					if mongo.IsDuplicateKeyError(err) {
+						log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, name)
+						return
+					}
+					pdc_common.ReportError(err)
 					return
 				}
-			}
+				counter.Add()
+				log.Printf("[ scraped ] %d item saved", counter.Count())
+			}()
 
-			err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
-			if err != nil {
-				if mongo.IsDuplicateKeyError(err) {
-					log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, layoutVar.ProductKey)
-					return
-				}
-				pdc_common.ReportError(err)
-				return
-			}
-			counter.Add()
-			log.Printf("[ scraped ] %d item saved", counter.Count())
-		}()
-
-		return nil
+			return nil
+		})
 	})
 
 	g.wg.Wait()

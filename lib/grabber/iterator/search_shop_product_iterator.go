@@ -2,12 +2,13 @@ package iterator
 
 import (
 	"context"
+	"math"
 
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
 
-type ProductShopHandler func(item *model_public.ShopProductData) error
+type ProductShopHandler func(items []*model_public.ShopProductData) error
 
 func IterateProductShopPage(
 	api *api_public.TokopediaApiPublic,
@@ -31,12 +32,20 @@ Parent:
 			}
 
 			products := resp.Data.GetShopProduct.Data
-			for _, item := range products {
+			prodLength := len(products)
+			maxArray := math.Ceil(float64(prodLength) / 10)
+			for i := 1; i <= int(maxArray); i++ {
 				select {
 				case <-ctx.Done():
 					break Parent
 				default:
-					err := handler(item)
+					startIndex := i*10 - 10
+					endIndex := i * 10
+					if endIndex > prodLength {
+						endIndex = prodLength
+					}
+
+					err := handler(products[startIndex:endIndex])
 					if err != nil {
 						return err
 					}

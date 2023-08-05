@@ -3,13 +3,14 @@ package iterator
 import (
 	"context"
 	"encoding/json"
+	"math"
 	"strings"
 
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
 
-type SearchPageHandler func(item *model_public.ProductSearch) error
+type SearchPageHandler func(items []*model_public.ProductSearch) error
 
 func createSearchParams(searchVar *model_public.SearchProductVar) (string, error) {
 	rawParams, err := json.Marshal(searchVar)
@@ -53,18 +54,26 @@ Parent:
 			}
 
 			products := resp.Data.AceSearchProductV4.Data.Products
-			for _, item := range products {
+			prodLength := len(products)
+			maxArray := math.Ceil(float64(prodLength) / 10)
+			for i := 1; i <= int(maxArray); i++ {
 				select {
 				case <-ctx.Done():
 					break Parent
 				default:
-					err := handler(item)
+					startIndex := i*10 - 10
+					endIndex := i * 10
+					if endIndex > prodLength {
+						endIndex = prodLength
+					}
+
+					err := handler(products[startIndex:endIndex])
 					if err != nil {
 						return err
 					}
 				}
 			}
-
+			
 			itemCount = resp.Data.AceSearchProductV4.Header.TotalData
 			currentCount = searchVar.Rows * searchVar.Page
 

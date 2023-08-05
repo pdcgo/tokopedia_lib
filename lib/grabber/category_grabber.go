@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"strconv"
-	"sync"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
@@ -48,7 +47,6 @@ func (g *CategoryGrabber) Run() error {
 	filterItem := filter.NewFilterItem(ctx, filters...)
 
 	counter := helper.NewCounter()
-	lock := sync.Mutex{}
 
 	filterCatId := func(ids []string) []string {
 		var res []string
@@ -60,8 +58,12 @@ func (g *CategoryGrabber) Run() error {
 		return res
 	}
 
-	catId := filterCatId(g.GrabTasker.TokpedCateg)
-	catIdInt, err := strconv.Atoi(catId[len(catId)-1])
+	catIds := filterCatId(g.GrabTasker.TokpedCateg)
+	if len(catIds) == 0 {
+		cancel()
+		return nil
+	}
+	catIdInt, err := strconv.Atoi(catIds[len(catIds)-1])
 	if err != nil {
 		cancel()
 		return err
@@ -70,61 +72,63 @@ func (g *CategoryGrabber) Run() error {
 	searchVar := CreateGrabSearchVar(g.Base)
 	searchVar.CategoryId = catIdInt
 
-	err = iterator.IterateSearchPage(g.Api, ctx, searchVar, func(item *model_public.ProductSearch) error {
-		g.wg.Add(1)
-		g.limitGuard <- 1
+	err = iterator.IterateSearchPage(g.Api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
+		var urls []string
+		for _, item := range items {
+			urls = append(urls, item.URL)
+		}
 
-		go func() {
-			defer g.wg.Done()
-			defer func() {
-				<-g.limitGuard
+		return iterator.IterateBatchLayout(g.Api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
+			g.wg.Add(1)
+			g.limitGuard <- 1
+
+			go func() {
+				defer g.wg.Done()
+				defer func() {
+					<-g.limitGuard
+				}()
+
+				name := layout.Data.PdpGetLayout.BasicInfo.Alias
+				pdp := g.GetPdpDataP2(ctx, layout)
+				if layout == nil {
+					return
+				}
+
+				cek, reason, err := filterItem(layout, pdp)
+				if err != nil {
+					if errors.Is(filter.ErrLimiterReached, err) {
+						cancel()
+						return
+					}
+					if errors.Is(filter.ErrFilterCancel, err) {
+						return
+					}
+					pdc_common.ReportError(err)
+					return
+				}
+				if cek {
+					log.Printf("[ %s ] %s", reason, name)
+					return
+				}
+
+				err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
+				if err != nil {
+					if mongo.IsDuplicateKeyError(err) {
+						log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, name)
+						return
+					}
+					pdc_common.ReportError(err)
+					return
+				}
+
+				addCount()
+				counter.Add()
+				log.Printf("[ scraped ] %d item saved", counter.Count())
 			}()
 
-			lock.Lock()
-			layout := g.GetProductLayout(ctx, item.URL)
-			lock.Unlock()
-			if layout == nil {
-				return
-			}
+			return nil
+		})
 
-			pdp := g.GetPdpDataP2(ctx, layout)
-			if layout == nil {
-				return
-			}
-
-			cek, reason, err := filterItem(layout, pdp)
-			if err != nil {
-				if errors.Is(filter.ErrLimiterReached, err) {
-					cancel()
-					return
-				}
-				if errors.Is(filter.ErrFilterCancel, err) {
-					return
-				}
-				pdc_common.ReportError(err)
-				return
-			}
-			if cek {
-				log.Printf("[ %s ] %s", reason, item.Name)
-				return
-			}
-
-			err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
-			if err != nil {
-				if mongo.IsDuplicateKeyError(err) {
-					log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, item.Name)
-					return
-				}
-				pdc_common.ReportError(err)
-				return
-			}
-
-			addCount()
-			counter.Add()
-			log.Printf("[ scraped ] %d item saved", counter.Count())
-		}()
-
-		return nil
 	})
 
 	g.wg.Wait()
