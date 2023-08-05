@@ -29,6 +29,11 @@ func NewScenario(t *testing.T) *Scenario {
 	return &scen
 }
 
+func (scen *Scenario) Path(data ...string) string {
+	data = append([]string{scen.Base}, data...)
+	return filepath.Join(data...)
+}
+
 func (scen *Scenario) WithBase(handler func(dirbase string, scen *Scenario)) {
 
 	id := uuid.New()

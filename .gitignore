@@ -51,3 +51,4 @@ dist/bin/tokopedia.upx
 dist/
 
 test/temp/
+test/data/fcity_tokopedia.json
