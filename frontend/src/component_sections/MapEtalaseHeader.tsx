@@ -14,7 +14,7 @@ export type Props = {
 
 export default function MapEtalaseHeader(props: Props) {
     const [openModal, setOpenModal] = React.useState(false)
-    const { sender, response, pending } = useRequest("GetV1ProductNamespaceAll")
+    const { sender, response, pending } = useRequest("GetLegacyV1ProductNamespaceAll")
     const { sender: getEtalase, response: etalases } = useRequest(
         "GetTokopediaEtalaseMapListEtalase"
     )
@@ -61,7 +61,7 @@ export default function MapEtalaseHeader(props: Props) {
         const signal = c.signal
 
         sender(
-            { method: "get", path: "v1/product/namespace_all" },
+            { method: "get", path: "legacy/v1/product/namespace_all" },
             {
                 signal,
                 onSuccess(data) {

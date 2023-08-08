@@ -473,196 +473,196 @@ export type SdkConfig = {
 		path: "tokopedia/upload/status"
 	},
 
-	GetApiDataspin: {
+	GetLegacyApiDataspin: {
 		method: "get"
 		params: DataSpinQuery
 		payload: undefined
 		response: DataSpinItemResponse[]
-		path: "api/dataspin"
+		path: "legacy/api/dataspin"
 	},
 
-	PostApiDataspin: {
+	PostLegacyApiDataspin: {
 		method: "post"
 		params: undefined
 		payload: DataSpinItemResponse
 		response: BaseResponse
-		path: "api/dataspin"
+		path: "legacy/api/dataspin"
 	},
 
-	DeleteApiDataspin: {
+	DeleteLegacyApiDataspin: {
 		method: "delete"
 		params: DataSpinDeleteQuery
 		payload: undefined
 		response: BaseResponse
-		path: "api/dataspin"
+		path: "legacy/api/dataspin"
 	},
 
-	GetApiSettingSpin: {
+	GetLegacyApiSettingSpin: {
 		method: "get"
 		params: undefined
 		payload: undefined
 		response: SettingSpinResponse
-		path: "api/settingSpin"
+		path: "legacy/api/settingSpin"
 	},
 
-	PostApiSettingSpin: {
+	PostLegacyApiSettingSpin: {
 		method: "post"
 		params: undefined
 		payload: SettingSpinData
 		response: BaseResponse
-		path: "api/settingSpin"
+		path: "legacy/api/settingSpin"
 	},
 
-	PostApiConfigSettingSpin: {
+	PostLegacyApiConfigSettingSpin: {
 		method: "post"
 		params: undefined
 		payload: SettingSpinConfigUpdatePayload
 		response: BaseResponse
-		path: "api/config/settingSpin"
+		path: "legacy/api/config/settingSpin"
 	},
 
-	GetApiListMarkup: {
+	GetLegacyApiListMarkup: {
 		method: "get"
 		params: undefined
 		payload: undefined
 		response: ListMarkupResponse
-		path: "api/listMarkup"
+		path: "legacy/api/listMarkup"
 	},
 
-	PostApiAddMarkup: {
+	PostLegacyApiAddMarkup: {
 		method: "post"
 		params: undefined
 		payload: Markup
 		response: BaseResponse
-		path: "api/addMarkup"
+		path: "legacy/api/addMarkup"
 	},
 
-	GetApiMarkup: {
+	GetLegacyApiMarkup: {
 		method: "get"
 		params: MarkupGetQuery
 		payload: undefined
 		response: MarkupGetResponse
-		path: "api/markup"
+		path: "legacy/api/markup"
 	},
 
-	PostApiMarkup: {
+	PostLegacyApiMarkup: {
 		method: "post"
 		params: MarkupGetQuery
 		payload: Markup
 		response: BaseResponse
-		path: "api/markup"
+		path: "legacy/api/markup"
 	},
 
-	PostApiDeleteMarkup: {
+	PostLegacyApiDeleteMarkup: {
 		method: "post"
 		params: undefined
 		payload: string[]
 		response: BaseResponse
-		path: "api/deleteMarkup"
+		path: "legacy/api/deleteMarkup"
 	},
 
-	GetV1ProductNamespaceAll: {
+	GetLegacyV1ProductNamespaceAll: {
 		method: "get"
 		params: ProductMatchStageQuery
 		payload: undefined
 		response: ProductNamespaceAgg[]
-		path: "v1/product/namespace_all"
+		path: "legacy/v1/product/namespace_all"
 	},
 
-	GetV1ProductPriceRange: {
+	GetLegacyV1ProductPriceRange: {
 		method: "get"
 		params: ProductPriceRangeAggQuery
 		payload: undefined
 		response: ProductPriceRangeAgg[]
-		path: "v1/product/price_range"
+		path: "legacy/v1/product/price_range"
 	},
 
-	GetV1ProductCategory: {
+	GetLegacyV1ProductCategory: {
 		method: "get"
 		params: ProductMatchStageQuery
 		payload: undefined
 		response: ProductCategoryAgg[]
-		path: "v1/product/category"
+		path: "legacy/v1/product/category"
 	},
 
-	GetV1ProductKota: {
+	GetLegacyV1ProductKota: {
 		method: "get"
 		params: ProductMatchStageQuery
 		payload: undefined
 		response: ProductCityAgg[]
-		path: "v1/product/kota"
+		path: "legacy/v1/product/kota"
 	},
 
-	GetV1ProductDelete: {
+	GetLegacyV1ProductDelete: {
 		method: "get"
 		params: ProductMatchStageQuery
 		payload: undefined
 		response: BaseResponse
-		path: "v1/product/delete"
+		path: "legacy/v1/product/delete"
 	},
 
-	PostApiDeleteItem: {
+	PostLegacyApiDeleteItem: {
 		method: "post"
 		params: ProductMatchStageQuery
 		payload: number[]
 		response: BaseResponse
-		path: "api/deleteItem"
+		path: "legacy/api/deleteItem"
 	},
 
-	PostV1ProductCategstatToCsv: {
+	PostLegacyV1ProductCategstatToCsv: {
 		method: "post"
 		params: undefined
 		payload: ShopeeCategoryOld[]
 		response: BaseResponse
-		path: "v1/product/categstat_to_csv"
+		path: "legacy/v1/product/categstat_to_csv"
 	},
 
-	GetV1ProductResync: {
+	GetLegacyV1ProductResync: {
 		method: "get"
 		params: ProductMatchStageQuery
 		payload: undefined
 		response: BaseResponse
-		path: "v1/product/resync"
+		path: "legacy/v1/product/resync"
 	},
 
-	PostV4ShopeeWeightPredict: {
+	PostLegacyV4ShopeeWeightPredict: {
 		method: "post"
 		params: undefined
 		payload: PredictWeightPayload
 		response: PredictWeightResponse
-		path: "v4/shopee/weight/predict"
+		path: "legacy/v4/shopee/weight/predict"
 	},
 
-	GetV3PredictweightSave: {
+	GetLegacyV3PredictweightSave: {
 		method: "get"
 		params: PredictWeightSaveQuery
 		payload: undefined
 		response: BaseResponse
-		path: "v3/predictweight/save"
+		path: "legacy/v3/predictweight/save"
 	},
 
-	GetV3PredictweightLoad: {
+	GetLegacyV3PredictweightLoad: {
 		method: "get"
 		params: undefined
 		payload: undefined
 		response: PredictWeightLoadResponse
-		path: "v3/predictweight/load"
+		path: "legacy/v3/predictweight/load"
 	},
 
-	GetApiShopeeShipping: {
+	GetLegacyApiShopeeShipping: {
 		method: "get"
 		params: undefined
 		payload: undefined
 		response: SearchFilterDynamicShipping[]
-		path: "api/shopee_shipping"
+		path: "legacy/api/shopee_shipping"
 	},
 
-	GetShopeeManifest: {
+	GetLegacyShopeeManifest: {
 		method: "get"
 		params: undefined
 		payload: undefined
 		response: ManifestResponse
-		path: "shopee/manifest"
+		path: "legacy/shopee/manifest"
 	},
 
 	GetApiUpdateTokpedCategories: {

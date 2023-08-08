@@ -81,13 +81,14 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	shopeepubapi := sapi_public.NewPublicApi(browser)
 
 	gr := sdk.Group("")
+	shopeeLegacy := gr.Group("legacy")
 
 	base := controller.NewBaseController(validate, baseData, shopeepubapi, mdb)
-	controller.RegisterSpinController(gr, base)
-	controller.RegisterMarkupController(gr, base)
-	controller.RegisterProductController(gr, base)
-	controller.RegisterPredictWeightController(gr, base)
-	controller.RegisterLegacyController(gr, base)
+	controller.RegisterSpinController(shopeeLegacy, base)
+	controller.RegisterMarkupController(shopeeLegacy, base)
+	controller.RegisterProductController(shopeeLegacy, base)
+	controller.RegisterPredictWeightController(shopeeLegacy, base)
+	controller.RegisterLegacyController(shopeeLegacy, base)
 	api.RegisterShopeeCategoryApi(sdk, baseData)
 
 	productRepo := mongorepo.NewProductRepo(mdb)
@@ -109,8 +110,8 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	shopeeagg := shopee_repo.NewProductAggregate(productRepo.Collection)
 	mapetalase := services.NewEtalaseMapService(db, shopeeagg)
 	etalaseApi := api.NewEtalaseMapApi(mapetalase)
-
 	etalaseApi.RegisterApi(g.Group("etalase_map"))
+
 	// register shopee v5
 	shopeeV5 := sdk.Group("shopee/v5")
 	productapi := api_v5.NewProductApi(baseData, productRepo)

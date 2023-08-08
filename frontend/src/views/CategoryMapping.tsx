@@ -30,7 +30,7 @@ export default function CategoryMapping(props: { activePage?: string }): React.R
         "GetTokopediaCategoryList"
     )
     const { sender: namespaceGetter, response } = useRequest(
-        "GetV1ProductNamespaceAll"
+        "GetLegacyV1ProductNamespaceAll"
     )
 
     const [selectedNamespacem, setSelectedNamespace] = useState<string | null>(
@@ -49,7 +49,7 @@ export default function CategoryMapping(props: { activePage?: string }): React.R
             }
         )
         namespaceGetter(
-            { method: "get", path: "v1/product/namespace_all" },
+            { method: "get", path: "legacy/v1/product/namespace_all" },
             {
                 onSuccess(data) {
                     data?.forEach((nm) => {

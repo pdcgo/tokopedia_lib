@@ -7,7 +7,7 @@ require (
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/google/uuid v1.3.0
 	github.com/pdcgo/common_conf v1.1.3
-	github.com/pdcgo/go_v2_shopeelib v1.0.24
+	github.com/pdcgo/go_v2_shopeelib v1.1.3
 	github.com/pdcgo/v2_gots_sdk v1.2.4
 	github.com/sethvargo/go-retry v0.2.4
 	go.mongodb.org/mongo-driver v1.11.3
