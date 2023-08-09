@@ -39,7 +39,7 @@ func (c *ShopeeCategoryApi) extractCategory(
 	id := strconv.Itoa(category.ID)
 	tokpedCategories.SetCategory(id, item)
 	for _, child := range category.Children {
-		c.extractCategory(tokpedCategories, &child, &item)
+		c.extractCategory(tokpedCategories, child, &item)
 	}
 }
 
@@ -59,7 +59,7 @@ func (a *ShopeeCategoryApi) UpdateCategoryTokopedia(ctx *gin.Context) {
 	categories := res.Data.CategoryAllListLite.Categories
 	tokpedCategories := legacy.CategoryTokopedia{}
 	for _, category := range categories {
-		a.extractCategory(tokpedCategories, &category, nil)
+		a.extractCategory(tokpedCategories, category, nil)
 	}
 
 	err = legacy.SaveCategoryTokopedia(a.base, &tokpedCategories)
