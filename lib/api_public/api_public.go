@@ -21,6 +21,32 @@ type SessionPublic struct {
 	Ua      string
 }
 
+func (sess *SessionPublic) Update(cookies []*http.Cookie) error {
+	for _, cookie := range cookies {
+		err := sess.updateCookie(cookie)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (sess *SessionPublic) updateCookie(cookie *http.Cookie) error {
+
+	fixCookies := []*http.Cookie{}
+
+	for _, oldCookie := range sess.Cookies {
+		if oldCookie.Name == cookie.Name {
+			fixCookies = append(fixCookies, cookie)
+		} else {
+			fixCookies = append(fixCookies, oldCookie)
+		}
+	}
+	sess.Cookies = fixCookies
+	return nil
+}
+
 type TokopediaApiPublic struct {
 	Session SessionPublic
 }
@@ -58,8 +84,8 @@ func (api *TokopediaApiPublic) SendRequest(req *http.Request, hasil any) error {
 	if err != nil {
 		return pdc_common.ReportError(err)
 	}
-	return nil
-	// return api.Session.Update(res.Cookies())
+	// return nil
+	return api.Session.Update(res.Cookies())
 }
 
 func defaultHeader() map[string]string {

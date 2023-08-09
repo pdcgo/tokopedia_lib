@@ -126,7 +126,7 @@ type SearchProductData struct {
 	Redirection    Redirection         `json:"redirection"`
 	Related        Related             `json:"related"`
 	Suggestion     Suggestion          `json:"suggestion"`
-	Products       []ProductSearch     `json:"products"`
+	Products       []*ProductSearch    `json:"products"`
 	Violation      Violation           `json:"violation"`
 	Typename       string              `json:"__typename"`
 }

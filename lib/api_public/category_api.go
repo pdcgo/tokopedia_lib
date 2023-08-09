@@ -36,3 +36,19 @@ func (api *TokopediaApiPublic) JarvisRecommendation(prodname string) (*model_pub
 	err := api.SendRequest(req, &hasil)
 	return &hasil, err
 }
+
+func (api *TokopediaApiPublic) HeaderMainData() (*model_public.HeaderMainDataResp, error) {
+	var variable struct{}
+
+	gqlQuery := GraphqlPayload{
+		OperationName: "headerMainData",
+		Variables:     variable,
+		Query:         query.HeaderMainData,
+	}
+
+	req := api.NewGraphqlReq(&gqlQuery)
+
+	var hasil model_public.HeaderMainDataResp
+	err := api.SendRequest(req, &hasil)
+	return &hasil, err
+}

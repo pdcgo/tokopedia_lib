@@ -5,12 +5,15 @@ go 1.19
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.14.1
+	github.com/gocarina/gocsv v0.0.0-20230513223533-9ddd7fd60602
 	github.com/google/uuid v1.3.0
 	github.com/pdcgo/common_conf v1.1.3
 	github.com/pdcgo/go_v2_shopeelib v1.1.3
 	github.com/pdcgo/v2_gots_sdk v1.2.4
 	github.com/sethvargo/go-retry v0.2.4
+	github.com/zeebo/assert v1.3.0
 	go.mongodb.org/mongo-driver v1.11.3
+	golang.org/x/exp v0.0.0-20220827204233-334a2380cb91
 	gorm.io/gorm v1.25.2
 	nhooyr.io/websocket v1.8.7
 )
@@ -37,7 +40,6 @@ require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/gocarina/gocsv v0.0.0-20230513223533-9ddd7fd60602 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
@@ -89,9 +91,9 @@ require (
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
-	golang.org/x/mod v0.12.0 // indirect
+	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/term v0.10.0 // indirect
-	golang.org/x/tools v0.11.1 // indirect
+	golang.org/x/tools v0.10.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230803162519-f966b187b2e5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230803162519-f966b187b2e5 // indirect
@@ -133,7 +135,7 @@ require (
 	github.com/pquerna/otp v1.4.0
 	github.com/robotn/xgb v0.0.0-20190912153532-2cb92d044934 // indirect
 	github.com/robotn/xgbutil v0.0.0-20190912154524-c861d6f87770 // indirect
-	github.com/rs/zerolog v1.30.0
+	github.com/rs/zerolog v1.29.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
 	github.com/tklauser/go-sysconf v0.3.11 // indirect

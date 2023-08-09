@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/tokopedia_lib/lib/csv"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/iterator"
 	"github.com/pdcgo/tokopedia_lib/lib/helper"
@@ -13,61 +14,65 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type ShopGrabber struct {
+type CategoryCsvGrabber struct {
 	*BaseGrabber
 }
 
-func NewShopGrabber(base *BaseGrabber) *ShopGrabber {
-	return &ShopGrabber{
-		base,
-	}
+func NewCategoryCsvGrabber(base *BaseGrabber) *CategoryCsvGrabber {
+	return &CategoryCsvGrabber{base}
 }
 
-func (g *ShopGrabber) Run() error {
-	fname := g.Base.Path(g.GrabTasker.TokoUsername)
-
+func (g *CategoryCsvGrabber) Run() error {
 	filtersOpt := []filter.FilterHandler{
-		filter.CreateBlacklistUsernameFilter(g.Base),
 		filter.CreateSoldFilter(g.Base),
 		filter.CreateSoldPercentageFilter(g.Base),
 		filter.CreateStockFilter(g.Base),
 		filter.CreatePointFilter(g.Api, g.Base),
+		filter.CreateBlacklistUsernameFilter(g.Base),
 		filter.CreateLastLoginFilter(g.Base),
 		filter.CreateLastReviewFilter(g.Api, g.Base),
 	}
 
 	counter := helper.NewCounter()
 
-	return iterator.IterateShops(g.Api, fname, func(shopCore *model_public.ShopCoreInfoResp) error {
+	categories, err := g.Api.HeaderMainData()
+	if err != nil {
+		return err
+	}
+
+	getCategoryId := func(url string) int {
+		res := csv.GetCategoryByUrl(categories.Data.CategoryAllListLite.Categories, url)
+		category := <-res
+		return category.ID
+	}
+
+	return iterator.IterateCategoryCsv(g.Base, func(category *csv.CategoryCsv) error {
 		filterLimit, addCount := filter.CreateLimiter(g.Base)
 		filters := []filter.FilterHandler{
 			filterLimit,
 		}
-		if g.GrabTasker.UseFilter {
-			filters = append(filters, filtersOpt...)
-		}
+		filters = append(filters, filtersOpt...)
 
-		shopId := shopCore.Data.Result[0].ShopCore.ShopID
-		searchVar := GenerateShopProductVar()
-		searchVar.Sid = shopId
+		searchVar := CreateGrabSearchVar(g.Base)
+		categoryId := getCategoryId(category.Url)
+		searchVar.CategoryId = categoryId
 
 		ctx, cancel := context.WithCancel(context.Background())
 		filterItem := filter.NewFilterItem(ctx, filters...)
 
-		err := iterator.IterateProductShopPage(g.Api, ctx, searchVar, func(items []*model_public.ShopProductData) error {
+		err := iterator.IterateSearchPage(g.Api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
 			var urls []string
 			for _, item := range items {
-				urls = append(urls, item.ProductURL)
+				urls = append(urls, item.URL)
 			}
 
 			return iterator.IterateBatchLayout(g.Api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
-
 				g.wg.Add(1)
 				g.limitGuard <- 1
 
 				go func() {
 					defer g.wg.Done()
-					go func() {
+					defer func() {
 						<-g.limitGuard
 					}()
 
@@ -84,11 +89,6 @@ func (g *ShopGrabber) Run() error {
 							return
 						}
 						if errors.Is(filter.ErrFilterCancel, err) {
-							return
-						}
-						if errors.Is(filter.ErrBlacklistUsername, err) {
-							log.Printf("[ %s ] %s", reason, name)
-							cancel()
 							return
 						}
 						pdc_common.ReportError(err)
@@ -116,6 +116,7 @@ func (g *ShopGrabber) Run() error {
 
 				return nil
 			})
+
 		})
 
 		g.wg.Wait()

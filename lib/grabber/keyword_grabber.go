@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net/url"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
@@ -13,32 +14,31 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type ShopGrabber struct {
+type KeywordGrabber struct {
 	*BaseGrabber
 }
 
-func NewShopGrabber(base *BaseGrabber) *ShopGrabber {
-	return &ShopGrabber{
+func NewKeywordGrabber(base *BaseGrabber) *KeywordGrabber {
+	return &KeywordGrabber{
 		base,
 	}
 }
 
-func (g *ShopGrabber) Run() error {
-	fname := g.Base.Path(g.GrabTasker.TokoUsername)
-
+func (g *KeywordGrabber) Run() error {
 	filtersOpt := []filter.FilterHandler{
-		filter.CreateBlacklistUsernameFilter(g.Base),
 		filter.CreateSoldFilter(g.Base),
 		filter.CreateSoldPercentageFilter(g.Base),
 		filter.CreateStockFilter(g.Base),
 		filter.CreatePointFilter(g.Api, g.Base),
+		filter.CreateBlacklistUsernameFilter(g.Base),
 		filter.CreateLastLoginFilter(g.Base),
 		filter.CreateLastReviewFilter(g.Api, g.Base),
 	}
 
+	// lock := sync.Mutex{}
 	counter := helper.NewCounter()
 
-	return iterator.IterateShops(g.Api, fname, func(shopCore *model_public.ShopCoreInfoResp) error {
+	return iterator.IterateKeywords(g.Base, g.GrabTasker, func(item string) error {
 		filterLimit, addCount := filter.CreateLimiter(g.Base)
 		filters := []filter.FilterHandler{
 			filterLimit,
@@ -47,21 +47,19 @@ func (g *ShopGrabber) Run() error {
 			filters = append(filters, filtersOpt...)
 		}
 
-		shopId := shopCore.Data.Result[0].ShopCore.ShopID
-		searchVar := GenerateShopProductVar()
-		searchVar.Sid = shopId
+		searchVar := CreateGrabSearchVar(g.Base)
+		searchVar.Query = url.QueryEscape(item)
 
 		ctx, cancel := context.WithCancel(context.Background())
 		filterItem := filter.NewFilterItem(ctx, filters...)
 
-		err := iterator.IterateProductShopPage(g.Api, ctx, searchVar, func(items []*model_public.ShopProductData) error {
+		err := iterator.IterateSearchPage(g.Api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
 			var urls []string
 			for _, item := range items {
-				urls = append(urls, item.ProductURL)
+				urls = append(urls, item.URL)
 			}
 
 			return iterator.IterateBatchLayout(g.Api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
-
 				g.wg.Add(1)
 				g.limitGuard <- 1
 
@@ -86,11 +84,6 @@ func (g *ShopGrabber) Run() error {
 						if errors.Is(filter.ErrFilterCancel, err) {
 							return
 						}
-						if errors.Is(filter.ErrBlacklistUsername, err) {
-							log.Printf("[ %s ] %s", reason, name)
-							cancel()
-							return
-						}
 						pdc_common.ReportError(err)
 						return
 					}
@@ -113,7 +106,6 @@ func (g *ShopGrabber) Run() error {
 					counter.Add()
 					log.Printf("[ scraped ] %d item saved", counter.Count())
 				}()
-
 				return nil
 			})
 		})

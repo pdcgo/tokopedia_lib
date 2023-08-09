@@ -12,6 +12,7 @@ type SearchProductVar struct {
 	UserCityID     string `json:"user_cityId"`     // 2274
 	Source         string `json:"source"`          // search
 	TopadsBucket   bool   `json:"topads_bucket"`   // true
+	Start          int    `json:"start"`
 	PriceMin       int    `json:"pmin,omitempty"`
 	PriceMax       int    `json:"pmax,omitempty"`
 	Rate           string `json:"rt,omitempty"`
@@ -20,7 +21,6 @@ type SearchProductVar struct {
 	Condition      string `json:"condition,omitempty"`
 	ShopTier       string `json:"shop_tier,omitempty"`
 	CategoryId     int    `json:"sc,omitempty"`
-	Start          int    `json:"start,omitempty"`
 	Identifier     string `json:"identifier,omitempty"`
 	Navsource      string `json:"navsource"`
 	UniqueId       string `json:"unique_id"`

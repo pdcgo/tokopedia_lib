@@ -83,11 +83,11 @@ type ShopProductData struct {
 }
 
 type GetShopProduct struct {
-	Status   string            `json:"status"`
-	Errors   string            `json:"errors"`
-	Links    Links             `json:"links"`
-	Data     []ShopProductData `json:"data"`
-	Typename string            `json:"__typename"`
+	Status   string             `json:"status"`
+	Errors   string             `json:"errors"`
+	Links    Links              `json:"links"`
+	Data     []*ShopProductData `json:"data"`
+	Typename string             `json:"__typename"`
 }
 
 ///////////////////////////////////////////////////////
