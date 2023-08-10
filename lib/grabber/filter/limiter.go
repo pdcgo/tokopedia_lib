@@ -4,7 +4,6 @@ import (
 	"errors"
 	"sync/atomic"
 
-	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
@@ -13,9 +12,8 @@ type AddCount func() (limitReached bool)
 
 var ErrLimiterReached = errors.New("limit was reached")
 
-func CreateLimiter(base *legacy_source.BaseConfig) (FilterHandler, AddCount) {
+func CreateLimiter(grabBasic *legacy.GrabBasic) (FilterHandler, AddCount) {
 
-	grabBasic := legacy.NewGrabBasic(base)
 	count := int32(grabBasic.LimitGrab)
 
 	addCount := func() bool {

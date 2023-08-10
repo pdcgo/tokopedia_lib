@@ -15,6 +15,8 @@ import (
 func TestBlacklistUsernameFilter(t *testing.T) {
 
 	scen := scenario.NewScenario(t)
+	layout := model_public.PdpGetlayoutQueryResp{}
+	pdp := model_public.PdpGetDataP2Resp{}
 
 	scen.WithBase(func(dirbase string, scen *scenario.Scenario) {
 		scen.WithBaseConfig(func(base *legacy_source.BaseConfig) {
@@ -42,8 +44,6 @@ func TestBlacklistUsernameFilter(t *testing.T) {
 
 				t.Run("test filter blacklist username filter not ok", func(t *testing.T) {
 
-					layout := model_public.PdpGetlayoutQueryResp{}
-					pdp := model_public.PdpGetDataP2Resp{}
 					pdp.Data.PdpGetData.ShopInfo.ShopCore.Domain = "tokosate"
 
 					cek, reason, err := blacklistFilter(&layout, &pdp)
@@ -54,8 +54,6 @@ func TestBlacklistUsernameFilter(t *testing.T) {
 
 				t.Run("test filter blacklist username filter ok", func(t *testing.T) {
 
-					layout := model_public.PdpGetlayoutQueryResp{}
-					pdp := model_public.PdpGetDataP2Resp{}
 					pdp.Data.PdpGetData.ShopInfo.ShopCore.Domain = "bluehat"
 
 					cek, reason, err := blacklistFilter(&layout, &pdp)

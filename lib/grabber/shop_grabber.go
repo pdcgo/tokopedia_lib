@@ -33,7 +33,7 @@ func (g *ShopGrabber) Run() error {
 
 	return iterator.IterateShops(g.Api, fname, func(shopCore *model_public.ShopCoreInfoResp) error {
 
-		filterLimit, addCount := filter.CreateLimiter(g.Base)
+		filterLimit, addCount := filter.CreateLimiter(grabBasic)
 		filters := []filter.FilterHandler{
 			filterLimit,
 		}

@@ -3,39 +3,57 @@ package filter_test
 import (
 	"testing"
 
-	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
-	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
+	"github.com/pdcgo/tokopedia_lib/scenario"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFilterStock(t *testing.T) {
-	api, err := api_public.NewTokopediaApiPublic()
-	assert.Nil(t, err)
+func TestStockFilter(t *testing.T) {
 
-	base := legacy_source.BaseConfig{
-		BaseData: "../../..",
-	}
+	scen := scenario.NewScenario(t)
+	layout := model_public.PdpGetlayoutQueryResp{}
+	pdp := model_public.PdpGetDataP2Resp{}
 
-	prodUrl := "https://www.tokopedia.com/baseus/baseus-true-wireless-bluetooth-earphone-mini-earbuds-tws-wm01-hitam?extParam=src%3Dmultiloc%26whid%3D4895&source=homepage.left_carousel.0.280472"
-	layoutVar, err := model_public.NewPdpGetlayoutQueryVar(prodUrl)
-	assert.Nil(t, err)
-	layout, err := api.PdpGetlayoutQuery(layoutVar)
-	assert.Nil(t, err)
+	scen.WithBase(func(dirbase string, scen *scenario.Scenario) {
+		scen.WithGrabBasic(func(cfg *legacy.GrabBasic) error {
 
-	pdpVar := &model_public.PdpGetDataP2Var{
-		ProductID:  layout.Data.PdpGetLayout.BasicInfo.ID,
-		PdpSession: layout.Data.PdpGetLayout.PdpSession,
-	}
-	pdp, err := api.PdpGetDataP2(pdpVar)
-	assert.Nil(t, err)
+			cfg.Stock = 100
 
-	grabBasic := legacy.NewGrabBasic(&base)
-	stockFilter := filter.CreateStockFilter(grabBasic)
-	cek, reason, err := stockFilter(layout, pdp)
-	assert.Nil(t, err)
-	assert.Equal(t, "", reason)
-	assert.False(t, cek)
+			return nil
+		}, func(cfg *legacy.GrabBasic) {
+
+			filterStock := filter.CreateStockFilter(cfg)
+
+			t.Run("test filter stock ok", func(t *testing.T) {
+
+				productContent := model_public.ProductContentData{}
+				productContent.Stock.Value = "2001"
+				productContentComponent := model_public.ProductContentComponent{}
+				productContentComponent.Data = append(productContentComponent.Data, productContent)
+				layout.Data.PdpGetLayout.Components = model_public.PDPListComponents{&productContentComponent}
+
+				cek, reason, err := filterStock(&layout, &pdp)
+				assert.False(t, cek)
+				assert.Empty(t, reason)
+				assert.Nil(t, err)
+			})
+
+			t.Run("test filter stock not ok", func(t *testing.T) {
+
+				productContent := model_public.ProductContentData{}
+				productContent.Stock.Value = "36"
+				productContentComponent := model_public.ProductContentComponent{}
+				productContentComponent.Data = append(productContentComponent.Data, productContent)
+				layout.Data.PdpGetLayout.Components = model_public.PDPListComponents{&productContentComponent}
+
+				cek, reason, err := filterStock(&layout, &pdp)
+				assert.True(t, cek)
+				assert.Equal(t, reason, "filter stock")
+				assert.Nil(t, err)
+			})
+
+		})
+	})
 }

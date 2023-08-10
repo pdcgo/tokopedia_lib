@@ -13,6 +13,8 @@ import (
 func TestFilterDiscount(t *testing.T) {
 
 	scen := scenario.NewScenario(t)
+	layout := model_public.PdpGetlayoutQueryResp{}
+	pdp := model_public.PdpGetDataP2Resp{}
 
 	scen.WithBase(func(dirbase string, scen *scenario.Scenario) {
 		scen.WithMarkupConfig(func(cfg *legacy.LegacyMarkupConfig) error {
@@ -26,13 +28,11 @@ func TestFilterDiscount(t *testing.T) {
 
 			t.Run("test filter discount ok", func(t *testing.T) {
 
-				layout := model_public.PdpGetlayoutQueryResp{}
-				pdp := model_public.PdpGetDataP2Resp{}
-
-				// productContent := model_public.ProductContentComponent{
-				// 	Data: []model_public.ProductContentData{},
-				// }
-				// layout.Data.
+				productContent := model_public.ProductContentData{}
+				productContent.Campaign.PercentageAmount = 0
+				productContentComponent := model_public.ProductContentComponent{}
+				productContentComponent.Data = append(productContentComponent.Data, productContent)
+				layout.Data.PdpGetLayout.Components = model_public.PDPListComponents{&productContentComponent}
 
 				cek, reason, err := filterDiscount(&layout, &pdp)
 				assert.False(t, cek)
@@ -42,8 +42,11 @@ func TestFilterDiscount(t *testing.T) {
 
 			t.Run("test filter discount not ok", func(t *testing.T) {
 
-				layout := model_public.PdpGetlayoutQueryResp{}
-				pdp := model_public.PdpGetDataP2Resp{}
+				productContent := model_public.ProductContentData{}
+				productContent.Campaign.PercentageAmount = 10
+				productContentComponent := model_public.ProductContentComponent{}
+				productContentComponent.Data = append(productContentComponent.Data, productContent)
+				layout.Data.PdpGetLayout.Components = model_public.PDPListComponents{&productContentComponent}
 
 				cek, reason, err := filterDiscount(&layout, &pdp)
 				assert.True(t, cek)

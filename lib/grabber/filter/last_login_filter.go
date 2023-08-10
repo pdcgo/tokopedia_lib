@@ -23,7 +23,7 @@ func CreateLastLoginFilter(grabTokopedia *legacy.GrabTokopedia) FilterHandler {
 		t := time.Now()
 		filterLastLogin := t.AddDate(0, 0, -grabTokopedia.LastLoginDays)
 		if filterLastLogin.Unix() > int64(lastLogin) {
-			return true, "filter last review", nil
+			return true, "filter last login", nil
 		}
 
 		return false, "", nil

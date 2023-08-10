@@ -32,7 +32,7 @@ func (g *KeywordGrabber) Run() error {
 
 	return iterator.IterateKeywords(g.Base, g.GrabTasker, func(item string) error {
 
-		filterLimit, addCount := filter.CreateLimiter(g.Base)
+		filterLimit, addCount := filter.CreateLimiter(grabBasic)
 		filters := []filter.FilterHandler{
 			filterLimit,
 		}

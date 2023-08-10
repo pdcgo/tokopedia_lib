@@ -51,7 +51,7 @@ func (g *CategoryGrabber) Run() error {
 	grabTokopedia := legacy.NewGrabTokopedia(g.Base)
 	markupConfig := legacy.NewLegacyMarkupConfigWithBase(g.Base)
 
-	filterLimit, addCount := filter.CreateLimiter(g.Base)
+	filterLimit, addCount := filter.CreateLimiter(grabBasic)
 	filters := []filter.FilterHandler{
 		filterLimit,
 	}

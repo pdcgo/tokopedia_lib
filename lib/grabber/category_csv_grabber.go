@@ -41,7 +41,7 @@ func (g *CategoryCsvGrabber) Run() error {
 
 	return iterator.IterateCategoryCsv(g.Base, func(category *csv.CategoryCsv) error {
 
-		filterLimit, addCount := filter.CreateLimiter(g.Base)
+		filterLimit, addCount := filter.CreateLimiter(grabBasic)
 		filters := []filter.FilterHandler{
 			filterLimit,
 		}

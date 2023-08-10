@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"strconv"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 )
@@ -487,6 +488,23 @@ func (layout *PdpGetLayout) GetPercentageAmount() int {
 	}
 
 	return productContent.Data[0].Campaign.PercentageAmount
+}
+
+func (layout *PdpGetLayout) Getstock() int {
+
+	productContent, err := GetComponent[ProductContentComponent](layout)
+	if err != nil {
+		pdc_common.ReportError(err)
+		return 0
+	}
+
+	stockVal := productContent.Data[0].Stock
+	stock, err := strconv.Atoi(stockVal.Value)
+	if err != nil {
+		pdc_common.ReportError(err)
+	}
+
+	return stock
 }
 
 type OwnerInfo struct {

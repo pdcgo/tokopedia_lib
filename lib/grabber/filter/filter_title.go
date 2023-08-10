@@ -22,17 +22,17 @@ func CreateTitleFilter(filterText *legacy_source.FilterText) FilterHandler {
 	}
 
 	return func(layout *model_public.PdpGetlayoutQueryResp, pdp *model_public.PdpGetDataP2Resp) (cek bool, reason string, err error) {
-		alias := layout.Data.PdpGetLayout.BasicInfo.Alias
-		name := strings.ReplaceAll(alias, "-", " ")
+		productName := layout.Data.PdpGetLayout.GetProductName()
+		productName = strings.ToLower(productName)
 
 		for _, t := range texts {
-			if strings.Contains(name, t) {
+			if strings.Contains(productName, t) {
 				return true, "filter title", nil
 			}
 		}
 
 		for _, rx := range regexs {
-			if rx.MatchString(name) {
+			if rx.MatchString(productName) {
 				return true, "filter title", nil
 			}
 		}
