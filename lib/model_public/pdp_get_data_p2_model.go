@@ -81,18 +81,39 @@ type GlobalDataComponent struct {
 	Typename  string        `json:"__typename"`
 }
 
+type ProdDetailComTitle string
+
+const (
+	KondisiTitle      ProdDetailComTitle = "Kondisi"
+	BeratSatuanTitle  ProdDetailComTitle = "Berat Satuan"
+	MinPemesananTitle ProdDetailComTitle = "Min. Pemesanan"
+	CategoryTitle     ProdDetailComTitle = "Kategori"
+	EtalaseTitle      ProdDetailComTitle = "Etalase"
+	DeskripsiTitle    ProdDetailComTitle = "Deskripsi"
+)
+
 type ProductDetailContent struct {
-	Title        string `json:"title"`
-	Subtitle     string `json:"subtitle"`
-	Applink      string `json:"applink"`
-	ShowAtFront  bool   `json:"showAtFront"`
-	IsAnnotation bool   `json:"isAnnotation"`
-	Typename     string `json:"__typename"`
+	Title        ProdDetailComTitle `json:"title"`
+	Subtitle     string             `json:"subtitle"`
+	Applink      string             `json:"applink"`
+	ShowAtFront  bool               `json:"showAtFront"`
+	IsAnnotation bool               `json:"isAnnotation"`
+	Typename     string             `json:"__typename"`
 }
 
 type ProductDetailData struct {
 	Content  []ProductDetailContent `json:"content"`
 	Typename string                 `json:"__typename"`
+}
+
+func (detail *ProductDetailData) GetContent(title ProdDetailComTitle) (*ProductDetailContent, error) {
+	for _, cont := range detail.Content {
+		if cont.Title == title {
+			return &cont, nil
+		}
+	}
+
+	return nil, errors.New(string(title) + " tidak ada")
 }
 
 type Preorder struct {

@@ -30,4 +30,14 @@ func TestParsingPDPLayout(t *testing.T) {
 	}
 	assert.True(t, foundmedia)
 
+	t.Run("test get content", func(t *testing.T) {
+		com, err := model_public.GetComponent[model_public.ProductDetailComponent](&hasil)
+		assert.Nil(t, err)
+
+		desc, err := com.Data[0].GetContent(model_public.DeskripsiTitle)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, desc)
+
+	})
+
 }
