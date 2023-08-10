@@ -18,6 +18,7 @@ type DataFilterApi struct {
 
 func NewDataFilterApi(
 	base baseInterface,
+
 ) *DataFilterApi {
 	fapi := DataFilterApi{
 		base: base,
@@ -31,6 +32,12 @@ func (fapi *DataFilterApi) RegisterApi(grp *v2_gots_sdk.SdkGroup) {
 	grp.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodGet,
 		RelativePath: "fcity",
+		Response:     []*api_public.Fcity{},
+	}, fapi.FcityData)
+
+	grp.Register(&v2_gots_sdk.Api{
+		Method:       http.MethodGet,
+		RelativePath: "categories",
 		Response:     []*api_public.Fcity{},
 	}, fapi.FcityData)
 }
