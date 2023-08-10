@@ -4,16 +4,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
 
-func CreateLastReviewFilter(api *api_public.TokopediaApiPublic, base *legacy_source.BaseConfig) FilterHandler {
+func CreateLastReviewFilter(api *api_public.TokopediaApiPublic, grabBasic *legacy.GrabBasic) FilterHandler {
 	return func(layout *model_public.PdpGetlayoutQueryResp, pdp *model_public.PdpGetDataP2Resp) (cek bool, reason string, err error) {
-		grabConfig := legacy.NewGrabBasic(base)
-		if !grabConfig.LastReviewActive {
+
+		if !grabBasic.LastReviewActive {
 			return false, "", nil
 		}
 		variable := model_public.ProductReviewListVar{
@@ -38,7 +37,7 @@ func CreateLastReviewFilter(api *api_public.TokopediaApiPublic, base *legacy_sou
 		}
 
 		t := time.Now()
-		filterLastReview := t.AddDate(0, 0, -grabConfig.LastReviewDays)
+		filterLastReview := t.AddDate(0, 0, -grabBasic.LastReviewDays)
 		if int(filterLastReview.Unix()) > lastProductReview {
 			return true, "filter last review", nil
 		}

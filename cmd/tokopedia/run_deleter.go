@@ -40,13 +40,14 @@ func runDeleteCommand(ctx *cli.Context) error {
 		AppID:         AppID,
 	}
 
-	app.RunWithLicenseFile("data/config.json", "golang_tokopedia_delete", func(app *pdc_application.PdcApplication) {
+	app.RunWithLicenseFile("data/config.json", "golang_tokopedia_delete", func(app *pdc_application.PdcApplication) error {
 
 		fname := app.Base.Path("data/deleter_config.json")
 		config, err := deleter_product.NewDeleteConfig(fname)
 
 		if err != nil {
 			pdc_common.ReportError(err)
+			return err
 		}
 
 		runner := deleter_product.NewDeleteRunner(config)
@@ -54,6 +55,7 @@ func runDeleteCommand(ctx *cli.Context) error {
 		log.Println("running deleter")
 		runner.Run()
 
+		return nil
 	})
 
 	return nil

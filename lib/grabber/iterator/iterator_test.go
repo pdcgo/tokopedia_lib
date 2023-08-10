@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
+	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/csv"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber"
@@ -33,8 +34,9 @@ func TestIteratorkeywords(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+	grabTokopedia := legacy.NewGrabTokopedia(&base)
 
-	searchVar := grabber.CreateGrabSearchVar(&base)
+	searchVar := grabber.CreateGrabSearchVar(grabTokopedia)
 	searchVar.Query = "keyboard"
 
 	err = iterator.IterateSearchPage(api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
@@ -53,8 +55,9 @@ func TestIteratorCategory(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+	grabTokopedia := legacy.NewGrabTokopedia(&base)
 
-	searchVar := grabber.CreateGrabSearchVar(&base)
+	searchVar := grabber.CreateGrabSearchVar(grabTokopedia)
 	searchVar.CategoryId = 340
 
 	err = iterator.IterateSearchPage(api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
@@ -70,7 +73,7 @@ func TestIteratorShopProducts(t *testing.T) {
 	assert.Nil(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
 
-	searchVar := grabber.GenerateShopProductVar()
+	searchVar := model_public.NewShopProductVar("53089753")
 	err = iterator.IterateProductShopPage(api, ctx, searchVar, func(items []*model_public.ShopProductData) error {
 		assert.NotEqual(t, len(items), 0)
 		cancel()

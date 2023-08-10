@@ -2,16 +2,19 @@ package grabber
 
 import (
 	"context"
-	"net/url"
-	"strings"
+	"errors"
+	"log"
 	"sync"
+	"sync/atomic"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/grab_handler"
+	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Grabber interface {
@@ -26,6 +29,8 @@ type BaseGrabber struct {
 
 	wg         sync.WaitGroup
 	limitGuard chan int
+	limitLock  sync.Mutex
+	total      int32
 }
 
 func NewBaseGrabber(
@@ -48,11 +53,14 @@ func NewBaseGrabber(
 
 func (g *BaseGrabber) GetProductLayout(ctx context.Context, url string) *model_public.PdpGetlayoutQueryResp {
 	select {
+
 	case <-ctx.Done():
 		return nil
+
 	default:
-		layoutVar, _ := ParseProductDetailParamsFromUrl(url)
+		layoutVar, _ := model_public.NewPdpGetlayoutQueryVar(url)
 		layout, err := g.Api.PdpGetlayoutQuery(layoutVar)
+
 		if err != nil {
 			pdc_common.ReportError(err)
 			return nil
@@ -63,8 +71,10 @@ func (g *BaseGrabber) GetProductLayout(ctx context.Context, url string) *model_p
 
 func (g *BaseGrabber) GetPdpDataP2(ctx context.Context, layout *model_public.PdpGetlayoutQueryResp) *model_public.PdpGetDataP2Resp {
 	select {
+
 	case <-ctx.Done():
 		return nil
+
 	default:
 		var pdpSess string
 		var prodId string
@@ -88,38 +98,74 @@ func (g *BaseGrabber) GetPdpDataP2(ctx context.Context, layout *model_public.Pdp
 	}
 }
 
-func ParseProductDetailParamsFromUrl(uri string) (*model_public.PdpGetlayoutQueryVar, error) {
-	u, err := url.Parse(uri)
-	if err != nil {
-		return nil, err
-	}
-	path := u.EscapedPath()
-	query := u.Query()
+func (g *BaseGrabber) ApplyFilter(
+	ctx context.Context,
+	filterItem filter.FilterHandler,
+	layout *model_public.PdpGetlayoutQueryResp,
+	pdp *model_public.PdpGetDataP2Resp,
+) (filtered, finished bool) {
 
-	splitPath := strings.Split(path, "/")
-	shopDomain := splitPath[len(splitPath)-2]
-	productKey := splitPath[len(splitPath)-1]
+	select {
 
-	payload := &model_public.PdpGetlayoutQueryVar{
-		ShopDomain: shopDomain,
-		ProductKey: productKey,
-		APIVersion: 1,
-		ExtParam:   url.QueryEscape(query.Get("extParam")),
+	case <-ctx.Done():
+		return true, false
+
+	default:
+
+		cek, reason, err := filterItem(layout, pdp)
+		productName := layout.Data.PdpGetLayout.GetProductName()
+
+		if err != nil {
+			if errors.Is(filter.ErrLimiterReached, err) {
+				return true, true
+			}
+			if errors.Is(filter.ErrFilterCancel, err) {
+				return false, false
+			}
+
+			pdc_common.ReportError(err)
+			return true, false
+		}
+
+		if cek {
+			log.Printf("[ %s ] %s", reason, productName)
+			return
+		}
+
+		return false, false
 	}
-	return payload, nil
 }
 
-func GenerateShopProductVar() *model_public.ShopProductVar {
-	params := &model_public.ShopProductVar{
-		Page:           1,
-		PerPage:        100,
-		EtalaseID:      "etalase",
-		Sort:           1,
-		Sid:            "",
-		UserDistrictID: "176",
-		UserCityID:     "2274",
-		UserLat:        "",
-		UserLong:       "",
+func (g *BaseGrabber) SaveItem(
+	ctx context.Context,
+	layout *model_public.PdpGetlayoutQueryResp,
+	pdp *model_public.PdpGetDataP2Resp,
+) (saved bool) {
+
+	select {
+
+	case <-ctx.Done():
+		return false
+
+	default:
+		namespace := g.GrabTasker.Namespace
+		productName := layout.Data.PdpGetLayout.GetProductName()
+		err := g.CacheHandler.AddProductItem(namespace, layout, pdp)
+
+		if err != nil {
+			if mongo.IsDuplicateKeyError(err) {
+				log.Printf("[ duplicated ] %s - %s", namespace, productName)
+				return
+			}
+
+			pdc_common.ReportError(err)
+			return false
+		}
+
+		atomic.AddInt32(&g.total, 1)
+		total := atomic.LoadInt32(&g.total)
+		log.Printf("[ scraped ] %d item saved", total)
+
+		return true
 	}
-	return params
 }

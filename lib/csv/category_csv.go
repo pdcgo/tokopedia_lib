@@ -1,6 +1,8 @@
 package csv
 
 import (
+	"encoding/csv"
+	"io"
 	"os"
 
 	"github.com/gocarina/gocsv"
@@ -24,6 +26,14 @@ type CategoryCsv struct {
 }
 
 func LoadCategoryCsv(base *legacy_source.BaseConfig) ([]*CategoryCsv, error) {
+
+	gocsv.SetCSVReader(func(in io.Reader) gocsv.CSVReader {
+		r := csv.NewReader(in)
+		r.FieldsPerRecord = -1
+		r.LazyQuotes = true
+		return r
+	})
+
 	fname := base.Path("tokopedia_list_category.csv")
 	file, err := os.Open(fname)
 	if err != nil {

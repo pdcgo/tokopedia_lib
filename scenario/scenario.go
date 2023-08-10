@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
+	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/lib/datasource"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
@@ -57,6 +59,50 @@ func (scen *Scenario) WithBase(handler func(dirbase string, scen *Scenario)) {
 
 }
 
+func (scen *Scenario) WithBaseConfig(handler func(base *legacy_source.BaseConfig)) {
+
+	base := legacy_source.BaseConfig{
+		BaseData: scen.Base,
+	}
+	handler(&base)
+}
+
+func (scen *Scenario) CreateFile(data []byte, fname string) func() {
+
+	file, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	assert.Nil(scen.t, err)
+
+	_, err = file.Write(data)
+	assert.Nil(scen.t, err)
+
+	file.Close()
+	assert.Nil(scen.t, err)
+
+	remove := func() {
+		os.Remove(fname)
+	}
+
+	return remove
+}
+
+func (scen *Scenario) createConfigFile(data any, fname string) func() {
+
+	file, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	assert.Nil(scen.t, err)
+
+	err = json.NewEncoder(file).Encode(data)
+	assert.Nil(scen.t, err)
+
+	file.Close()
+	assert.Nil(scen.t, err)
+
+	remove := func() {
+		os.Remove(fname)
+	}
+
+	return remove
+}
+
 func (scen *Scenario) WithUploadConfig(cfgmodifier func(cfg *config.UploadBaseConfig) error, handler func(cfg *config.UploadBaseConfig)) {
 	cfg := config.UploadBaseConfig{
 		Database: config.DatabaseConfig{
@@ -68,18 +114,8 @@ func (scen *Scenario) WithUploadConfig(cfgmodifier func(cfg *config.UploadBaseCo
 	assert.Nil(scen.t, err)
 
 	fname := filepath.Join(scen.Base, "data", "config.json")
-	file, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
-
-	assert.Nil(scen.t, err)
-	err = json.NewEncoder(file).Encode(&cfg)
-	assert.Nil(scen.t, err)
-
-	file.Close()
-	assert.Nil(scen.t, err)
-
-	defer func() {
-		os.Remove(fname)
-	}()
+	remove := scen.createConfigFile(&cfg, fname)
+	defer remove()
 
 	handler(&cfg)
 }
@@ -124,4 +160,68 @@ func (scen *Scenario) WithCopySqliteDatabase(handler func(db *gorm.DB)) {
 	}()
 
 	handler(db)
+}
+
+type FilterTextModifier func(cfg *legacy_source.FilterText) error
+type FilterTextHandler func(cfg *legacy_source.FilterText)
+
+func (scen *Scenario) WithFilterText(modifier FilterTextModifier, handler FilterTextHandler) {
+	cfg := legacy_source.FilterText{}
+
+	err := modifier(&cfg)
+	assert.Nil(scen.t, err)
+
+	fname := filepath.Join(scen.Base, "data", "filter_text_config")
+	remove := scen.createConfigFile(&cfg, fname)
+	defer remove()
+
+	handler(&cfg)
+}
+
+type GrabBasicModifier func(cfg *legacy.GrabBasic) error
+type GrabBasicHandler func(cfg *legacy.GrabBasic)
+
+func (scen *Scenario) WithGrabBasic(modifier GrabBasicModifier, handler GrabBasicHandler) {
+	cfg := legacy.GrabBasic{}
+
+	err := modifier(&cfg)
+	assert.Nil(scen.t, err)
+
+	fname := filepath.Join(scen.Base, "data", "grab_config")
+	remove := scen.createConfigFile(&cfg, fname)
+	defer remove()
+
+	handler(&cfg)
+}
+
+type GrabTokopediaModifier func(cfg *legacy.GrabTokopedia) error
+type GrabTokopediaHandler func(cfg *legacy.GrabTokopedia)
+
+func (scen *Scenario) WithGrabTokopedia(modifier GrabTokopediaModifier, handler GrabTokopediaHandler) {
+	cfg := legacy.GrabTokopedia{}
+
+	err := modifier(&cfg)
+	assert.Nil(scen.t, err)
+
+	fname := filepath.Join(scen.Base, "data", "grab_tokopedia_config")
+	remove := scen.createConfigFile(&cfg, fname)
+	defer remove()
+
+	handler(&cfg)
+}
+
+type MarkupConfigModifier func(cfg *legacy.LegacyMarkupConfig) error
+type MarkupConfigHandler func(cfg *legacy.LegacyMarkupConfig)
+
+func (scen *Scenario) WithMarkupConfig(modifier MarkupConfigModifier, handler MarkupConfigHandler) {
+	cfg := legacy.LegacyMarkupConfig{}
+
+	err := modifier(&cfg)
+	assert.Nil(scen.t, err)
+
+	fname := filepath.Join(scen.Base, "data", "markup_data")
+	remove := scen.createConfigFile(&cfg, fname)
+	defer remove()
+
+	handler(&cfg)
 }

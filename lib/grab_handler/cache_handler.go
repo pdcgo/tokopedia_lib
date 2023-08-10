@@ -34,6 +34,7 @@ func (h *CacheProductHandler) AddProductItem(
 	layout *model_public.PdpGetlayoutQueryResp,
 	pdpDataP2 *model_public.PdpGetDataP2Resp,
 ) error {
+
 	cache := createCacheProduct(layout)
 	cache.Namespace = namespace
 	cache.Shop.Location = pdpDataP2.Data.PdpGetData.ShopInfo.Location

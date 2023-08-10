@@ -28,7 +28,7 @@ func runUploadShopeeToped(ctx *cli.Context) error {
 		AppID:         AppID,
 	}
 
-	app.RunWithLicenseFile("data/config.json", "golang_tokopedia_upload", func(app *pdc_application.PdcApplication) {
+	app.RunWithLicenseFile("data/config.json", "golang_tokopedia_upload", func(app *pdc_application.PdcApplication) error {
 
 		cfg := config.NewUploadConfigBase(app.Base.Path())
 		sqlitedb := datasource.NewSqliteDatabase(app.Base.Path("tokopedia_data.db"))
@@ -40,7 +40,7 @@ func runUploadShopeeToped(ctx *cli.Context) error {
 		publicapi, err := api_public.NewTokopediaApiPublic()
 		if err != nil {
 			pdc_common.ReportError(err)
-			return
+			return err
 		}
 
 		shopeeagg := shopee_repo.NewProductAggregate(mdb.Collection("item"))
@@ -57,6 +57,7 @@ func runUploadShopeeToped(ctx *cli.Context) error {
 
 		flow.Run()
 
+		return nil
 	})
 
 	// ----------------------

@@ -1,5 +1,10 @@
 package model_public
 
+import (
+	"net/url"
+	"strings"
+)
+
 type Tokonow struct {
 	ShopID      string `json:"shopID"`
 	WhID        string `json:"whID"`
@@ -24,8 +29,33 @@ type PdpGetlayoutQueryVar struct {
 	ExtParam     string        `json:"extParam"`
 }
 
+func NewPdpGetlayoutQueryVar(uri string) (queryVar *PdpGetlayoutQueryVar, err error) {
+	u, err := url.Parse(uri)
+	if err != nil {
+		return queryVar, err
+	}
+
+	path := u.EscapedPath()
+	query := u.Query()
+
+	splitPath := strings.Split(path, "/")
+	shopDomain := splitPath[len(splitPath)-2]
+	productKey := splitPath[len(splitPath)-1]
+
+	queryVar = &PdpGetlayoutQueryVar{
+		ShopDomain: shopDomain,
+		ProductKey: productKey,
+		APIVersion: 1,
+		ExtParam:   url.QueryEscape(query.Get("extParam")),
+	}
+
+	return queryVar, err
+}
+
+type PdpGetlayoutData struct {
+	PdpGetLayout PdpGetLayout `json:"pdpGetLayout"`
+}
+
 type PdpGetlayoutQueryResp struct {
-	Data struct {
-		PdpGetLayout PdpGetLayout `json:"pdpGetLayout"`
-	} `json:"data"`
+	Data PdpGetlayoutData `json:"data"`
 }
