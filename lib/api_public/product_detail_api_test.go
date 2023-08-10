@@ -165,6 +165,16 @@ func TestProductDetailApi(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotEmpty(t, hasil)
 
+		t.Run("test parsing get component", func(t *testing.T) {
+			layout := hasil.Data.PdpGetLayout
+
+			com, err := model_public.GetComponent[model_public.ProductDetailComponent](&layout)
+
+			assert.Nil(t, err)
+			assert.NotEmpty(t, com)
+			// t.Log(com)
+		})
+
 	})
 
 }
