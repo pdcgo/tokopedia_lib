@@ -7,7 +7,7 @@ import type { SdkConfig, Response as ErrResponse } from "./sdk_types";
 const isDev = import.meta.env.DEV
 
 const client = axios.create({
-    baseURL: "http://localhost:8080",
+    baseURL: "http://localhost:5000",
     timeout: 30_000,
 });
 

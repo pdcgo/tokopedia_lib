@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"net/http"
@@ -7,12 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
-	"github.com/pdcgo/tokopedia_lib/app/web/api"
 	"github.com/pdcgo/v2_gots_sdk"
-)
-
-const (
-	CREATE_NEW_CONSOLE = 0x10
 )
 
 type UploadApi struct {
@@ -31,13 +26,13 @@ func (upapi *UploadApi) Start(ctx *gin.Context) {
 
 	cmd.Start()
 
-	ctx.JSON(http.StatusOK, api.Response{
+	ctx.JSON(http.StatusOK, Response{
 		Msg: "success",
 	})
 }
 func (upapi *UploadApi) Stop(ctx *gin.Context) {
 	upapi.upload.Cancel()
-	ctx.JSON(http.StatusOK, api.Response{
+	ctx.JSON(http.StatusOK, Response{
 		Msg: "success",
 	})
 }
@@ -59,13 +54,13 @@ func RegisterCommand(g *v2_gots_sdk.SdkGroup, upload *upload_app.UploadApp, base
 	command.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodGet,
 		RelativePath: "start",
-		Response:     api.Response{},
+		Response:     Response{},
 	}, upapi.Start)
 
 	command.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodGet,
 		RelativePath: "stop",
-		Response:     api.Response{},
+		Response:     Response{},
 	}, upapi.Stop)
 
 	command.Register(&v2_gots_sdk.Api{

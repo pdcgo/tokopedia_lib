@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
+	"github.com/pdcgo/common_conf/pdc_application"
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
-	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/pdcgo/tokopedia_lib/app/deleter_product"
 	"github.com/urfave/cli/v2"
 )
@@ -29,28 +29,33 @@ func createDeleteCommand() *cli.Command {
 }
 
 func runDeleteCommand(ctx *cli.Context) error {
-	fname := "data/config.json"
-	pdc_common.SetConfig(fname, config.Version, "golang_tokopedia_delete", config.Cred)
-	pdc_common.InitializeLogger()
 
-	rootBase := ctx.String("b")
-
-	baseData := &legacy_source.BaseConfig{
-		BaseData: rootBase,
+	app := pdc_application.PdcApplication{
+		Base: &legacy_source.BaseConfig{
+			BaseData: ctx.String("base"),
+		},
+		Credential:    Cred,
+		Version:       "development",
+		ReplaceLogger: true,
+		AppID:         AppID,
 	}
 
-	fname = baseData.Path("data/deleter_config.json")
-	config, err := deleter_product.NewDeleteConfig(fname)
+	app.RunWithLicenseFile("data/config.json", "golang_tokopedia_delete", func(app *pdc_application.PdcApplication) {
 
-	if err != nil {
-		return err
-	}
+		fname := app.Base.Path("data/deleter_config.json")
+		config, err := deleter_product.NewDeleteConfig(fname)
 
-	runner := deleter_product.NewDeleteRunner(config)
+		if err != nil {
+			pdc_common.ReportError(err)
+		}
 
-	log.Println("running deleter")
-	runner.Run()
-	// time.Sleep(time.Hour)
+		runner := deleter_product.NewDeleteRunner(config)
+
+		log.Println("running deleter")
+		runner.Run()
+
+	})
+
 	return nil
 
 }

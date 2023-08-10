@@ -39,9 +39,9 @@ export type ListProfileActions = {
 export const useListProfileStore = create<ListProfileState & ListProfileActions>(
     (set, get) => {
         const { sender: getAccountList } = useRequestRaw("GetTokopediaAkunList")
-        const { sender: getMarkupList } = useRequestRaw("GetApiListMarkup")
-        const { sender: getSpinList } = useRequestRaw("GetApiSettingSpin")
-        const { sender: getcollectionList } = useRequestRaw("GetV1ProductNamespaceAll")
+        const { sender: getMarkupList } = useRequestRaw("GetLegacyApiListMarkup")
+        const { sender: getSpinList } = useRequestRaw("GetLegacyApiSettingSpin")
+        const { sender: getcollectionList } = useRequestRaw("GetLegacyV1ProductNamespaceAll")
 
         return {
             list: [],
@@ -55,21 +55,21 @@ export const useListProfileStore = create<ListProfileState & ListProfileActions>
             initEffect: (limit, offset, search) => {
                 set(state => ({ ...state, pendingInit: true, error: null, list: [] }))
 
-                getSpinList({ method: "get", path: "api/settingSpin" }, {
+                getSpinList({ method: "get", path: "legacy/api/settingSpin" }, {
                     onSuccess(data) {
                         const spins: Selection[] = data.titlePool.map(s => ({ label: s.name, value: s.name }))
                         set(state => ({ ...state, spins }))
                     },
                 })
 
-                getMarkupList({ method: "get", path: "api/listMarkup" }, {
+                getMarkupList({ method: "get", path: "legacy/api/listMarkup" }, {
                     onSuccess(data) {
                         const markups: Selection[] = data.data.map(m => ({ label: m, value: m }))
                         set(state => ({ ...state, markups }))
                     },
                 })
 
-                getcollectionList({ method: "get", path: "v1/product/namespace_all" }, {
+                getcollectionList({ method: "get", path: "legacy/v1/product/namespace_all" }, {
                     onSuccess(data) {
                         const collections: Selection[] = data.map(d => ({ label: d.name, value: d.name }))
                         set(state => ({ ...state, collections }))

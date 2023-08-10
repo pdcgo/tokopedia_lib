@@ -40,7 +40,7 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
         const {
             /** Digunakan untuk mendapatkan data awal mapping dari koleksi berdasarkan nama koleksi */
             sender: getInitialMapData
-        } = useRequestRaw("GetV1ProductCategory")
+        } = useRequestRaw("GetLegacyV1ProductCategory")
 
         const {
             /** Digunakan setelah mendapatkan data awal map kemudian mencocokan tokopedia id jika ada */
@@ -55,7 +55,7 @@ export const useListStore = create<ListMapperState & ListMapperActions>(
                 // dapatkan data dulu dari koleksi terkait
                 getInitialMapData({
                     method: "get",
-                    path: "v1/product/category",
+                    path: "legacy/v1/product/category",
                     params: {
                         is_public: false,
                         marketplace: "shopee",
