@@ -41,17 +41,24 @@ type Component struct {
 	Position string           `json:"position"`
 	Typename string           `json:"__typename"`
 }
+type MediaType string
+
+const (
+	MediaVideo MediaType = "image"
+	MediaImage MediaType = "video"
+)
+
 type Media struct {
-	Type            string `json:"type"`
-	URLOriginal     string `json:"urlOriginal"`
-	URLThumbnail    string `json:"urlThumbnail"`
-	URLMaxRes       string `json:"urlMaxRes"`
-	VideoURL        string `json:"videoUrl"`
-	Prefix          string `json:"prefix"`
-	Suffix          string `json:"suffix"`
-	Description     string `json:"description"`
-	VariantOptionID string `json:"variantOptionID"`
-	Typename        string `json:"__typename"`
+	Type            MediaType `json:"type"`
+	URLOriginal     string    `json:"urlOriginal"`
+	URLThumbnail    string    `json:"urlThumbnail"`
+	URLMaxRes       string    `json:"urlMaxRes"`
+	VideoURL        string    `json:"videoUrl"`
+	Prefix          string    `json:"prefix"`
+	Suffix          string    `json:"suffix"`
+	Description     string    `json:"description"`
+	VariantOptionID string    `json:"variantOptionID"`
+	Typename        string    `json:"__typename"`
 }
 
 type MediaComponentData struct {
