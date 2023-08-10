@@ -2,17 +2,14 @@ package grabber
 
 import (
 	"context"
-	"errors"
 	"log"
 	"strconv"
-	"sync"
 
-	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
+	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/iterator"
-	"github.com/pdcgo/tokopedia_lib/lib/helper"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type CategoryGrabber struct {
@@ -25,58 +22,51 @@ func NewCategoryGrabber(base *BaseGrabber) *CategoryGrabber {
 	}
 }
 
-func (g *CategoryGrabber) Run() error {
-	filterLimit, addCount := filter.CreateLimiter(g.Base)
-	filtersOpt := []filter.FilterHandler{
-		filter.CreateTitleFilter(g.Base),
-		filter.CreateSoldFilter(g.Base),
-		filter.CreateSoldPercentageFilter(g.Base),
-		filter.CreateStockFilter(g.Base),
-		filter.CreateFilterDiscount(g.Base),
-		filter.CreatePointFilter(g.Api, g.Base),
-		filter.CreateBlacklistUsernameFilter(g.Base),
-		filter.CreateLastLoginFilter(g.Base),
-		filter.CreateLastReviewFilter(g.Api, g.Base),
+func (g *CategoryGrabber) getCatId() (int, error) {
+
+	catIds := []string{}
+	for _, id := range g.GrabTasker.TokpedCateg {
+		if id != "0" {
+			catIds = append(catIds, id)
+		}
 	}
+
+	catIdInt, err := strconv.Atoi(catIds[len(catIds)-1])
+	return catIdInt, err
+}
+
+func (g *CategoryGrabber) Run() error {
+
+	catId, err := g.getCatId()
+	if catId == 0 {
+		log.Println("[ warning ] tidak ada category dipilih")
+		return nil
+	}
+	if err != nil {
+		return nil
+	}
+
+	filterText := legacy_source.NewFilterText(g.Base)
+	grabBasic := legacy.NewGrabBasic(g.Base)
+	grabTokopedia := legacy.NewGrabTokopedia(g.Base)
+	markupConfig := legacy.NewLegacyMarkupConfigWithBase(g.Base)
+
+	filterLimit, addCount := filter.CreateLimiter(g.Base)
 	filters := []filter.FilterHandler{
 		filterLimit,
 	}
 
-	if g.GrabTasker.UseFilter {
-		filters = append(filters, filtersOpt...)
-	}
+	filterOpt := filter.NewGrabFilterBundle(g.Api, g.Base, filterText, grabBasic, grabTokopedia, markupConfig)
+	filters = append(filters, filterOpt...)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	filterItem := filter.NewFilterItem(ctx, filters...)
 
-	lock := sync.Mutex{}
-	counter := helper.NewCounter()
-
-	filterCatId := func(ids []string) []string {
-		var res []string
-		for _, id := range ids {
-			if id != "0" {
-				res = append(res, id)
-			}
-		}
-		return res
-	}
-
-	catIds := filterCatId(g.GrabTasker.TokpedCateg)
-	if len(catIds) == 0 {
-		cancel()
-		return nil
-	}
-	catIdInt, err := strconv.Atoi(catIds[len(catIds)-1])
-	if err != nil {
-		cancel()
-		return err
-	}
-
-	searchVar := CreateGrabSearchVar(g.Base)
-	searchVar.CategoryId = catIdInt
+	searchVar := CreateGrabSearchVar(grabTokopedia)
+	searchVar.CategoryId = catId
 
 	err = iterator.IterateSearchPage(g.Api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
+
 		var urls []string
 		for _, item := range items {
 			urls = append(urls, item.URL)
@@ -92,44 +82,30 @@ func (g *CategoryGrabber) Run() error {
 					<-g.limitGuard
 				}()
 
-				name := layout.Data.PdpGetLayout.BasicInfo.Alias
 				pdp := g.GetPdpDataP2(ctx, layout)
-				if layout == nil {
+				if pdp == nil {
 					return
 				}
 
-				cek, reason, err := filterItem(layout, pdp)
-				if err != nil {
-					if errors.Is(filter.ErrLimiterReached, err) {
+				filtered, finished := g.ApplyFilter(ctx, filterItem, layout, pdp)
+				if finished {
+					cancel()
+				}
+				if filtered {
+					return
+				}
+
+				g.limitLock.Lock()
+				defer g.limitLock.Unlock()
+
+				saved := g.SaveItem(ctx, layout, pdp)
+				if saved {
+					limitReached := addCount()
+					if limitReached {
 						cancel()
-						return
 					}
-					if errors.Is(filter.ErrFilterCancel, err) {
-						return
-					}
-					pdc_common.ReportError(err)
-					return
-				}
-				if cek {
-					log.Printf("[ %s ] %s", reason, name)
-					return
 				}
 
-				lock.Lock()
-				defer lock.Unlock()
-				err = g.CacheHandler.AddProductItem(ctx, g.GrabTasker.Namespace, layout, pdp)
-				if err != nil {
-					if mongo.IsDuplicateKeyError(err) {
-						log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, name)
-						return
-					}
-					pdc_common.ReportError(err)
-					return
-				}
-
-				addCount()
-				counter.Add()
-				log.Printf("[ scraped ] %d item saved", counter.Count())
 			}()
 
 			return nil
@@ -139,5 +115,4 @@ func (g *CategoryGrabber) Run() error {
 
 	g.wg.Wait()
 	return err
-
 }

@@ -8,8 +8,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
 
-func CreateTitleFilter(base *legacy_source.BaseConfig) FilterHandler {
-	filterText := legacy_source.NewFilterText(base)
+func CreateTitleFilter(filterText *legacy_source.FilterText) FilterHandler {
 	regexs := []*regexp.Regexp{}
 	texts := []string{}
 

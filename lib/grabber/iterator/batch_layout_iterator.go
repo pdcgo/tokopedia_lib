@@ -3,8 +3,8 @@ package iterator
 import (
 	"context"
 	"errors"
-	"net/url"
-	"strings"
+	"sync"
+	"time"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -13,54 +13,42 @@ import (
 
 type BatchLayoutHandler func(layout *model_public.PdpGetlayoutQueryResp) error
 
-func ParseProductDetailParamsFromUrl(uri string) (*model_public.PdpGetlayoutQueryVar, error) {
-	u, err := url.Parse(uri)
-	if err != nil {
-		return nil, err
-	}
-	path := u.EscapedPath()
-	query := u.Query()
-
-	splitPath := strings.Split(path, "/")
-	shopDomain := splitPath[len(splitPath)-2]
-	productKey := splitPath[len(splitPath)-1]
-
-	payload := &model_public.PdpGetlayoutQueryVar{
-		ShopDomain: shopDomain,
-		ProductKey: productKey,
-		APIVersion: 1,
-		ExtParam:   url.QueryEscape(query.Get("extParam")),
-	}
-	return payload, nil
-}
-
-var guard = make(chan int, 2)
-
 func IterateBatchLayout(
 	api *api_public.TokopediaApiPublic,
 	ctx context.Context,
 	urls []string,
 	handler BatchLayoutHandler,
-) error {
+) (err error) {
 
-	guard <- 1
+	wg := sync.WaitGroup{}
+	batchLayoutGuard := make(chan int, 3)
+
+	wg.Add(1)
+	batchLayoutGuard <- 1
 
 	go func() {
+		defer wg.Done()
 		defer func() {
-			<-guard
+			time.Sleep(time.Second)
+			<-batchLayoutGuard
 		}()
 
 		var layoutVars []*model_public.PdpGetlayoutQueryVar
+
 	Urls:
 		for _, url := range urls {
 			select {
+
 			case <-ctx.Done():
 				break Urls
+
 			default:
-				layoutVar, err := ParseProductDetailParamsFromUrl(url)
+				layoutVar, err := model_public.NewPdpGetlayoutQueryVar(url)
 				if err != nil {
 					pdc_common.ReportError(err)
+					return
 				}
+
 				layoutVars = append(layoutVars, layoutVar)
 			}
 		}
@@ -77,17 +65,21 @@ func IterateBatchLayout(
 	Resp:
 		for _, resp := range resp {
 			select {
+
 			case <-ctx.Done():
 				break Resp
+
 			default:
 				err := handler(resp)
 				if err != nil {
 					pdc_common.ReportError(err)
+					return
 				}
 			}
 		}
-
 	}()
+
+	wg.Wait()
 
 	return nil
 }

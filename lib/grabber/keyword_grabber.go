@@ -2,17 +2,13 @@ package grabber
 
 import (
 	"context"
-	"errors"
-	"log"
 	"net/url"
-	"sync"
 
-	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
+	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/iterator"
-	"github.com/pdcgo/tokopedia_lib/lib/helper"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type KeywordGrabber struct {
@@ -26,31 +22,26 @@ func NewKeywordGrabber(base *BaseGrabber) *KeywordGrabber {
 }
 
 func (g *KeywordGrabber) Run() error {
-	filtersOpt := []filter.FilterHandler{
-		filter.CreateTitleFilter(g.Base),
-		filter.CreateSoldFilter(g.Base),
-		filter.CreateSoldPercentageFilter(g.Base),
-		filter.CreateStockFilter(g.Base),
-		filter.CreateFilterDiscount(g.Base),
-		filter.CreatePointFilter(g.Api, g.Base),
-		filter.CreateBlacklistUsernameFilter(g.Base),
-		filter.CreateLastLoginFilter(g.Base),
-		filter.CreateLastReviewFilter(g.Api, g.Base),
-	}
 
-	lock := sync.Mutex{}
-	counter := helper.NewCounter()
+	filterText := legacy_source.NewFilterText(g.Base)
+	grabBasic := legacy.NewGrabBasic(g.Base)
+	grabTokopedia := legacy.NewGrabTokopedia(g.Base)
+	markupConfig := legacy.NewLegacyMarkupConfigWithBase(g.Base)
+
+	filtersOpt := filter.NewGrabFilterBundle(g.Api, g.Base, filterText, grabBasic, grabTokopedia, markupConfig)
 
 	return iterator.IterateKeywords(g.Base, g.GrabTasker, func(item string) error {
+
 		filterLimit, addCount := filter.CreateLimiter(g.Base)
 		filters := []filter.FilterHandler{
 			filterLimit,
 		}
+
 		if g.GrabTasker.UseFilter {
 			filters = append(filters, filtersOpt...)
 		}
 
-		searchVar := CreateGrabSearchVar(g.Base)
+		searchVar := CreateGrabSearchVar(grabTokopedia)
 		searchVar.Query = url.QueryEscape(item)
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -73,46 +64,31 @@ func (g *KeywordGrabber) Run() error {
 						<-g.limitGuard
 					}()
 
-					name := layout.Data.PdpGetLayout.BasicInfo.Alias
 					pdp := g.GetPdpDataP2(ctx, layout)
-					if layout == nil {
+					if pdp == nil {
 						return
 					}
 
-					cek, reason, err := filterItem(layout, pdp)
-					if err != nil {
-						if errors.Is(filter.ErrLimiterReached, err) {
+					filtered, finished := g.ApplyFilter(ctx, filterItem, layout, pdp)
+					if finished {
+						cancel()
+					}
+					if filtered {
+						return
+					}
+
+					g.limitLock.Lock()
+					defer g.limitLock.Unlock()
+
+					saved := g.SaveItem(ctx, layout, pdp)
+					if saved {
+						limitReached := addCount()
+						if limitReached {
 							cancel()
-							return
 						}
-						if errors.Is(filter.ErrFilterCancel, err) {
-							return
-						}
-						pdc_common.ReportError(err)
-						return
 					}
-					if cek {
-						log.Printf("[ %s ] %s", reason, name)
-						return
-					}
-
-					lock.Lock()
-					defer lock.Unlock()
-
-					err = g.CacheHandler.AddProductItem(ctx, g.GrabTasker.Namespace, layout, pdp)
-					if err != nil {
-						if mongo.IsDuplicateKeyError(err) {
-							log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, name)
-							return
-						}
-						pdc_common.ReportError(err)
-						return
-					}
-
-					addCount()
-					counter.Add()
-					log.Printf("[ scraped ] %d item saved", counter.Count())
 				}()
+
 				return nil
 			})
 		})

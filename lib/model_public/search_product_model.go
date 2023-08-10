@@ -28,6 +28,24 @@ type SearchProductVar struct {
 	PreOrder       bool   `json:"preorder,omitempty"`
 }
 
+func NewSearchProductVar() *SearchProductVar {
+	productVar := SearchProductVar{
+		Device:         "desktop",
+		Sort:           "8",
+		Page:           1,
+		Rows:           100,
+		UserDistrictID: "176",
+		UserCityID:     "2274",
+		Related:        true,
+		Scheme:         "https",
+		SafeSearch:     false,
+		TopadsBucket:   true,
+		Source:         "search",
+	}
+
+	return &productVar
+}
+
 type SearchProductAdParams struct {
 	Page          int     `json:"page"`              // 1
 	Ep            string  `json:"ep"`                // product

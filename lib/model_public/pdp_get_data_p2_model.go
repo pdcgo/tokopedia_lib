@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+
+	"github.com/pdcgo/common_conf/pdc_common"
 )
 
 type PDPComponentName string
@@ -465,6 +467,28 @@ func GetComponent[V any](layout *PdpGetLayout) (*V, error) {
 	return nil, errors.New("component not found")
 }
 
+func (layout *PdpGetLayout) GetProductName() string {
+
+	productContent, err := GetComponent[ProductContentComponent](layout)
+	if err != nil {
+		pdc_common.ReportError(err)
+		return ""
+	}
+
+	return productContent.Data[0].Name
+}
+
+func (layout *PdpGetLayout) GetPercentageAmount() int {
+
+	productContent, err := GetComponent[ProductContentComponent](layout)
+	if err != nil {
+		pdc_common.ReportError(err)
+		return 0
+	}
+
+	return productContent.Data[0].Campaign.PercentageAmount
+}
+
 type OwnerInfo struct {
 	ID       string `json:"id"`
 	Typename string `json:"__typename"`
@@ -740,8 +764,10 @@ type PdpGetDataP2Var struct {
 	Tokonow      *Tokonow      `json:"tokonow,omitempty"`
 }
 
+type PdpGetDataP2Data struct {
+	PdpGetData PdpGetData `json:"pdpGetData"`
+}
+
 type PdpGetDataP2Resp struct {
-	Data struct {
-		PdpGetData PdpGetData `json:"pdpGetData"`
-	} `json:"data"`
+	Data PdpGetDataP2Data `json:"data"`
 }

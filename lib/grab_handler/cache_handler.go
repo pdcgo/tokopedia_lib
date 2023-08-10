@@ -30,19 +30,14 @@ func (handler *CacheProductHandler) addItem(cache mongorepo.CacheProduct) error 
 }
 
 func (h *CacheProductHandler) AddProductItem(
-	ctx context.Context,
 	namespace string,
 	layout *model_public.PdpGetlayoutQueryResp,
 	pdpDataP2 *model_public.PdpGetDataP2Resp,
 ) error {
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-		cache := createCacheProduct(layout)
-		cache.Namespace = namespace
-		cache.Shop.Location = pdpDataP2.Data.PdpGetData.ShopInfo.Location
-		cache.ShopLocation = pdpDataP2.Data.PdpGetData.ShopInfo.Location
-		return h.addItem(cache)
-	}
+
+	cache := createCacheProduct(layout)
+	cache.Namespace = namespace
+	cache.Shop.Location = pdpDataP2.Data.PdpGetData.ShopInfo.Location
+	cache.ShopLocation = pdpDataP2.Data.PdpGetData.ShopInfo.Location
+	return h.addItem(cache)
 }

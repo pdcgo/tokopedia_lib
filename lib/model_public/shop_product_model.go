@@ -104,6 +104,22 @@ type ShopProductVar struct {
 	UserLong       string `json:"user_long"`
 }
 
+func NewShopProductVar(shopId string) *ShopProductVar {
+	params := &ShopProductVar{
+		Page:           1,
+		PerPage:        100,
+		EtalaseID:      "etalase",
+		Sort:           1,
+		Sid:            shopId,
+		UserDistrictID: "176",
+		UserCityID:     "2274",
+		UserLat:        "",
+		UserLong:       "",
+	}
+
+	return params
+}
+
 type ShopProductResp struct {
 	Data struct {
 		GetShopProduct GetShopProduct `json:"GetShopProduct"`

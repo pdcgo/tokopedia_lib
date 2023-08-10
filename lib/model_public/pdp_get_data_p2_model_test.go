@@ -40,4 +40,16 @@ func TestParsingPDPLayout(t *testing.T) {
 
 	})
 
+	t.Run("test get product name", func(t *testing.T) {
+		productName := hasil.GetProductName()
+		assert.Equal(t, productName, "Jaket Zipper Hoodie Mocca - M")
+
+	})
+
+	t.Run("test get percentage amount", func(t *testing.T) {
+		percentageAmount := hasil.GetPercentageAmount()
+		assert.Equal(t, percentageAmount, 10)
+
+	})
+
 }
