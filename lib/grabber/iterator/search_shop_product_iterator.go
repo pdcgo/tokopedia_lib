@@ -3,7 +3,6 @@ package iterator
 import (
 	"context"
 	"math"
-	"sync"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -21,8 +20,6 @@ func IterateProductShopPage(
 
 	itemCount := searchVar.PerPage
 	currentCount := 0
-	wg := sync.WaitGroup{}
-	batchLayoutGuard := make(chan int, 10)
 
 Parent:
 	for currentCount < itemCount {
@@ -44,8 +41,6 @@ Parent:
 				case <-ctx.Done():
 					break Parent
 				default:
-					wg.Add(1)
-					batchLayoutGuard <- 1
 
 					startIndex := i*10 - 10
 					endIndex := i * 10
@@ -53,22 +48,12 @@ Parent:
 						endIndex = prodLength
 					}
 
-					go func() {
-						defer wg.Done()
-						defer func() {
-							<-batchLayoutGuard
-						}()
-
-						err := handler(products[startIndex:endIndex])
-						if err != nil {
-							pdc_common.ReportError(err)
-							return
-						}
-					}()
+					err := handler(products[startIndex:endIndex])
+					if err != nil {
+						pdc_common.ReportError(err)
+					}
 				}
 			}
-
-			wg.Wait()
 
 			itemCount = searchVar.PerPage * len(products)
 			currentCount = searchVar.PerPage * searchVar.Page

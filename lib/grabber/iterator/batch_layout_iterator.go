@@ -34,48 +34,60 @@ func ParseProductDetailParamsFromUrl(uri string) (*model_public.PdpGetlayoutQuer
 	return payload, nil
 }
 
+var guard = make(chan int, 2)
+
 func IterateBatchLayout(
 	api *api_public.TokopediaApiPublic,
 	ctx context.Context,
-	urls []string, 
+	urls []string,
 	handler BatchLayoutHandler,
 ) error {
 
-	var layoutVars []*model_public.PdpGetlayoutQueryVar
-Urls:
-	for _, url := range urls {
-		select {
-		case <-ctx.Done():
-			break Urls
-		default:
-			layoutVar, err := ParseProductDetailParamsFromUrl(url)
-			if err != nil {
-				return err
-			}
-			layoutVars = append(layoutVars, layoutVar)
-		}
-	}
+	guard <- 1
 
-	resp, err := api.PdpGetlayoutQueryBatch(layoutVars)
-	if err != nil {
-		if errors.Is(api_public.ErrGraphqlBatchNoQuery, err) {
-			return nil
-		}
-		pdc_common.ReportError(err)
-		return err
-	}
+	go func() {
+		defer func() {
+			<-guard
+		}()
 
-Resp:
-	for _, resp := range resp {
-		select {
-		case <-ctx.Done():
-			break Resp
-		default:
-			err := handler(resp)
-			if err != nil {
-				return err
+		var layoutVars []*model_public.PdpGetlayoutQueryVar
+	Urls:
+		for _, url := range urls {
+			select {
+			case <-ctx.Done():
+				break Urls
+			default:
+				layoutVar, err := ParseProductDetailParamsFromUrl(url)
+				if err != nil {
+					pdc_common.ReportError(err)
+				}
+				layoutVars = append(layoutVars, layoutVar)
 			}
 		}
-	}
+
+		resp, err := api.PdpGetlayoutQueryBatch(layoutVars)
+		if err != nil {
+			if errors.Is(api_public.ErrGraphqlBatchNoQuery, err) {
+				return
+			}
+			pdc_common.ReportError(err)
+			return
+		}
+
+	Resp:
+		for _, resp := range resp {
+			select {
+			case <-ctx.Done():
+				break Resp
+			default:
+				err := handler(resp)
+				if err != nil {
+					pdc_common.ReportError(err)
+				}
+			}
+		}
+
+	}()
+
 	return nil
 }

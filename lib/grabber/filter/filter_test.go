@@ -12,35 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFilterStock(t *testing.T) {
-	api, err := api_public.NewTokopediaApiPublic()
-	assert.Nil(t, err)
-
-	base := legacy_source.BaseConfig{
-		BaseData: "../../..",
-	}
-
-	prodUrl := "https://www.tokopedia.com/baseus/baseus-true-wireless-bluetooth-earphone-mini-earbuds-tws-wm01-hitam?extParam=src%3Dmultiloc%26whid%3D4895&source=homepage.left_carousel.0.280472"
-	layoutVar, err := grabber.ParseProductDetailParamsFromUrl(prodUrl)
-	assert.Nil(t, err)
-	layout, err := api.PdpGetlayoutQuery(layoutVar)
-	assert.Nil(t, err)
-
-	pdpVar := &model_public.PdpGetDataP2Var{
-		ProductID:  layout.Data.PdpGetLayout.BasicInfo.ID,
-		PdpSession: layout.Data.PdpGetLayout.PdpSession,
-	}
-	pdp, err := api.PdpGetDataP2(pdpVar)
-	assert.Nil(t, err)
-
-	stockFilter := filter.CreateStockFilter(&base)
-	cek, reason, err := stockFilter(layout, pdp)
-	assert.Nil(t, err)
-	assert.Equal(t, "", reason)
-	assert.False(t, cek)
-
-}
-
 func TestFilterProsentage(t *testing.T) {
 	api, err := api_public.NewTokopediaApiPublic()
 	assert.Nil(t, err)
@@ -210,6 +181,40 @@ func TestFilterBlacklistUsername(t *testing.T) {
 }
 
 func TestFilterLimiter(t *testing.T) {
+	api, err := api_public.NewTokopediaApiPublic()
+	assert.Nil(t, err)
+
+	base := legacy_source.BaseConfig{
+		BaseData: "../../..",
+	}
+
+	prodUrl := "https://www.tokopedia.com/baseus/baseus-true-wireless-bluetooth-earphone-mini-earbuds-tws-wm01-hitam?extParam=src%3Dmultiloc%26whid%3D4895&source=homepage.left_carousel.0.280472"
+	layoutVar, err := grabber.ParseProductDetailParamsFromUrl(prodUrl)
+	assert.Nil(t, err)
+	layout, err := api.PdpGetlayoutQuery(layoutVar)
+	assert.Nil(t, err)
+
+	pdpVar := &model_public.PdpGetDataP2Var{
+		ProductID:  layout.Data.PdpGetLayout.BasicInfo.ID,
+		PdpSession: layout.Data.PdpGetLayout.PdpSession,
+	}
+	pdp, err := api.PdpGetDataP2(pdpVar)
+	assert.Nil(t, err)
+
+	grabBasic := legacy.NewGrabBasic(&base)
+
+	filterLimit, addCount := filter.CreateLimiter(&base)
+	cek, reason, err := filterLimit(layout, pdp)
+	assert.Nil(t, err)
+	assert.Equal(t, reason, "")
+	assert.False(t, cek)
+
+	for i := 1; i <= grabBasic.LimitGrab; i++ {
+		addCount()
+	}
+}
+
+func TestFilterDiscount(t *testing.T) {
 	api, err := api_public.NewTokopediaApiPublic()
 	assert.Nil(t, err)
 

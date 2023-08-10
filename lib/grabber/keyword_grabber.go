@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/url"
+	"sync"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
@@ -26,16 +27,18 @@ func NewKeywordGrabber(base *BaseGrabber) *KeywordGrabber {
 
 func (g *KeywordGrabber) Run() error {
 	filtersOpt := []filter.FilterHandler{
+		filter.CreateTitleFilter(g.Base),
 		filter.CreateSoldFilter(g.Base),
 		filter.CreateSoldPercentageFilter(g.Base),
 		filter.CreateStockFilter(g.Base),
+		filter.CreateFilterDiscount(g.Base),
 		filter.CreatePointFilter(g.Api, g.Base),
 		filter.CreateBlacklistUsernameFilter(g.Base),
 		filter.CreateLastLoginFilter(g.Base),
 		filter.CreateLastReviewFilter(g.Api, g.Base),
 	}
 
-	// lock := sync.Mutex{}
+	lock := sync.Mutex{}
 	counter := helper.NewCounter()
 
 	return iterator.IterateKeywords(g.Base, g.GrabTasker, func(item string) error {
@@ -54,6 +57,7 @@ func (g *KeywordGrabber) Run() error {
 		filterItem := filter.NewFilterItem(ctx, filters...)
 
 		err := iterator.IterateSearchPage(g.Api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
+
 			var urls []string
 			for _, item := range items {
 				urls = append(urls, item.URL)
@@ -92,7 +96,10 @@ func (g *KeywordGrabber) Run() error {
 						return
 					}
 
-					err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
+					lock.Lock()
+					defer lock.Unlock()
+
+					err = g.CacheHandler.AddProductItem(ctx, g.GrabTasker.Namespace, layout, pdp)
 					if err != nil {
 						if mongo.IsDuplicateKeyError(err) {
 							log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, name)

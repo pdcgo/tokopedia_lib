@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"sync"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/csv"
@@ -24,15 +25,18 @@ func NewCategoryCsvGrabber(base *BaseGrabber) *CategoryCsvGrabber {
 
 func (g *CategoryCsvGrabber) Run() error {
 	filtersOpt := []filter.FilterHandler{
+		filter.CreateTitleFilter(g.Base),
 		filter.CreateSoldFilter(g.Base),
 		filter.CreateSoldPercentageFilter(g.Base),
 		filter.CreateStockFilter(g.Base),
+		filter.CreateFilterDiscount(g.Base),
 		filter.CreatePointFilter(g.Api, g.Base),
 		filter.CreateBlacklistUsernameFilter(g.Base),
 		filter.CreateLastLoginFilter(g.Base),
 		filter.CreateLastReviewFilter(g.Api, g.Base),
 	}
 
+	lock := sync.Mutex{}
 	counter := helper.NewCounter()
 
 	categories, err := g.Api.HeaderMainData()
@@ -99,7 +103,9 @@ func (g *CategoryCsvGrabber) Run() error {
 						return
 					}
 
-					err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
+					lock.Lock()
+					defer lock.Unlock()
+					err = g.CacheHandler.AddProductItem(ctx, g.GrabTasker.Namespace, layout, pdp)
 					if err != nil {
 						if mongo.IsDuplicateKeyError(err) {
 							log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, name)

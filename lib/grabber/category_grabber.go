@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"strconv"
+	"sync"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
@@ -27,9 +28,11 @@ func NewCategoryGrabber(base *BaseGrabber) *CategoryGrabber {
 func (g *CategoryGrabber) Run() error {
 	filterLimit, addCount := filter.CreateLimiter(g.Base)
 	filtersOpt := []filter.FilterHandler{
+		filter.CreateTitleFilter(g.Base),
 		filter.CreateSoldFilter(g.Base),
 		filter.CreateSoldPercentageFilter(g.Base),
 		filter.CreateStockFilter(g.Base),
+		filter.CreateFilterDiscount(g.Base),
 		filter.CreatePointFilter(g.Api, g.Base),
 		filter.CreateBlacklistUsernameFilter(g.Base),
 		filter.CreateLastLoginFilter(g.Base),
@@ -46,6 +49,7 @@ func (g *CategoryGrabber) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	filterItem := filter.NewFilterItem(ctx, filters...)
 
+	lock := sync.Mutex{}
 	counter := helper.NewCounter()
 
 	filterCatId := func(ids []string) []string {
@@ -111,7 +115,9 @@ func (g *CategoryGrabber) Run() error {
 					return
 				}
 
-				err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
+				lock.Lock()
+				defer lock.Unlock()
+				err = g.CacheHandler.AddProductItem(ctx, g.GrabTasker.Namespace, layout, pdp)
 				if err != nil {
 					if mongo.IsDuplicateKeyError(err) {
 						log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, name)

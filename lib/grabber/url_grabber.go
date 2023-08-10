@@ -3,6 +3,7 @@ package grabber
 import (
 	"context"
 	"log"
+	"sync"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
@@ -24,9 +25,11 @@ func NewUrlGrabber(base *BaseGrabber) *UrlGrabber {
 
 func (g *UrlGrabber) Run() error {
 	filters := []filter.FilterHandler{
+		filter.CreateTitleFilter(g.Base),
 		filter.CreateSoldFilter(g.Base),
 		filter.CreateSoldPercentageFilter(g.Base),
 		filter.CreateStockFilter(g.Base),
+		filter.CreateFilterDiscount(g.Base),
 		filter.CreatePointFilter(g.Api, g.Base),
 		filter.CreateBlacklistUsernameFilter(g.Base),
 		filter.CreateLastLoginFilter(g.Base),
@@ -38,6 +41,7 @@ func (g *UrlGrabber) Run() error {
 
 	filterItem := filter.NewFilterItem(ctx, filters...)
 
+	lock := sync.Mutex{}
 	counter := helper.NewCounter()
 
 	err := iterator.IterateUrls(g.Base, g.GrabTasker, func(items []string) error {
@@ -75,7 +79,9 @@ func (g *UrlGrabber) Run() error {
 					}
 				}
 
-				err = g.CacheHandler.AddProductItem(g.GrabTasker.Namespace, layout, pdp)
+				lock.Lock()
+				defer lock.Unlock()
+				err = g.CacheHandler.AddProductItem(ctx, g.GrabTasker.Namespace, layout, pdp)
 				if err != nil {
 					if mongo.IsDuplicateKeyError(err) {
 						log.Printf("[ duplicated ] %s - %s", g.GrabTasker.Namespace, name)

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"math"
 	"strings"
-	"sync"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -35,8 +34,6 @@ func IterateSearchPage(
 
 	itemCount := searchVar.Rows
 	currentCount := 0
-	wg := sync.WaitGroup{}
-	batchLayoutGuard := make(chan int, 10)
 
 Parent:
 	for currentCount < itemCount {
@@ -62,9 +59,6 @@ Parent:
 			prodLength := len(products)
 			maxArray := math.Ceil(float64(prodLength) / 10)
 			for i := 1; i <= int(maxArray); i++ {
-				wg.Add(1)
-				batchLayoutGuard <- 1
-
 				select {
 				case <-ctx.Done():
 					break Parent
@@ -75,22 +69,12 @@ Parent:
 						endIndex = prodLength
 					}
 
-					go func() {
-						defer wg.Done()
-						defer func() {
-							<-batchLayoutGuard
-						}()
-
-						err := handler(products[startIndex:endIndex])
-						if err != nil {
-							pdc_common.ReportError(err)
-							return
-						}
-					}()
+					err := handler(products[startIndex:endIndex])
+					if err != nil {
+						pdc_common.ReportError(err)
+					}
 				}
 			}
-
-			wg.Wait()
 
 			itemCount = resp.Data.AceSearchProductV4.Header.TotalData
 			currentCount = searchVar.Rows * searchVar.Page
