@@ -2,6 +2,7 @@ package model_public
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 )
 
@@ -423,6 +424,17 @@ type PdpGetLayout struct {
 	BasicInfo  BasicInfo         `json:"basicInfo"`
 	Components PDPListComponents `json:"components"`
 	Typename   string            `json:"__typename"`
+}
+
+func GetComponent[V any](layout *PdpGetLayout) (*V, error) {
+	for _, com := range layout.Components {
+		switch fcom := com.(type) {
+		case *V:
+			return fcom, nil
+		}
+	}
+
+	return nil, errors.New("component not found")
 }
 
 type OwnerInfo struct {
