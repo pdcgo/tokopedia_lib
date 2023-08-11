@@ -47,8 +47,8 @@ type Component struct {
 type MediaType string
 
 const (
-	MediaVideo MediaType = "image"
-	MediaImage MediaType = "video"
+	MediaVideo MediaType = "video"
+	MediaImage MediaType = "image"
 )
 
 type Media struct {
