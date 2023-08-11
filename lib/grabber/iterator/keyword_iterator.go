@@ -1,22 +1,26 @@
 package iterator
 
 import (
-	"fmt"
+	"log"
+	"os"
 
 	"github.com/pdcgo/common_conf/pdc_common"
-	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
-	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/lib/csv"
 	"github.com/pdcgo/tokopedia_lib/lib/helper"
 )
 
 type KeywordHandler func(item string) error
 
-func IterateKeywords(base *legacy_source.BaseConfig, tasker *legacy.GrabTasker, handler KeywordHandler) error {
-	fname := base.Path(tasker.Keyword)
+func IterateKeywords(fname string, handler KeywordHandler) error {
 	keywords, err := helper.FileLoadLineString(fname)
 	if err != nil {
-		fmt.Println(err, "errors")
+
+		if os.IsNotExist(err) {
+			log.Printf("[ warning ] file %s not found", fname)
+			return nil
+		}
+
+		pdc_common.ReportError(err)
 		return err
 	}
 

@@ -1,22 +1,26 @@
 package iterator
 
 import (
-	"fmt"
+	"log"
 	"math"
+	"os"
 
 	"github.com/pdcgo/common_conf/pdc_common"
-	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
-	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/lib/helper"
 )
 
 type UrlHandler func(items []string) error
 
-func IterateUrls(base *legacy_source.BaseConfig, tasker *legacy.GrabTasker, handler UrlHandler) error {
-	fname := base.Path(tasker.ProductURL)
+func IterateUrls(fname string, handler UrlHandler) error {
 	urls, err := helper.FileLoadLineString(fname)
 	if err != nil {
-		fmt.Println(err, "errors")
+
+		if os.IsNotExist(err) {
+			log.Printf("[ warning ] file %s not found", fname)
+			return nil
+		}
+
+		pdc_common.ReportError(err)
 		return err
 	}
 

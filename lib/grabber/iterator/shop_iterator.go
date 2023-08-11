@@ -1,8 +1,9 @@
 package iterator
 
 import (
-	"fmt"
+	"log"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/pdcgo/common_conf/pdc_common"
@@ -28,7 +29,13 @@ func generateShopCoreInfoParamsFormUrl(uri string) (*model_public.ShopCoreInfoVa
 func IterateShops(api *api_public.TokopediaApiPublic, fname string, handler ShopHandler) error {
 	shops, err := helper.FileLoadLineString(fname)
 	if err != nil {
-		fmt.Println(err, "errors")
+
+		if os.IsNotExist(err) {
+			log.Printf("[ warning ] file %s not found", fname)
+			return nil
+		}
+
+		pdc_common.ReportError(err)
 		return err
 	}
 

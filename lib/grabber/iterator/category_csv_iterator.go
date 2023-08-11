@@ -1,7 +1,8 @@
 package iterator
 
 import (
-	"fmt"
+	"log"
+	"os"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
@@ -13,7 +14,13 @@ type CategoryCsvHandler func(item *csv.CategoryCsv) error
 func IterateCategoryCsv(base *legacy_source.BaseConfig, handler CategoryCsvHandler) error {
 	categories, err := csv.LoadCategoryCsv(base)
 	if err != nil {
-		fmt.Println(err, "errors")
+
+		if os.IsNotExist(err) {
+			log.Println("[ warning ] file tokopedia_list_category.csv tidak ditemukan")
+			return nil
+		}
+
+		pdc_common.ReportError(err)
 		return err
 	}
 	setGrabbed := func(category *csv.CategoryCsv) error {

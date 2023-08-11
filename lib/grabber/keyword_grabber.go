@@ -30,7 +30,9 @@ func (g *KeywordGrabber) Run() error {
 
 	filtersOpt := filter.NewGrabFilterBundle(g.Api, g.Base, filterText, grabBasic, grabTokopedia, markupConfig)
 
-	return iterator.IterateKeywords(g.Base, g.GrabTasker, func(item string) error {
+	fname := g.Base.Path(g.GrabTasker.Keyword)
+
+	return iterator.IterateKeywords(fname, func(item string) error {
 
 		filterLimit, addCount := filter.CreateLimiter(grabBasic)
 		filters := []filter.FilterHandler{

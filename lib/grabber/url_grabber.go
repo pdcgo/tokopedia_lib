@@ -31,7 +31,9 @@ func (g *UrlGrabber) Run() error {
 	filters := filter.NewGrabFilterBundle(g.Api, g.Base, filterText, grabBasic, grabTokopedia, markupConfig)
 	filterItem := filter.NewFilterItem(ctx, filters...)
 
-	err := iterator.IterateUrls(g.Base, g.GrabTasker, func(items []string) error {
+	fname := g.Base.Path(g.GrabTasker.ProductURL)
+
+	err := iterator.IterateUrls(fname, func(items []string) error {
 		return iterator.IterateBatchLayout(g.Api, ctx, items, func(layout *model_public.PdpGetlayoutQueryResp) error {
 
 			g.wg.Add(1)
