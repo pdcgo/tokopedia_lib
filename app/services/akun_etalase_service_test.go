@@ -42,17 +42,64 @@ func TestAkunEtalase(t *testing.T) {
 							err := akunsrv.RefreshShowCase()
 							assert.Nil(t, err)
 						})
+
 						t.Run("test create etalase", func(t *testing.T) {
 							showcase, err := akunsrv.GetEtalase(20)
 
 							assert.NotEmpty(t, showcase)
 							assert.Nil(t, err)
+
+							t.Run("test get kedua kalinya", func(t *testing.T) {
+								showcase, err := akunsrv.GetEtalase(20)
+
+								assert.NotEmpty(t, showcase)
+								assert.Nil(t, err)
+							})
 						})
 
 						t.Run("test create etalase map not found", func(t *testing.T) {
 							_, err := akunsrv.GetEtalase(21)
 
 							assert.NotNil(t, err)
+							assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
+						})
+
+						t.Run("test karakter etalase", func(t *testing.T) {
+
+							t.Run("test dengan karakter aneh", func(t *testing.T) {
+								idnya := 80
+								err := mapsrv.UpdateBulkMap([]*services.EtalaseMapItem{
+									{
+										EtalaseName: "Gamis & Hijab",
+										CategoryID:  idnya,
+									},
+								})
+
+								assert.Nil(t, err)
+
+								showcase, err := akunsrv.GetEtalase(idnya)
+
+								assert.NotEmpty(t, showcase)
+								assert.Nil(t, err)
+
+							})
+
+							t.Run("test dengan karakter angka", func(t *testing.T) {
+								idnya := 81
+								err := mapsrv.UpdateBulkMap([]*services.EtalaseMapItem{
+									{
+										EtalaseName: "Gamis & Hijabq213",
+										CategoryID:  idnya,
+									},
+								})
+
+								assert.Nil(t, err)
+
+								showcase, err := akunsrv.GetEtalase(idnya)
+
+								assert.NotEmpty(t, showcase)
+								assert.Nil(t, err)
+							})
 						})
 					})
 

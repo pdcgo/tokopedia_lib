@@ -2,11 +2,14 @@ package shopee_flow
 
 import (
 	"errors"
+	"log"
 
 	"github.com/pdcgo/common_conf/common_concept"
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/app/services"
 	"github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/tokopedia_lib/lib/uploader"
+	"github.com/rs/zerolog"
 	"gorm.io/gorm"
 )
 
@@ -39,12 +42,28 @@ func (flow *ShopeeToTopedFlow) createEtalaseHandler() uploader.UploadHandler {
 		}
 
 		showcase, err := akunetalase.GetEtalase(catevent.CatID)
+
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
-		} else {
-			if err != nil {
-				return err
-			}
+		}
+
+		if err != nil {
+
+			return pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+				return event.Int("cat id", catevent.CatID).
+					Interface("showcase", showcase).
+					Interface("catevert", catevent).
+					Str("akun", tokpedup.Api.AuthenticatedData.User.Name)
+			})
+		}
+		if showcase == nil {
+			log.Println(err, "showcase")
+			return pdc_common.ReportErrorCustom(errors.New("showcase error"), func(event *zerolog.Event) *zerolog.Event {
+				return event.Int("cat id", catevent.CatID).
+					Interface("showcase", showcase).
+					Interface("catevert", catevent).
+					Str("akun", tokpedup.Api.AuthenticatedData.User.Name)
+			})
 		}
 
 		payload.Lock()

@@ -9,6 +9,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/scenario"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm"
 )
 
 func TestEtalase(t *testing.T) {
@@ -72,6 +73,7 @@ func TestEtalase(t *testing.T) {
 
 					datas, err := service.GetEtalase(4)
 					t.Log(datas)
+					assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 					assert.NotNil(t, err)
 				})
 			})
