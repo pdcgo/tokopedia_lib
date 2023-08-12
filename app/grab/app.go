@@ -25,6 +25,7 @@ func NewGrabApp(
 
 	cacheHandler := grab_handler.NewCacheProductHandler(repo)
 	return &GrabApp{
+		api:          api,
 		base:         base,
 		cacheHandler: cacheHandler,
 	}
