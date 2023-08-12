@@ -12,8 +12,9 @@ import (
 )
 
 type GrabApp struct {
-	base     *legacy_source.BaseConfig
-	baseGrab *grabber.BaseGrabber
+	api          *api_public.TokopediaApiPublic
+	base         *legacy_source.BaseConfig
+	cacheHandler *grab_handler.CacheProductHandler
 }
 
 func NewGrabApp(
@@ -23,36 +24,38 @@ func NewGrabApp(
 ) *GrabApp {
 
 	cacheHandler := grab_handler.NewCacheProductHandler(repo)
-	baseGrab := grabber.NewBaseGrabber(api, base, &legacy.GrabTasker{}, cacheHandler)
-
 	return &GrabApp{
-		base:     base,
-		baseGrab: baseGrab,
+		base:         base,
+		cacheHandler: cacheHandler,
 	}
 }
 
-func (runner *GrabApp) Run() error {
-	return legacy.IterateGrabTaskers(runner.base, func(tasker *legacy.GrabTasker) error {
-		var grab grabber.Grabber
-		runner.baseGrab.GrabTasker = tasker
+func (a *GrabApp) Run() error {
+	return legacy.IterateGrabTaskers(a.base, func(tasker *legacy.GrabTasker) error {
 
-		mode := tasker.Mode
-		switch mode {
+		if tasker.Marketplace != legacy.MARKETPLACE_TASKER_TOKOPEDIA {
+			return nil
+		}
+
+		var grab grabber.Grabber
+		baseGrab := grabber.NewBaseGrabber(a.api, a.base, tasker, a.cacheHandler)
+
+		switch tasker.Mode {
 
 		case legacy.GRAB_MODE_CATEGORY:
-			grab = grabber.NewCategoryGrabber(runner.baseGrab)
+			grab = grabber.NewCategoryGrabber(baseGrab)
 
 		case legacy.GRAB_MODE_CATEGORY_CSV:
-			grab = grabber.NewCategoryCsvGrabber(runner.baseGrab)
+			grab = grabber.NewCategoryCsvGrabber(baseGrab)
 
 		case legacy.GRAB_MODE_KEYWORD:
-			grab = grabber.NewKeywordGrabber(runner.baseGrab)
+			grab = grabber.NewKeywordGrabber(baseGrab)
 
 		case legacy.GRAB_MODE_PRODUCT_URL:
-			grab = grabber.NewUrlGrabber(runner.baseGrab)
+			grab = grabber.NewUrlGrabber(baseGrab)
 
 		case legacy.GRAB_MODE_TOKO_USERNAME:
-			grab = grabber.NewShopGrabber(runner.baseGrab)
+			grab = grabber.NewShopGrabber(baseGrab)
 		}
 
 		if grab != nil {

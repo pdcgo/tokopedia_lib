@@ -6,11 +6,13 @@ import (
 	"os"
 
 	"github.com/gocarina/gocsv"
-	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
 
 type StatusGrabCategoryCsv string
+type BaseConfig interface {
+	Path(...string) string
+}
 
 const (
 	STATUS_GRAB_CATEGORY_GRABBED   StatusGrabCategoryCsv = "grabbed"
@@ -25,7 +27,18 @@ type CategoryCsv struct {
 	Status     StatusGrabCategoryCsv `csv:"status" json:"status"`
 }
 
-func LoadCategoryCsv(base *legacy_source.BaseConfig) ([]*CategoryCsv, error) {
+func NewCategoryCsv(parent, category *model_public.Categories) *CategoryCsv {
+
+	return &CategoryCsv{
+		Type:       "category",
+		ParentName: parent.Name,
+		Name:       category.Name,
+		Url:        category.URL,
+		Status:     "",
+	}
+}
+
+func LoadCategoryCsv(base BaseConfig) ([]*CategoryCsv, error) {
 
 	gocsv.SetCSVReader(func(in io.Reader) gocsv.CSVReader {
 		r := csv.NewReader(in)
@@ -50,7 +63,7 @@ func LoadCategoryCsv(base *legacy_source.BaseConfig) ([]*CategoryCsv, error) {
 
 }
 
-func SaveCategoryCsv(base *legacy_source.BaseConfig, categories []*CategoryCsv) error {
+func SaveCategoryCsv(base BaseConfig, categories []*CategoryCsv) error {
 	fname := base.Path("tokopedia_list_category.csv")
 
 	file, err := os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0755)
