@@ -76,19 +76,8 @@ func (g *BaseGrabber) GetPdpDataP2(ctx context.Context, layout *model_public.Pdp
 		return nil
 
 	default:
-		var pdpSess string
-		var prodId string
-		if layout.Data.PdpGetLayout.PdpSession != "" {
-			pdpSess = layout.Data.PdpGetLayout.PdpSession
-		}
-		if layout.Data.PdpGetLayout.BasicInfo.ID != "" {
-			prodId = layout.Data.PdpGetLayout.BasicInfo.ID
-		}
 
-		pdpVar := &model_public.PdpGetDataP2Var{
-			PdpSession: pdpSess,
-			ProductID:  prodId,
-		}
+		pdpVar := model_public.NewPdpGetDataP2Var(layout.Data.PdpGetLayout)
 		pdp, err := g.Api.PdpGetDataP2(pdpVar)
 		if err != nil {
 			pdc_common.ReportError(err)
@@ -113,7 +102,6 @@ func (g *BaseGrabber) ApplyFilter(
 	default:
 
 		cek, reason, err := filterItem(layout, pdp)
-		productName := layout.Data.PdpGetLayout.GetProductName()
 
 		if err != nil {
 			if errors.Is(filter.ErrLimiterReached, err) {
@@ -125,6 +113,11 @@ func (g *BaseGrabber) ApplyFilter(
 
 			pdc_common.ReportError(err)
 			return true, false
+		}
+
+		productName, err := layout.Data.PdpGetLayout.GetProductName()
+		if err != nil {
+			pdc_common.ReportError(err)
 		}
 
 		if cek {
@@ -149,11 +142,16 @@ func (g *BaseGrabber) SaveItem(
 
 	default:
 		namespace := g.GrabTasker.Namespace
-		productName := layout.Data.PdpGetLayout.GetProductName()
-		err := g.CacheHandler.AddProductItem(namespace, layout, pdp)
+		err := g.CacheHandler.AddItem(namespace, layout, pdp)
 
 		if err != nil {
 			if mongo.IsDuplicateKeyError(err) {
+
+				productName, err := layout.Data.PdpGetLayout.GetProductName()
+				if err != nil {
+					pdc_common.ReportError(err)
+				}
+
 				log.Printf("[ duplicated ] %s - %s", namespace, productName)
 				return
 			}

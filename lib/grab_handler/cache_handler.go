@@ -17,27 +17,21 @@ func NewCacheProductHandler(repo *mongorepo.ProductRepo) *CacheProductHandler {
 	}
 }
 
-func (handler *CacheProductHandler) addItem(cache mongorepo.CacheProduct) error {
-	if cache.Namespace == "" {
-		cache.Namespace = handler.repo.Collection.Name()
-	}
-	r := handler.repo
-	_, err := r.Collection.InsertOne(context.TODO(), cache)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (h *CacheProductHandler) AddProductItem(
+func (handler *CacheProductHandler) AddItem(
 	namespace string,
 	layout *model_public.PdpGetlayoutQueryResp,
 	pdpDataP2 *model_public.PdpGetDataP2Resp,
 ) error {
 
-	cache := createCacheProduct(layout)
-	cache.Namespace = namespace
-	cache.Shop.Location = pdpDataP2.Data.PdpGetData.ShopInfo.Location
-	cache.ShopLocation = pdpDataP2.Data.PdpGetData.ShopInfo.Location
-	return h.addItem(cache)
+	cache, err := CreateCacheProduct(namespace, layout, pdpDataP2)
+	if err != nil {
+		return err
+	}
+
+	r := handler.repo
+	_, err = r.Collection.InsertOne(context.TODO(), cache)
+	if err != nil {
+		return err
+	}
+	return nil
 }

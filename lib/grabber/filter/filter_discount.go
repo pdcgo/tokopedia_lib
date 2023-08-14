@@ -11,9 +11,12 @@ func CreateFilterDiscount(markupConfig *legacy.LegacyMarkupConfig) FilterHandler
 
 		if markupConfig.UsePriceDiscount {
 
-			percentageAmount := layout.Data.PdpGetLayout.GetPercentageAmount()
-			cek := percentageAmount != 0
+			percentageAmount, err := layout.Data.PdpGetLayout.GetPercentageAmount()
+			if err != nil {
+				return true, "filter discount", err
+			}
 
+			cek := percentageAmount != 0
 			if cek {
 				return cek, "filter discount", nil
 			}

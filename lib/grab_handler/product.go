@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
-	"github.com/pdcgo/tokopedia_lib/lib/helper"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
 
@@ -24,93 +23,127 @@ type ProductParser struct {
 	Categories     []mongorepo.ProductCategory
 }
 
-func parseComponentsPDPProductLayout(product *model_public.PdpGetlayoutQueryResp) ProductParser {
-	shopId, _ := strconv.Atoi(product.Data.PdpGetLayout.BasicInfo.ShopID)
-	productId, _ := strconv.Atoi(product.Data.PdpGetLayout.BasicInfo.ID)
-	catId, _ := strconv.Atoi(product.Data.PdpGetLayout.BasicInfo.Category.ID)
-	productSold, _ := strconv.Atoi(product.Data.PdpGetLayout.BasicInfo.TxStats.TransactionSuccess)
+func createProductCategories(category model_public.Category) ([]mongorepo.ProductCategory, error) {
 
-	productComponentParse := helper.ParseProductLayoutComponents(product.Data.PdpGetLayout.Components)
-	productContent := productComponentParse.ProductContent
-	productDetail := productComponentParse.ProductDetail
-	productMedia := productComponentParse.ProductMedia
+	categories := []mongorepo.ProductCategory{}
 
-	stock, _ := strconv.Atoi(productContent.Data[0].Stock.Value)
-	var productDesc model_public.ProductDetailContent
-	for _, content := range productDetail.Data[0].Content {
-		if content.Title == "Deskripsi" {
-			productDesc = content
+	for _, cat := range *category.Detail {
+
+		id, err := strconv.ParseInt(cat.ID, 10, 64)
+		if err != nil {
+			return categories, err
 		}
-	}
 
-	var images = []string{}
-	for _, media := range productMedia.Data[0].Media {
-		if media.Type == "image" {
-			images = append(images, media.URLOriginal)
-		}
-	}
-
-	var category []int64
-	var categories []mongorepo.ProductCategory
-	for _, cat := range *product.Data.PdpGetLayout.BasicInfo.Category.Detail {
-		Id, _ := strconv.Atoi(cat.ID)
-		category = append(category, int64(Id))
-		categories = append(categories, mongorepo.ProductCategory{
-			Catid:       int64(Id),
+		categ := mongorepo.ProductCategory{
+			Catid:       id,
 			DisplayName: cat.Name,
-		})
+		}
+		categories = append(categories, categ)
 	}
 
-	return ProductParser{
-		ShopId:         shopId,
-		ProductId:      productId,
-		CatId:          catId,
-		Stock:          stock,
-		ProductSold:    productSold,
-		ProductContent: *productContent,
-		ProductDetail:  *productDetail,
-		ProductMedia:   *productMedia,
-		ProductDesc:    productDesc,
-		Images:         images,
-		Category:       category,
-		Categories:     categories,
-	}
+	return categories, nil
 }
 
-func createCacheProduct(product *model_public.PdpGetlayoutQueryResp) mongorepo.CacheProduct {
-	productParser := parseComponentsPDPProductLayout(product)
+func CreateCacheProduct(
+	namespace string,
+	layout *model_public.PdpGetlayoutQueryResp,
+	pdp *model_public.PdpGetDataP2Resp,
+) (mongorepo.CacheProduct, error) {
 
-	oriPrice := productParser.ProductContent.Data[0].Campaign.OriginalPrice
-	if productParser.ProductContent.Data[0].Campaign.OriginalPrice == 0 {
-		oriPrice = productParser.ProductContent.Data[0].Price.Value
+	pdpLayout := layout.Data.PdpGetLayout
+
+	catname := layout.Data.PdpGetLayout.BasicInfo.Category.Name
+	shopLocation := pdp.Data.PdpGetData.ShopInfo.Location
+	url := layout.Data.PdpGetLayout.BasicInfo.URL
+
+	shopid, err := strconv.ParseInt(pdpLayout.BasicInfo.ShopID, 10, 64)
+	if err != nil {
+		return mongorepo.CacheProduct{}, err
+	}
+	shop := mongorepo.ProductShop{
+		Shopid:   shopid,
+		Location: shopLocation,
+	}
+
+	productid, err := strconv.ParseInt(pdpLayout.BasicInfo.ID, 10, 64)
+	if err != nil {
+		return mongorepo.CacheProduct{}, err
+	}
+
+	catid, err := strconv.ParseInt(pdpLayout.BasicInfo.Category.ID, 10, 64)
+	if err != nil {
+		return mongorepo.CacheProduct{}, err
+	}
+
+	name, err := pdpLayout.GetProductName()
+	if err != nil {
+		return mongorepo.CacheProduct{}, err
+	}
+
+	price, err := pdpLayout.GetPrice()
+	if err != nil {
+		return mongorepo.CacheProduct{}, err
+	}
+
+	priceBeforeDiscount, err := pdpLayout.GetPriceBeforeDiscount()
+	if err != nil {
+		return mongorepo.CacheProduct{}, err
+	}
+
+	images, err := pdpLayout.GetImages()
+	if err != nil {
+		return mongorepo.CacheProduct{}, err
+	}
+
+	stock, err := pdpLayout.GetStock()
+	if err != nil {
+		return mongorepo.CacheProduct{}, err
+	}
+
+	sold, err := strconv.Atoi(pdpLayout.BasicInfo.TxStats.CountSold)
+	if err != nil {
+		return mongorepo.CacheProduct{}, err
+	}
+
+	desc, err := pdpLayout.GetDescription()
+	if err != nil {
+		return mongorepo.CacheProduct{}, err
+	}
+
+	categories, err := createProductCategories(layout.Data.PdpGetLayout.BasicInfo.Category)
+	if err != nil {
+		return mongorepo.CacheProduct{}, err
+	}
+
+	catIds := []int64{}
+	for _, c := range categories {
+		catIds = append(catIds, c.Catid)
 	}
 
 	res := mongorepo.CacheProduct{
-		Shop: mongorepo.ProductShop{
-			Shopid: int64(productParser.ShopId),
-			// Location: product.ProductP2.Data.PdpGetData.ShopInfo.Location,
-		},
-
-		Marketplace: mongorepo.MP_TOKOPEDIA,
-		Id:          int64(productParser.ProductId),
-		Productid:   int64(productParser.ProductId),
-		// Namespace:           namespace,
+		Shop:                shop,
+		Marketplace:         mongorepo.MP_TOKOPEDIA,
+		Id:                  productid,
+		Productid:           productid,
+		Namespace:           namespace,
 		Rnd:                 rand.Float64(),
-		Name:                string(productParser.ProductContent.Data[0].Name),
-		Price:               int64(oriPrice),
-		PriceBeforeDiscount: int64(oriPrice),
-		PriceAfterDiscount:  int64(productParser.ProductContent.Data[0].Price.Value),
-		Image:               productParser.Images[0],
-		Images:              productParser.Images,
-		Sold:                int32(productParser.ProductSold),
-		// ShopLocation:        product.ProductP2.Data.PdpGetData.ShopInfo.Location,
-		Catid:      int32(productParser.CatId),
-		CatName:    product.Data.PdpGetLayout.BasicInfo.Category.Name,
-		Stock:      int32(productParser.Stock),
-		Desc:       productParser.ProductDesc.Subtitle,
-		Url:        product.Data.PdpGetLayout.BasicInfo.URL,
-		Category:   productParser.Category,
-		Categories: productParser.Categories,
+		Name:                name,
+		Price:               int64(price),
+		PriceAfterDiscount:  int64(price),
+		PriceBeforeDiscount: int64(priceBeforeDiscount),
+		Image:               images[0],
+		Images:              images,
+		Sold:                int32(sold),
+		ShopLocation:        shopLocation,
+		Catid:               int32(catid),
+		CategoryId:          catid,
+		CatName:             catname,
+		Stock:               int32(stock),
+		Desc:                desc,
+		Url:                 url,
+		Category:            catIds,
+		Categories:          categories,
 	}
-	return res
+
+	return res, nil
 }

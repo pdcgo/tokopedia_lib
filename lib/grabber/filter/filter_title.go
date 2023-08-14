@@ -22,7 +22,11 @@ func CreateTitleFilter(filterText *legacy_source.FilterText) FilterHandler {
 	}
 
 	return func(layout *model_public.PdpGetlayoutQueryResp, pdp *model_public.PdpGetDataP2Resp) (cek bool, reason string, err error) {
-		productName := layout.Data.PdpGetLayout.GetProductName()
+		productName, err := layout.Data.PdpGetLayout.GetProductName()
+		if err != nil {
+			return true, "filter title", err
+		}
+
 		productName = strings.ToLower(productName)
 
 		for _, t := range texts {

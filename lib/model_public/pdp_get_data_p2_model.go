@@ -5,8 +5,6 @@ import (
 	"errors"
 	"log"
 	"strconv"
-
-	"github.com/pdcgo/common_conf/pdc_common"
 )
 
 type PDPComponentName string
@@ -468,43 +466,94 @@ func GetComponent[V any](layout *PdpGetLayout) (*V, error) {
 	return nil, errors.New("component not found")
 }
 
-func (layout *PdpGetLayout) GetProductName() string {
+func (layout *PdpGetLayout) GetProductName() (string, error) {
 
 	productContent, err := GetComponent[ProductContentComponent](layout)
 	if err != nil {
-		pdc_common.ReportError(err)
-		return ""
+		return "", err
 	}
 
-	return productContent.Data[0].Name
+	return productContent.Data[0].Name, nil
 }
 
-func (layout *PdpGetLayout) GetPercentageAmount() int {
+func (layout *PdpGetLayout) GetPercentageAmount() (int, error) {
 
 	productContent, err := GetComponent[ProductContentComponent](layout)
 	if err != nil {
-		pdc_common.ReportError(err)
-		return 0
+		return 0, err
 	}
 
-	return productContent.Data[0].Campaign.PercentageAmount
+	return productContent.Data[0].Campaign.PercentageAmount, nil
 }
 
-func (layout *PdpGetLayout) Getstock() int {
+func (layout *PdpGetLayout) GetStock() (int, error) {
 
 	productContent, err := GetComponent[ProductContentComponent](layout)
 	if err != nil {
-		pdc_common.ReportError(err)
-		return 0
+		return 0, err
 	}
 
 	stockVal := productContent.Data[0].Stock
 	stock, err := strconv.Atoi(stockVal.Value)
 	if err != nil {
-		pdc_common.ReportError(err)
+		return 0, err
 	}
 
-	return stock
+	return stock, nil
+}
+
+func (layout *PdpGetLayout) GetPrice() (int, error) {
+
+	productContent, err := GetComponent[ProductContentComponent](layout)
+	if err != nil {
+		return 0, err
+	}
+
+	return productContent.Data[0].Price.Value, nil
+}
+
+func (layout *PdpGetLayout) GetPriceBeforeDiscount() (int, error) {
+	productContent, err := GetComponent[ProductContentComponent](layout)
+	if err != nil {
+		return 0, err
+	}
+
+	oriPrice := productContent.Data[0].Campaign.OriginalPrice
+	if oriPrice > 0 {
+		return oriPrice, nil
+	}
+
+	return layout.GetPrice()
+}
+
+func (layout *PdpGetLayout) GetImages() ([]string, error) {
+	mediaComponent, err := GetComponent[MediaComponent](layout)
+	if err != nil {
+		return []string{}, err
+	}
+
+	images := []string{}
+	for _, media := range mediaComponent.Data[0].Media {
+		if media.Type == MediaImage {
+			images = append(images, media.URLOriginal)
+		}
+	}
+
+	return images, nil
+}
+
+func (layout *PdpGetLayout) GetDescription() (string, error) {
+	productDetail, err := GetComponent[ProductDetailComponent](layout)
+	if err != nil {
+		return "", err
+	}
+
+	desc, err := productDetail.Data[0].GetContent(DeskripsiTitle)
+	if err != nil {
+		return "", err
+	}
+
+	return desc.Subtitle, nil
 }
 
 type OwnerInfo struct {
@@ -780,6 +829,13 @@ type PdpGetDataP2Var struct {
 	DeviceID     string        `json:"deviceID"`
 	UserLocation *UserLocation `json:"userLocation,omitempty"`
 	Tokonow      *Tokonow      `json:"tokonow,omitempty"`
+}
+
+func NewPdpGetDataP2Var(layout PdpGetLayout) *PdpGetDataP2Var {
+	return &PdpGetDataP2Var{
+		PdpSession: layout.PdpSession,
+		ProductID:  layout.BasicInfo.ID,
+	}
 }
 
 type PdpGetDataP2Data struct {
