@@ -267,6 +267,8 @@ github.com/otiai10/gosseract v2.2.1+incompatible/go.mod h1:XrzWItCzCpFRZ35n3YtVT
 github.com/otiai10/mint v1.3.0 h1:Ady6MKVezQwHBkGzLFbrsywyp09Ah7rkmfjV3Bcr5uc=
 github.com/pdcgo/analytic v1.0.2 h1:RrH0vEeIFapcWS0pc73PytU9xXEa6MmHdnw9FFHjKpU=
 github.com/pdcgo/analytic v1.0.2/go.mod h1:oJzxxneIvFsBncAP1ly0aA0fT0qvY1K8Kqv3l4zMqb4=
+github.com/pdcgo/analytic v1.0.4 h1:kLA2+PJXr51sOeNybIwiApLKfWkt4cVLNKyrPzxKGNg=
+github.com/pdcgo/analytic v1.0.4/go.mod h1:oJzxxneIvFsBncAP1ly0aA0fT0qvY1K8Kqv3l4zMqb4=
 github.com/pdcgo/autoupdater v1.3.0 h1:ReRXZ7CDCz9lYcKcTck3ThvCGV0xoe6rvWGChBrYQhw=
 github.com/pdcgo/autoupdater v1.3.0/go.mod h1:E6QUO7Vfxmhol+bKeDt5h36Y0K+jYZuul3RDKn8zK/I=
 github.com/pdcgo/common_conf v1.1.10 h1:5+g9BUDwcEV/4OPzghrWn2p5EFHfCeo+SV/ARmGePb8=
@@ -277,6 +279,8 @@ github.com/pdcgo/go_v2_shopeelib v1.1.5 h1:gyvmd/KvXg3yO+3l2sp2Wrk5wFkJoogMgTRHL
 github.com/pdcgo/go_v2_shopeelib v1.1.5/go.mod h1:CQSTUgZUhKTqw6PuRDOoovMImacjNzmG3vQnDslFpKI=
 github.com/pdcgo/go_v2_shopeelib v1.1.8 h1:wgZ5JY8u/306/GYshAdEc7fqOBPnNyRuuCHwKXjhfhE=
 github.com/pdcgo/go_v2_shopeelib v1.1.8/go.mod h1:CQSTUgZUhKTqw6PuRDOoovMImacjNzmG3vQnDslFpKI=
+github.com/pdcgo/go_v2_shopeelib v1.1.18 h1:BvF/K5iRc6wXKZqU2Lh44ZH6j3ijAoXttgcLHEhzuiM=
+github.com/pdcgo/go_v2_shopeelib v1.1.18/go.mod h1:rIgTaqHyRI8c56O6op4PQ2dzQpmM7+6VUbrm0FKZ7n0=
 github.com/pdcgo/v2_gots_sdk v1.2.4 h1:qm9i6ztnB0khfGZchUEJ5wwJAa8271fMy4FrRMpJm4c=
 github.com/pdcgo/v2_gots_sdk v1.2.4/go.mod h1:5BAAOs/jCBPp3TuLroZyZ69MIbXo6E1YzwH+gyeAocc=
 github.com/pelletier/go-toml/v2 v2.0.8 h1:0ctb6s9mE31h0/lhu+J6OPmVeDxJn+kYnJc2jZR9tGQ=

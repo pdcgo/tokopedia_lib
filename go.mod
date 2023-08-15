@@ -8,7 +8,7 @@ require (
 	github.com/gocarina/gocsv v0.0.0-20230513223533-9ddd7fd60602
 	github.com/google/uuid v1.3.0
 	github.com/pdcgo/common_conf v1.1.10
-	github.com/pdcgo/go_v2_shopeelib v1.1.8
+	github.com/pdcgo/go_v2_shopeelib v1.1.18
 	github.com/pdcgo/v2_gots_sdk v1.2.4
 	github.com/sethvargo/go-retry v0.2.4
 	go.mongodb.org/mongo-driver v1.11.3
@@ -63,7 +63,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
-	github.com/pdcgo/analytic v1.0.2 // indirect
+	github.com/pdcgo/analytic v1.0.4 // indirect
 	github.com/pdcgo/go-mitmproxy v1.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
