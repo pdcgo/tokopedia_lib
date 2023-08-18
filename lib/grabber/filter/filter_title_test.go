@@ -35,12 +35,13 @@ func TestFilterTitle(t *testing.T) {
 				productContent.Name = "Window Update"
 				productContentComponent := model_public.ProductContentComponent{}
 				productContentComponent.Data = append(productContentComponent.Data, productContent)
-				layout.Data.PdpGetLayout.Components = append(layout.Data.PdpGetLayout.Components, productContentComponent)
+				layout.Data.PdpGetLayout.Components = append(layout.Data.PdpGetLayout.Components, &productContentComponent)
 
 				cek, reason, err := filterTitle(&layout, &pdp)
-				assert.False(t, cek)
-				assert.Empty(t, reason)
 				assert.Nil(t, err)
+				assert.False(t, cek, reason)
+				assert.Empty(t, reason)
+
 			})
 
 			t.Run("test filter title not ok", func(t *testing.T) {
@@ -52,9 +53,10 @@ func TestFilterTitle(t *testing.T) {
 				layout.Data.PdpGetLayout.Components = model_public.PDPListComponents{&productContentComponent}
 
 				cek, reason, err := filterTitle(&layout, &pdp)
+				assert.Nil(t, err)
 				assert.True(t, cek)
 				assert.Equal(t, reason, "filter title")
-				assert.Nil(t, err)
+
 			})
 
 			t.Run("test filter title regex not ok", func(t *testing.T) {
@@ -66,9 +68,10 @@ func TestFilterTitle(t *testing.T) {
 				layout.Data.PdpGetLayout.Components = model_public.PDPListComponents{&productContentComponent}
 
 				cek, reason, err := filterTitle(&layout, &pdp)
+				assert.Nil(t, err)
 				assert.True(t, cek)
 				assert.Equal(t, reason, "filter title")
-				assert.Nil(t, err)
+
 			})
 		})
 	})
