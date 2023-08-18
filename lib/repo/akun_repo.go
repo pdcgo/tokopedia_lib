@@ -70,6 +70,8 @@ func (iter *AkunUploadIterator) GetStatus() (*UploadStatus, error) {
 	return &hasil, err
 }
 func (iter *AkunUploadIterator) InProcessCount() (int64, error) {
+	iter.Lock()
+	defer iter.Unlock()
 	var count int64
 	err := iter.db.Model(&AkunItem{}).Where(&AkunItem{
 		AkunUploadStatus: AkunUploadStatus{
@@ -119,6 +121,8 @@ func (iter *AkunUploadIterator) Get() (akun *AkunItem, updateinc func(count int,
 		return akun, updateinc, finish, err
 	}
 	finish = func() error {
+		iter.Lock()
+		defer iter.Unlock()
 		akun.AkunUploadStatus.Active = false
 		akun.AkunUploadStatus.CountUpload = 0
 
@@ -126,6 +130,8 @@ func (iter *AkunUploadIterator) Get() (akun *AkunItem, updateinc func(count int,
 	}
 
 	updateinc = func(count int, err error) error {
+		iter.Lock()
+		defer iter.Unlock()
 		akun.AkunUploadStatus.Lastup = time.Now().UnixNano()
 		akun.AkunUploadStatus.InUpload = false
 		akun.AkunUploadStatus.CountUpload += 1

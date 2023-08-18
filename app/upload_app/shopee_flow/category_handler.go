@@ -1,6 +1,7 @@
 package shopee_flow
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/pdcgo/common_conf/common_concept"
@@ -59,6 +60,10 @@ func (flow *ShopeeToTopedFlow) createCategoryHandler() uploader.UploadHandler {
 
 			if err != nil {
 				return err
+			}
+
+			if len(catrmd.Data.GetJarvisRecommendation.Categories) == 0 {
+				return errors.New("recomendation category kosong untuk produk " + source.Name)
 			}
 
 			catID := catrmd.Data.GetJarvisRecommendation.Categories[0].ID

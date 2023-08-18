@@ -1,6 +1,8 @@
 package api_public
 
 import (
+	"errors"
+
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/pdcgo/tokopedia_lib/lib/query"
 )
@@ -34,6 +36,14 @@ func (api *TokopediaApiPublic) JarvisRecommendation(prodname string) (*model_pub
 
 	var hasil model_public.JarvisRecommendationResp
 	err := api.SendRequest(req, &hasil)
+	if err != nil {
+		return &hasil, err
+	}
+
+	if len(hasil.Data.GetJarvisRecommendation.Categories) == 0 {
+		return &hasil, errors.New("recomendation category kosong untuk produk " + prodname)
+	}
+
 	return &hasil, err
 }
 
