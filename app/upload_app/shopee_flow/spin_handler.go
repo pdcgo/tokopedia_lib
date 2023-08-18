@@ -45,12 +45,17 @@ func (flow *ShopeeToTopedFlow) createSpinHandler(akun *repo.AkunItem, spin shope
 			productName = productName[:70]
 		}
 
+		description := spin.Description(productName, source.Description)
+		if len(description) > 2000 {
+			description = description[:2000]
+		}
+
 		payload.Lock()
 		defer payload.Unlock()
 		payload.HaveVariant = havevariant
 		input := payload.Input
 		input.ProductName = productName
-		input.Description = spin.Description(input.ProductName, source.Description)
+		input.Description = description
 		input.Weight = int64(berat)
 		input.WeightUnit = model.GramUnit
 		if !havevariant {
