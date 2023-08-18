@@ -10,6 +10,7 @@ import (
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/pdcgo/tokopedia_lib/lib/category_mapper"
+	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
 	"gorm.io/gorm"
 )
@@ -30,6 +31,7 @@ type ShopeeTopedMapApi struct {
 	db            *gorm.DB
 	prodRepo      *mongorepo.ProductRepo
 	mapper        *category_mapper.Mapper
+	smapper       *config.ShopeeMapper
 	configRepo    *config.ConfigRepo
 	SuggestStatus *AutoSuggestStatus
 }
@@ -195,13 +197,63 @@ func (mapi *ShopeeTopedMapApi) UpdateConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
+type TokopediaMapQuery struct {
+	Namespace string `json:"namespace" form:"namespace" schema:"namespace"`
+}
+
+type TokopediaMapItem struct {
+	ShopeeID              int64 `json:"shopee_id"`
+	TokopediaID           int   `json:"tokpedia_id"`
+	Count                 int   `json:"product_count"`
+	ShopeeCategoryName    []string
+	TokopediaCategoryName []string
+}
+
+func (mapi *ShopeeTopedMapApi) TokopediaCollectionCategory(ctx *gin.Context) {
+	query := TokopediaMapQuery{}
+	ctx.BindQuery(&query)
+
+	agg := repo.ProductAggregateIpml{
+		Collection: mapi.prodRepo.Collection,
+	}
+	hasil := []*TokopediaMapItem{}
+	err := agg.IterCategory(query.Namespace, func(tokopediaID, count int, name []string) error {
+		item := TokopediaMapItem{
+			TokopediaID:           tokopediaID,
+			Count:                 count,
+			TokopediaCategoryName: name,
+		}
+
+		mapitem, err := mapi.smapper.GetShopeeID(tokopediaID)
+		if err != nil {
+			return err
+		}
+
+		item.ShopeeID = mapitem.ShopeeID
+
+		hasil = append(hasil, &item)
+		return nil
+	})
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, Response{
+			Err: "error_map",
+			Msg: err.Error(),
+		})
+	}
+
+	ctx.JSON(http.StatusOK, hasil)
+
+}
+
 type ShopeeTopedMapResponse struct {
 	Data []*config.ShopeeMapItem `json:"data"`
 }
 
 func RegisterShopeeTopedMap(
 	grp *v2_gots_sdk.SdkGroup,
-	db *gorm.DB, prodrepo *mongorepo.ProductRepo,
+	db *gorm.DB,
+	prodrepo *mongorepo.ProductRepo,
 	mapper *category_mapper.Mapper,
 ) *ShopeeTopedMapApi {
 	// untuk migrasi data
@@ -215,10 +267,12 @@ func RegisterShopeeTopedMap(
 		SuggestStatus: &AutoSuggestStatus{
 			Status: SUGGEST_STOP,
 		},
+		smapper: config.NewShopeeMapper(db),
 	}
 
 	grp = grp.Group("mapper")
 
+	// masih digunakan untuk toped shopee juga
 	grp.Register(&v2_gots_sdk.Api{
 		Method:       http.MethodPut,
 		RelativePath: "map",
@@ -256,6 +310,14 @@ func RegisterShopeeTopedMap(
 		RelativePath: "setting",
 		Response:     config.ShopeeMapperConfig{},
 	}, mapapi.UpdateConfig)
+
+	// TODO: kandidat yang baru
+	grp.Register(&v2_gots_sdk.Api{
+		Method:       http.MethodGet,
+		RelativePath: "category",
+		Response:     []TokopediaMapItem{},
+		Query:        &TokopediaMapQuery{},
+	}, mapapi.TokopediaCollectionCategory)
 
 	return &mapapi
 }

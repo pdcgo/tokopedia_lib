@@ -34,3 +34,13 @@ func (maper *ShopeeMapper) GetTokopediaID(shopeID int64) (*ShopeeMapItem, error)
 	err := maper.db.Where(&itemap).First(&itemap).Error
 	return &itemap, err
 }
+
+func (maper *ShopeeMapper) GetShopeeID(tokopediaID int) (*ShopeeMapItem, error) {
+	itemap := ShopeeMapItem{}
+
+	err := maper.db.Where(&ShopeeMapItem{
+		TokopediaID: tokopediaID,
+	}).First(&itemap).Error
+
+	return &itemap, err
+}
