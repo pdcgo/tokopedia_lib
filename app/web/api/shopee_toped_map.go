@@ -202,11 +202,11 @@ type TokopediaMapQuery struct {
 }
 
 type TokopediaMapItem struct {
-	ShopeeID              int64 `json:"shopee_id"`
-	TokopediaID           int   `json:"tokpedia_id"`
-	Count                 int   `json:"product_count"`
-	ShopeeCategoryName    []string
-	TokopediaCategoryName []string
+	ShopeeID              int64    `json:"shopee_id"`
+	TokopediaID           int      `json:"tokpedia_id"`
+	Count                 int      `json:"product_count"`
+	ShopeeCategoryName    []string `json:"shopee_category_name"`
+	TokopediaCategoryName []string `json:"tokopedia_category_name"`
 }
 
 func (mapi *ShopeeTopedMapApi) TokopediaCollectionCategory(ctx *gin.Context) {
