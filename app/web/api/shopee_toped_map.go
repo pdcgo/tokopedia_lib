@@ -225,11 +225,12 @@ func (mapi *ShopeeTopedMapApi) TokopediaCollectionCategory(ctx *gin.Context) {
 		}
 
 		mapitem, err := mapi.smapper.GetShopeeID(tokopediaID)
-		if err != nil {
-			return err
-		}
+		if err == nil {
+			item.ShopeeID = mapitem.ShopeeID
 
-		item.ShopeeID = mapitem.ShopeeID
+		} else {
+			log.Println(err)
+		}
 
 		hasil = append(hasil, &item)
 		return nil
@@ -240,6 +241,8 @@ func (mapi *ShopeeTopedMapApi) TokopediaCollectionCategory(ctx *gin.Context) {
 			Err: "error_map",
 			Msg: err.Error(),
 		})
+
+		return
 	}
 
 	ctx.JSON(http.StatusOK, hasil)
