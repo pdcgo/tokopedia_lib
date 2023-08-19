@@ -40,10 +40,22 @@ func (fapi *DataFilterApi) RegisterApi(grp *v2_gots_sdk.SdkGroup) {
 		RelativePath: "categories",
 		Response:     []*api_public.Fcity{},
 	}, fapi.FcityData)
+
+	grp.Register(&v2_gots_sdk.Api{
+		Method:       http.MethodGet,
+		RelativePath: "shipping",
+		Response:     []*api_public.PubShippingItem{},
+	}, fapi.ShippingsData)
 }
 
 func (fapi *DataFilterApi) FcityData(ctx *gin.Context) {
 	fname := fapi.base.Path("data", "fcity_tokopedia.json")
 	cities, _ := api_public.GetFcity(fname)
 	ctx.JSON(http.StatusOK, cities)
+}
+
+func (fapi *DataFilterApi) ShippingsData(ctx *gin.Context) {
+	fname := fapi.base.Path("data", "shipping_tokopedia.json")
+	shipping, _ := api_public.GetPubShippings(fname)
+	ctx.JSON(http.StatusOK, shipping)
 }
