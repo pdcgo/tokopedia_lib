@@ -15,7 +15,7 @@ func NewSqliteDatabase(fname string) *gorm.DB {
 		DisableForeignKeyConstraintWhenMigrating: true,
 	}
 
-	if devmode {
+	if !devmode {
 		config.Logger = logger.Default.LogMode(logger.Silent)
 	}
 
