@@ -38,7 +38,7 @@ func NewEtalaseMapService(
 
 type ShopeeEtalaseMapItem struct {
 	ShopeeID              int64 `json:"shopee_id"`
-	TokopediaID           int   `json:"tokpedia_id"`
+	TokopediaID           int   `json:"tokopedia_id"`
 	Count                 int   `json:"product_count"`
 	CategoryNoMapping     bool  `json:"category_no_mapping"`
 	ShopeeCategoryName    []string

@@ -3,10 +3,13 @@ package api_test
 import (
 	"encoding/json"
 	"io"
+	"log"
+	"math/rand"
 	"net/http"
 	"testing"
 
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
+	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/pdcgo/tokopedia_lib/app/web/api"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/category_mapper"
@@ -27,25 +30,78 @@ func TestTokopediaCollectionList(t *testing.T) {
 		prepo := mongorepo.NewProductRepo(mongodb)
 		api.RegisterShopeeTopedMap(sdk.Group("tokopedia"), db, prepo, category_mapper.NewMapper(pubapi))
 
-		res := sendApi(&v2_gots_sdk.Api{
-			Method:       http.MethodGet,
-			RelativePath: "/tokopedia/mapper/category",
-			Query: &api.TokopediaMapQuery{
-				Namespace: "default",
-			},
+		t.Run("test api category mapper list", func(t *testing.T) {
+			res := sendApi(&v2_gots_sdk.Api{
+				Method:       http.MethodGet,
+				RelativePath: "/tokopedia/mapper/category",
+				Query: &api.TokopediaMapQuery{
+					Namespace: "default",
+				},
+			})
+
+			assert.Equal(t, http.StatusOK, res.Result().StatusCode)
+
+			data, err := io.ReadAll(res.Result().Body)
+			assert.Nil(t, err)
+
+			hasil := []*api.TokopediaMapItem{}
+
+			err = json.Unmarshal(data, &hasil)
+			assert.Nil(t, err)
+
+			assert.NotEmpty(t, hasil)
 		})
 
-		assert.Equal(t, http.StatusOK, res.Result().StatusCode)
+		t.Run("test api tokopedia category mapper update", func(t *testing.T) {
+			res := sendApi(&v2_gots_sdk.Api{
+				Method:       http.MethodGet,
+				RelativePath: "/tokopedia/mapper/category",
+				Query: &api.TokopediaMapQuery{
+					Namespace: "default",
+				},
+			})
 
-		data, err := io.ReadAll(res.Result().Body)
-		assert.Nil(t, err)
+			data, err := io.ReadAll(res.Result().Body)
+			assert.Nil(t, err)
 
-		hasil := []*api.TokopediaMapItem{}
+			dataBefore := []*api.TokopediaMapItem{}
+			err = json.Unmarshal(data, &dataBefore)
+			assert.Nil(t, err)
+			assert.NotEmpty(t, dataBefore)
 
-		err = json.Unmarshal(data, &hasil)
-		assert.Nil(t, err)
+			randId := rand.Intn(100)
+			res = sendApi(&v2_gots_sdk.Api{
+				Method:       http.MethodPut,
+				RelativePath: "/tokopedia/mapper/map",
+				Payload: []config.ShopeeMapItem{{
+					ShopeeID:    int64(randId),
+					TokopediaID: dataBefore[0].TokopediaID,
+				}},
+			})
 
-		assert.NotEmpty(t, hasil)
+			assert.Equal(t, http.StatusOK, res.Result().StatusCode)
+
+			res = sendApi(&v2_gots_sdk.Api{
+				Method:       http.MethodGet,
+				RelativePath: "/tokopedia/mapper/category",
+				Query: &api.TokopediaMapQuery{
+					Namespace: "default",
+				},
+			})
+
+			data, err = io.ReadAll(res.Result().Body)
+			assert.Nil(t, err)
+
+			dataAfter := []*api.TokopediaMapItem{}
+			err = json.Unmarshal(data, &dataAfter)
+			assert.Nil(t, err)
+			assert.NotEmpty(t, dataAfter)
+
+			assert.Equal(t, int64(randId), dataAfter[0].ShopeeID)
+			log.Println(int64(randId), dataAfter[0].ShopeeID, dataAfter[0])
+		})
+
+		rand.Intn(100)
 
 		return nil
 	})

@@ -203,7 +203,7 @@ type TokopediaMapQuery struct {
 
 type TokopediaMapItem struct {
 	ShopeeID              int64    `json:"shopee_id"`
-	TokopediaID           int      `json:"tokpedia_id"`
+	TokopediaID           int      `json:"tokopedia_id"`
 	Count                 int      `json:"product_count"`
 	ShopeeCategoryName    []string `json:"shopee_category_name"`
 	TokopediaCategoryName []string `json:"tokopedia_category_name"`
