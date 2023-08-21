@@ -2,6 +2,7 @@ package grabber
 
 import (
 	"context"
+	"log"
 
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
@@ -40,6 +41,8 @@ func (g *CategoryCsvGrabber) Run() error {
 	}
 
 	return iterator.IterateCategoryCsv(g.Base, func(category *csv.CategoryCsv) error {
+
+		log.Println("[ info ] grab category", category.Name)
 
 		filterLimit, addCount := filter.CreateLimiter(grabBasic)
 		filters := []filter.FilterHandler{
