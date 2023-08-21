@@ -312,6 +312,7 @@ func RegisterShopeeTopedMap(
 		Method:       http.MethodPut,
 		RelativePath: "setting",
 		Response:     config.ShopeeMapperConfig{},
+		Payload:      &config.ShopeeMapperConfig{},
 	}, mapapi.UpdateConfig)
 
 	// TODO: kandidat yang baru
