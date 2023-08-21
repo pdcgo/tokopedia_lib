@@ -3,7 +3,6 @@ package api_test
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"testing"
@@ -70,35 +69,47 @@ func TestTokopediaCollectionList(t *testing.T) {
 			assert.NotEmpty(t, dataBefore)
 
 			randId := rand.Intn(100)
+			tokopediaID := dataBefore[0].TokopediaID
 			res = sendApi(&v2_gots_sdk.Api{
 				Method:       http.MethodPut,
 				RelativePath: "/tokopedia/mapper/map",
 				Payload: []config.ShopeeMapItem{{
 					ShopeeID:    int64(randId),
-					TokopediaID: dataBefore[0].TokopediaID,
+					TokopediaID: tokopediaID,
 				}},
 			})
 
 			assert.Equal(t, http.StatusOK, res.Result().StatusCode)
 
-			res = sendApi(&v2_gots_sdk.Api{
-				Method:       http.MethodGet,
-				RelativePath: "/tokopedia/mapper/category",
-				Query: &api.TokopediaMapQuery{
-					Namespace: "default",
-				},
+			t.Run("test check data valid ketika sudah diupdate", func(t *testing.T) {
+				res = sendApi(&v2_gots_sdk.Api{
+					Method:       http.MethodGet,
+					RelativePath: "/tokopedia/mapper/category",
+					Query: &api.TokopediaMapQuery{
+						Namespace: "default",
+					},
+				})
+
+				data, err = io.ReadAll(res.Result().Body)
+				assert.Nil(t, err)
+
+				dataAfter := []*api.TokopediaMapItem{}
+				err = json.Unmarshal(data, &dataAfter)
+				assert.Nil(t, err)
+				assert.NotEmpty(t, dataAfter)
+
+				assert.NotEmpty(t, dataAfter)
+
+				for _, catmap := range dataAfter {
+					if catmap.TokopediaID == tokopediaID {
+						t.Log(catmap, dataBefore[0], "asdasdasdasd")
+						assert.Equal(t, int64(randId), catmap.ShopeeID)
+					}
+
+				}
+
 			})
 
-			data, err = io.ReadAll(res.Result().Body)
-			assert.Nil(t, err)
-
-			dataAfter := []*api.TokopediaMapItem{}
-			err = json.Unmarshal(data, &dataAfter)
-			assert.Nil(t, err)
-			assert.NotEmpty(t, dataAfter)
-
-			assert.Equal(t, int64(randId), dataAfter[0].ShopeeID)
-			log.Println(int64(randId), dataAfter[0].ShopeeID, dataAfter[0])
 		})
 
 		rand.Intn(100)

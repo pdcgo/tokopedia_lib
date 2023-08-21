@@ -130,8 +130,7 @@ func (iter *AkunUploadIterator) Get() (akun *AkunItem, updateinc func(count int,
 	}
 
 	updateinc = func(count int, err error) error {
-		iter.Lock()
-		defer iter.Unlock()
+
 		akun.AkunUploadStatus.Lastup = time.Now().UnixNano()
 		akun.AkunUploadStatus.InUpload = false
 		akun.AkunUploadStatus.CountUpload += 1
@@ -146,6 +145,8 @@ func (iter *AkunUploadIterator) Get() (akun *AkunItem, updateinc func(count int,
 			akun.AkunUploadStatus.LastError = ""
 		}
 
+		iter.Lock()
+		defer iter.Unlock()
 		return iter.db.Save(akun).Error
 	}
 

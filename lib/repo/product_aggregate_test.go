@@ -17,6 +17,10 @@ func TestAgregateproduct(t *testing.T) {
 
 	agg.IterCategory("default", func(tokopediaID, count int, name []string) error {
 		t.Log(name, tokopediaID, count)
+
+		// assert.NotEmpty(t, tokopediaID)
+		// assert.NotEqual(t, 0, tokopediaID)
+
 		assert.NotEmpty(t, name)
 		return nil
 	})

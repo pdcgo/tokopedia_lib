@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"sync"
@@ -229,7 +230,10 @@ func (mapi *ShopeeTopedMapApi) TokopediaCollectionCategory(ctx *gin.Context) {
 			item.ShopeeID = mapitem.ShopeeID
 
 		} else {
-			log.Println(err)
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Println(err)
+			}
+
 		}
 
 		hasil = append(hasil, &item)
