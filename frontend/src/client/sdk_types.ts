@@ -189,6 +189,12 @@ export interface ShopeeCategoryOld {
 }
 
 
+
+export interface ProductNamespaceRenamePayload {
+    marketplace: string;
+    namespace: string;
+    update_namespace: string;
+}
 export interface PredictWeightResponse {
     harga: number;
     jarak: number;
@@ -295,6 +301,17 @@ export interface ShopeeMapperConfig {
     use_mapper: boolean;
 }
 
+
+export interface TokopediaMapQuery {
+    namespace: string;
+}
+export interface TokopediaMapItem {
+    shopee_id: number;
+    tokopedia_id: number;
+    product_count: number;
+    shopee_category_name: string[];
+    tokopedia_category_name: string[];
+}
 export interface Category {
     id: number;
     name: string;
@@ -378,7 +395,7 @@ export interface ListMapEtalaseQuery {
 }
 export interface ShopeeEtalaseMapItem {
     shopee_id: number;
-    tokpedia_id: number;
+    tokopedia_id: number;
     product_count: number;
     category_no_mapping: boolean;
     ShopeeCategoryName: string[];
@@ -625,6 +642,14 @@ export type SdkConfig = {
 		path: "legacy/v1/product/resync"
 	},
 
+	PostLegacyV1ProductRenameNamespace: {
+		method: "post"
+		params: undefined
+		payload: ProductNamespaceRenamePayload
+		response: BaseResponse
+		path: "legacy/v1/product/rename_namespace"
+	},
+
 	PostLegacyV4ShopeeWeightPredict: {
 		method: "post"
 		params: undefined
@@ -716,9 +741,17 @@ export type SdkConfig = {
 	PutTokopediaMapperSetting: {
 		method: "put"
 		params: undefined
-		payload: undefined
+		payload: ShopeeMapperConfig
 		response: ShopeeMapperConfig
 		path: "tokopedia/mapper/setting"
+	},
+
+	GetTokopediaMapperCategory: {
+		method: "get"
+		params: TokopediaMapQuery
+		payload: undefined
+		response: TokopediaMapItem[]
+		path: "tokopedia/mapper/category"
 	},
 
 	GetTokopediaCategoryList: {

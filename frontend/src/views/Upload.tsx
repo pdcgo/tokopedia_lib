@@ -45,7 +45,7 @@ export default function Upload(props: {
     ])
 
     const [query, setQuery] = useState({ page: 1, limit: 10, name: "" })
-    const [useMapper, setUseMapper]  =useState(false)
+    const [useMapper, setUseMapper] = useState(false)
     const [showBottomPagination, setShowBottomPagination] = useState(false)
     const [messageApi, ctx] = message.useMessage()
 
@@ -68,11 +68,14 @@ export default function Upload(props: {
             setUseMapper(data.use_mapper)
         },
     })
-    const { sender: setUseMapperApi } = useRequest("PutTokopediaMapperSetting", {
-        onSuccess(data) {
-            setUseMapper(data.use_mapper)
-        },
-    })
+    const { sender: setUseMapperApi } = useRequest(
+        "PutTokopediaMapperSetting",
+        {
+            onSuccess(data) {
+                setUseMapper(data.use_mapper)
+            },
+        }
+    )
 
     const { sender: deleterAccount } = useRequest("PostTokopediaAkunDelete", {
         onError(err) {
@@ -109,7 +112,7 @@ export default function Upload(props: {
     useEffect(() => {
         if (props.activePage == "upload") {
             initEffect(query.limit, (query.page - 1) * query.limit, query.name)
-            getUseMapper({method: "get", path: "tokopedia/mapper/setting"})
+            getUseMapper({ method: "get", path: "tokopedia/mapper/setting" })
         }
     }, [query.limit, query.name, query.page, props.activePage])
 
@@ -146,13 +149,13 @@ export default function Upload(props: {
     }
 
     function deleteSome() {
-        const payload = profiles.filter(p => p.isChecked).map(p => p.id)
+        const payload = profiles.filter((p) => p.isChecked).map((p) => p.id)
         deleterAccount({
             method: "post",
             path: "tokopedia/akun/delete",
             payload: {
-                usernames: payload
-            }
+                usernames: payload,
+            },
         })
     }
 
@@ -251,33 +254,81 @@ export default function Upload(props: {
                 id="top-pagination"
             >
                 {Boolean(profiles.length) && (
-                    <Pagination
-                        pageSize={query.limit}
-                        total={totalData}
-                        showSizeChanger
-                        pageSizeOptions={[10, 20, 30, 40, 50, 75, 100]}
-                        current={query.page}
-                        onChange={(page, size) => {
-                            if (query.limit !== size) {
-                                setQuery((q) => ({
-                                    ...q,
-                                    limit: size,
-                                    page: 1,
-                                }))
-                            } else {
-                                setQuery((q) => ({ ...q, limit: size, page }))
-                            }
-                        }}
-                        showTotal={(tot) => `Total ${tot} profile`}
-                    />
+                    <>
+                        <Pagination
+                            pageSize={query.limit}
+                            total={totalData}
+                            showSizeChanger
+                            pageSizeOptions={[10, 20, 30, 40, 50, 75, 100]}
+                            current={query.page}
+                            onChange={(page, size) => {
+                                if (query.limit !== size) {
+                                    setQuery((q) => ({
+                                        ...q,
+                                        limit: size,
+                                        page: 1,
+                                    }))
+                                } else {
+                                    setQuery((q) => ({
+                                        ...q,
+                                        limit: size,
+                                        page,
+                                    }))
+                                }
+                            }}
+                            showTotal={(tot) => `Total ${tot} profile`}
+                        />
+                        <Checkbox
+                            checked={useMapper}
+                            onChange={(e) => {
+                                if (e.target.checked) {
+                                    setUseMapperApi(
+                                        {
+                                            method: "put",
+                                            path: "tokopedia/mapper/setting",
+                                            payload: { use_mapper: true },
+                                        },
+                                        {
+                                            onSuccess(data) {
+                                                setUseMapper(data.use_mapper)
+                                                message.info(
+                                                    `Use category mapper ${
+                                                        data.use_mapper
+                                                            ? "ENABLED"
+                                                            : "DISABLED"
+                                                    }`
+                                                )
+                                            },
+                                        }
+                                    )
+                                    return
+                                }
+
+                                setUseMapperApi(
+                                    {
+                                        method: "put",
+                                        path: "tokopedia/mapper/setting",
+                                        payload: { use_mapper: false },
+                                    },
+                                    {
+                                        onSuccess(data) {
+                                            setUseMapper(data.use_mapper)
+                                            message.info(
+                                                `Use category mapper ${
+                                                    data.use_mapper
+                                                        ? "ENABLED"
+                                                        : "DISABLED"
+                                                }`
+                                            )
+                                        },
+                                    }
+                                )
+                            }}
+                        >
+                            Use Automatic Category Mapping
+                        </Checkbox>
+                    </>
                 )}
-                <Checkbox checked={useMapper} onChange={e => {
-                    if (e.target.checked) {
-                        setUseMapperApi({method: "put", path: "tokopedia/mapper/setting", })
-                    }
-                }}>
-                    Use Automatic Category Mapping
-                </Checkbox>
             </Flex>
             <div></div>
             <div
