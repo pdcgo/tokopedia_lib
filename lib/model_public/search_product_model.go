@@ -1,31 +1,58 @@
 package model_public
 
+import (
+	"net/url"
+	"reflect"
+	"strings"
+
+	"github.com/gorilla/schema"
+	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
+)
+
+var encoder = schema.NewEncoder()
+
 type SearchProductVar struct {
-	Sort           string `json:"ob,omitempty"`    // 23
-	Page           int    `json:"page"`            // 1
-	Rows           int    `json:"rows,omitempty"`  // 80
-	Device         string `json:"device"`          // desktop
-	Related        bool   `json:"related"`         // true
-	SafeSearch     bool   `json:"safe_search"`     // false
-	Scheme         string `json:"scheme"`          // https
-	UserDistrictID string `json:"user_districtId"` // 176
-	UserCityID     string `json:"user_cityId"`     // 2274
-	Source         string `json:"source"`          // search
-	TopadsBucket   bool   `json:"topads_bucket"`   // true
-	Start          int    `json:"start"`
-	PriceMin       int    `json:"pmin,omitempty"`
-	PriceMax       int    `json:"pmax,omitempty"`
-	Rate           string `json:"rt,omitempty"`
-	Query          string `json:"q,omitempty"`
-	Locations      string `json:"fcity,omitempty"`
-	Condition      string `json:"condition,omitempty"`
-	ShopTier       string `json:"shop_tier,omitempty"`
-	CategoryId     int    `json:"sc,omitempty"`
-	Identifier     string `json:"identifier,omitempty"`
-	Navsource      string `json:"navsource"`
-	UniqueId       string `json:"unique_id"`
-	Shipping       string `json:"shipping,omitempty"`
-	PreOrder       bool   `json:"preorder,omitempty"`
+	Sort           string   `schema:"ob,omitempty"`
+	Page           int      `schema:"page"`
+	Rows           int      `schema:"rows,omitempty"`
+	Device         string   `schema:"device"`
+	Related        bool     `schema:"related"`
+	SafeSearch     bool     `schema:"safe_search"`
+	Scheme         string   `schema:"scheme"`
+	UserDistrictID string   `schema:"user_districtId"`
+	UserCityID     string   `schema:"user_cityId"`
+	Source         string   `schema:"source"`
+	TopadsBucket   bool     `schema:"topads_bucket"`
+	Start          int      `schema:"start"`
+	PriceMin       int      `schema:"pmin,omitempty"`
+	PriceMax       int      `schema:"pmax,omitempty"`
+	Rate           []string `schema:"rt,omitempty"`
+	Query          string   `schema:"q,omitempty"`
+	Fcity          []string `schema:"fcity,omitempty"`
+	Condition      []string `schema:"condition,omitempty"`
+	ShopTier       []string `schema:"shop_tier,omitempty"`
+	CategoryId     int      `schema:"sc,omitempty"`
+	Identifier     string   `schema:"identifier,omitempty"`
+	Navsource      string   `schema:"navsource"`
+	UniqueId       string   `schema:"unique_id"`
+	Shipping       []string `schema:"shipping,omitempty"`
+	PreOrder       bool     `schema:"preorder,omitempty"`
+}
+
+func (v *SearchProductVar) GetQuery() string {
+
+	encoder.RegisterEncoder([]string{}, func(v reflect.Value) string {
+		return strings.Join(v.Interface().([]string), "#")
+	})
+
+	encoder.RegisterEncoder("", func(v reflect.Value) string {
+		return url.QueryEscape(v.Interface().(string))
+	})
+
+	query := url.Values{}
+	encoder.Encode(v, query)
+
+	return query.Encode()
 }
 
 func NewSearchProductVar() *SearchProductVar {
@@ -44,6 +71,30 @@ func NewSearchProductVar() *SearchProductVar {
 	}
 
 	return &productVar
+}
+
+func NewGrabSearchProductVar(grabTokopedia *legacy.GrabTokopedia) *SearchProductVar {
+
+	searchVar := NewSearchProductVar()
+
+	searchVar.PriceMin = grabTokopedia.Query.Pmin
+	searchVar.PriceMax = grabTokopedia.Query.Pmax
+	searchVar.PreOrder = grabTokopedia.Query.Preorder
+	searchVar.Fcity = grabTokopedia.Query.Fcity
+	searchVar.Shipping = grabTokopedia.Query.Shipping
+	searchVar.Sort = grabTokopedia.Query.Ob
+	searchVar.Rate = strings.Split(grabTokopedia.Query.Rt, ",")
+	searchVar.Condition = strings.Split(grabTokopedia.Query.Condition, ",")
+
+	if grabTokopedia.Query.Official {
+		searchVar.ShopTier = append(searchVar.ShopTier, "2")
+	}
+
+	if grabTokopedia.Query.Goldmerchant {
+		searchVar.ShopTier = append(searchVar.ShopTier, "3")
+	}
+
+	return searchVar
 }
 
 type SearchProductAdParams struct {

@@ -51,7 +51,7 @@ func (g *CategoryCsvGrabber) Run() error {
 
 		filters = append(filters, filtersOpt...)
 
-		searchVar := CreateGrabSearchVar(grabTokopedia)
+		searchVar := model_public.NewGrabSearchProductVar(grabTokopedia)
 		categoryId := getCategoryId(category.Url)
 		searchVar.CategoryId = categoryId
 

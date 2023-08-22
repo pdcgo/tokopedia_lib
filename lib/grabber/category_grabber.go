@@ -62,7 +62,7 @@ func (g *CategoryGrabber) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	filterItem := filter.NewFilterItem(ctx, filters...)
 
-	searchVar := CreateGrabSearchVar(grabTokopedia)
+	searchVar := model_public.NewGrabSearchProductVar(grabTokopedia)
 	searchVar.CategoryId = catId
 
 	err = iterator.IterateSearchPage(g.Api, ctx, searchVar, func(items []*model_public.ProductSearch) error {

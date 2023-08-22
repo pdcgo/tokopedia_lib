@@ -2,9 +2,7 @@ package iterator
 
 import (
 	"context"
-	"encoding/json"
 	"math"
-	"strings"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -12,18 +10,6 @@ import (
 )
 
 type SearchPageHandler func(items []*model_public.ProductSearch) error
-
-func createSearchParams(searchVar *model_public.SearchProductVar) (string, error) {
-	rawParams, err := json.Marshal(searchVar)
-	if err != nil {
-		return "", err
-	}
-	stringParams := string(rawParams)
-	replacer := strings.NewReplacer(`"`, "", ":", "=", ",", "&", " ", "", "[", "", "]", "")
-	validParams := replacer.Replace(stringParams)
-
-	return validParams[1 : len(validParams)-1], nil
-}
 
 func IterateSearchPage(
 	api *api_public.TokopediaApiPublic,
@@ -42,13 +28,8 @@ Parent:
 			break Parent
 		default:
 
-			params, err := createSearchParams(searchVar)
-			if err != nil {
-				return err
-			}
-
 			variable := &model_public.ParamsVar{
-				Params: params,
+				Params: searchVar.GetQuery(),
 			}
 			resp, err := api.SearchProductQueryV4(variable)
 			if err != nil {
