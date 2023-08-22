@@ -177,7 +177,7 @@ export default function MapEtalaseHeader(props: Props) {
                                                         {e.etalase}
                                                     </Typography.Text>
                                                     <Button
-                                                        type="ghost"
+                                                        ghost
                                                         size="small"
                                                         onClick={() =>
                                                             onDelete(e.etalase)

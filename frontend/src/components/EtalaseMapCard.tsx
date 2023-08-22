@@ -42,7 +42,7 @@ export default function EtalaseMapCard(props: Props) {
                     path: "tokopedia/etalase_map/update",
                     payload: [
                         {
-                            category_id: props.item.tokpedia_id,
+                            category_id: props.item.tokopedia_id,
                             etalase_name: key,
                             ID: 0,
                         },
@@ -59,14 +59,14 @@ export default function EtalaseMapCard(props: Props) {
 
     function onAdd() {
         if (newName) {
-            if (props.item.tokpedia_id) {
+            if (props.item.tokopedia_id) {
                 sender(
                     {
                         method: "put",
                         path: "tokopedia/etalase_map/update",
                         payload: [
                             {
-                                category_id: props.item.tokpedia_id,
+                                category_id: props.item.tokopedia_id,
                                 etalase_name: newName,
                                 ID: 0,
                             },
@@ -115,11 +115,11 @@ export default function EtalaseMapCard(props: Props) {
                 </Flex>
                 <Select
                     placeholder={
-                        !props.item.tokpedia_id
+                        !props.item.tokopedia_id
                             ? "Check category mapping"
                             : "Choose etalase"
                     }
-                    disabled={!props.item.tokpedia_id}
+                    disabled={!props.item.tokopedia_id}
                     dropdownRender={(menu) => {
                         return (
                             <>

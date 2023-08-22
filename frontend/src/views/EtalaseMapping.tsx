@@ -110,7 +110,7 @@ export default function EtalaseMapping(props: { activePage?: string }) {
                 {!pending &&
                     namespace != "" &&
                     trail.map(({ ...styles }, i) => (
-                        <a.div key={list[i].tokpedia_id} style={styles}>
+                        <a.div key={list[i].tokopedia_id} style={styles}>
                             <React.Suspense fallback={loader}>
                                 <EtalaseMapCard
                                     item={list[i]}
