@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { Suspense, useEffect, useState } from "react"
-import { Card, Divider, Pagination, Result, message } from "antd"
+import { Card, Checkbox, Divider, Pagination, Result, message } from "antd"
 import { useRequest } from "../client"
 import { useListProfileStore } from "../store/listProfile"
 import { Flex, FlexColumn } from "../styled_components"
@@ -45,6 +45,7 @@ export default function Upload(props: {
     ])
 
     const [query, setQuery] = useState({ page: 1, limit: 10, name: "" })
+    const [useMapper, setUseMapper]  =useState(false)
     const [showBottomPagination, setShowBottomPagination] = useState(false)
     const [messageApi, ctx] = message.useMessage()
 
@@ -61,6 +62,17 @@ export default function Upload(props: {
             onError: (e) => message.error(JSON.stringify(e)),
         }
     )
+
+    const { sender: getUseMapper } = useRequest("GetTokopediaMapperSetting", {
+        onSuccess(data) {
+            setUseMapper(data.use_mapper)
+        },
+    })
+    const { sender: setUseMapperApi } = useRequest("PutTokopediaMapperSetting", {
+        onSuccess(data) {
+            setUseMapper(data.use_mapper)
+        },
+    })
 
     const { sender: deleterAccount } = useRequest("PostTokopediaAkunDelete", {
         onError(err) {
@@ -97,6 +109,7 @@ export default function Upload(props: {
     useEffect(() => {
         if (props.activePage == "upload") {
             initEffect(query.limit, (query.page - 1) * query.limit, query.name)
+            getUseMapper({method: "get", path: "tokopedia/mapper/setting"})
         }
     }, [query.limit, query.name, query.page, props.activePage])
 
@@ -230,7 +243,13 @@ export default function Upload(props: {
             </Suspense>
             <Divider dashed style={{ margin: "5px 0" }} />
             {render()}
-            <Flex style={{ justifyContent: "flex-start" }} id="top-pagination">
+            <Flex
+                style={{
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                }}
+                id="top-pagination"
+            >
                 {Boolean(profiles.length) && (
                     <Pagination
                         pageSize={query.limit}
@@ -252,6 +271,13 @@ export default function Upload(props: {
                         showTotal={(tot) => `Total ${tot} profile`}
                     />
                 )}
+                <Checkbox checked={useMapper} onChange={e => {
+                    if (e.target.checked) {
+                        setUseMapperApi({method: "put", path: "tokopedia/mapper/setting", })
+                    }
+                }}>
+                    Use Automatic Category Mapping
+                </Checkbox>
             </Flex>
             <div></div>
             <div
