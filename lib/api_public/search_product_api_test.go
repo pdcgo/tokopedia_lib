@@ -1,8 +1,6 @@
 package api_public_test
 
 import (
-	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -30,13 +28,43 @@ func TestSearchProductQueryV4(t *testing.T) {
 	api, err := api_public.NewTokopediaApiPublic()
 	assert.Nil(t, err)
 
+	searchVar := model_public.NewSearchProductVar()
+	searchVar.Query = "ayam"
 	variable := model_public.ParamsVar{
-		Params: "ob=8&page=1&rows=100&device=desktop&related=true&safe_search=false&scheme=https&user_districtId=176&user_cityId=1759&source=search&topads_bucket=true&pmin=10000&pmax=100000&rt=0%231%232%233%234%235&condition=1&start=1&identifier=fashion-pria&navsource=&unique_id=&shipping=%23%23%2310%2312%2313&page=1&sc=1759",
+		Params: searchVar.GetQuery(),
 	}
 
 	hasil, err := api.SearchProductQueryV4(&variable)
 	assert.Nil(t, err)
-	rawResp, _ := json.MarshalIndent(hasil, "", "	")
-	fmt.Println(string(rawResp))
-	assert.NotEmpty(t, hasil)
+	assert.NotEmpty(t, hasil.Data.AceSearchProductV4.Data.Products)
+
+	t.Run("test ketika ada kota count items tidak sama dengan 0", func(t *testing.T) {
+
+		searchVar := model_public.NewSearchProductVar()
+		searchVar.Query = "ayam"
+		searchVar.Fcity = []string{"174,175,176,177,178,179"}
+
+		variable := model_public.ParamsVar{
+			Params: searchVar.GetQuery(),
+		}
+
+		hasil, err := api.SearchProductQueryV4(&variable)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil.Data.AceSearchProductV4.Data.Products)
+	})
+
+	t.Run("test ketika ada kota dobel count items tidak sama dengan 0", func(t *testing.T) {
+
+		searchVar := model_public.NewSearchProductVar()
+		searchVar.Query = "ayam"
+		searchVar.Fcity = []string{"174,175,176,177,178,179", "174", "258,259,260,261,262,263,264,265,476,266"}
+
+		variable := model_public.ParamsVar{
+			Params: searchVar.GetQuery(),
+		}
+
+		hasil, err := api.SearchProductQueryV4(&variable)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil.Data.AceSearchProductV4.Data.Products)
+	})
 }

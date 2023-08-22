@@ -43,7 +43,7 @@ func (g *KeywordGrabber) Run() error {
 			filters = append(filters, filtersOpt...)
 		}
 
-		searchVar := CreateGrabSearchVar(grabTokopedia)
+		searchVar := model_public.NewGrabSearchProductVar(grabTokopedia)
 		searchVar.Query = url.QueryEscape(item)
 
 		ctx, cancel := context.WithCancel(context.Background())
