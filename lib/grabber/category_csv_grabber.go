@@ -2,14 +2,17 @@ package grabber
 
 import (
 	"context"
+	"errors"
 	"log"
 
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
 	"github.com/pdcgo/tokopedia_lib/lib/csv"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/filter"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/iterator"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
+	"github.com/rs/zerolog"
 )
 
 type CategoryCsvGrabber struct {
@@ -29,20 +32,15 @@ func (g *CategoryCsvGrabber) Run() error {
 
 	filtersOpt := filter.NewGrabFilterBundle(g.Api, g.Base, filterText, grabBasic, grabTokopedia, markupConfig)
 
-	categories, err := g.Api.HeaderMainData()
+	headerData, err := g.Api.HeaderMainData()
 	if err != nil {
 		return err
 	}
+	categories := headerData.Data.CategoryAllListLite.Categories
 
-	getCategoryId := func(url string) int {
-		res := csv.GetCategoryByUrl(categories.Data.CategoryAllListLite.Categories, url)
-		category := <-res
-		return category.ID
-	}
+	return iterator.IterateCategoryCsv(g.Base, func(item *csv.CategoryCsv) error {
 
-	return iterator.IterateCategoryCsv(g.Base, func(category *csv.CategoryCsv) error {
-
-		log.Println("[ info ] grab category", category.Name)
+		log.Println("[ info ] grab category", item.Name)
 
 		filterLimit, addCount := filter.CreateLimiter(grabBasic)
 		filters := []filter.FilterHandler{
@@ -51,14 +49,27 @@ func (g *CategoryCsvGrabber) Run() error {
 
 		filters = append(filters, filtersOpt...)
 
+		category, err := categories.GetCategoryByUrl(item.Url)
+		if err != nil || category.ID == 0 {
+
+			if err == nil {
+				err = errors.New("no category")
+			}
+
+			pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+				return event.Str("category", item.Name).Str("url", item.Url)
+			})
+
+			return nil
+		}
+
 		searchVar := model_public.NewGrabSearchProductVar(grabTokopedia)
-		categoryId := getCategoryId(category.Url)
-		searchVar.CategoryId = categoryId
+		searchVar.CategoryId = category.ID
 
 		ctx, cancel := context.WithCancel(context.Background())
 		filterItem := filter.NewFilterItem(ctx, filters...)
 
-		err := iterator.IterateSearchPage(g.Api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
+		err = iterator.IterateSearchPage(g.Api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
 
 			var urls []string
 			for _, item := range items {

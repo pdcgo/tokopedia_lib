@@ -1,5 +1,9 @@
 package model_public
 
+import (
+	"math"
+)
+
 type Violation struct {
 	HeaderText      string `json:"headerText"`
 	DescriptionText string `json:"descriptionText"`
@@ -118,6 +122,33 @@ type ProductSearch struct {
 	Typename           string        `json:"__typename"`
 }
 
+type SearchProducts []*ProductSearch
+
+type SearchProductChunkHandler func([]*ProductSearch) error
+
+func (products SearchProducts) IterateChunks(num int, handler SearchProductChunkHandler) error {
+
+	productlen := len(products)
+	numChunk := math.Ceil(float64(productlen) / float64(num))
+
+	for i := 0; i < int(numChunk); i++ {
+
+		start := i * 10
+		end := (i + 1) * 10
+
+		if end > productlen {
+			end = productlen
+		}
+
+		err := handler(products[start:end])
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 type SearchProductData struct {
 	Banner         SearchProductBanner `json:"banner"`
 	BackendFilters string              `json:"backendFilters"`
@@ -126,7 +157,7 @@ type SearchProductData struct {
 	Redirection    Redirection         `json:"redirection"`
 	Related        Related             `json:"related"`
 	Suggestion     Suggestion          `json:"suggestion"`
-	Products       []*ProductSearch    `json:"products"`
+	Products       SearchProducts      `json:"products"`
 	Violation      Violation           `json:"violation"`
 	Typename       string              `json:"__typename"`
 }

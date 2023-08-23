@@ -6,6 +6,7 @@ import (
 
 	"github.com/pdcgo/tokopedia_lib/app/web/api"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
+	"github.com/pdcgo/tokopedia_lib/lib/csv"
 	"github.com/pdcgo/tokopedia_lib/scenario"
 	"github.com/pdcgo/v2_gots_sdk"
 	"github.com/stretchr/testify/assert"
@@ -30,6 +31,12 @@ func TestApiCategoryDump(t *testing.T) {
 
 				assert.Equal(t, http.StatusOK, res.Result().StatusCode)
 
+				t.Run("test category dump berhasil", func(t *testing.T) {
+
+					items, err := csv.LoadCategoryCsv(scen)
+					assert.Nil(t, err)
+					assert.Greater(t, 100, len(items))
+				})
 			})
 
 		})

@@ -27,11 +27,11 @@ type CategoryCsv struct {
 	Status     StatusGrabCategoryCsv `csv:"status" json:"status"`
 }
 
-func NewCategoryCsv(parent, category *model_public.Categories) *CategoryCsv {
+func NewCategoryCsv(parentName string, category *model_public.Categories) *CategoryCsv {
 
 	return &CategoryCsv{
 		Type:       "category",
-		ParentName: parent.Name,
+		ParentName: parentName,
 		Name:       category.Name,
 		Url:        category.URL,
 		Status:     "",
@@ -77,28 +77,4 @@ func SaveCategoryCsv(base BaseConfig, categories []*CategoryCsv) error {
 		return err
 	}
 	return nil
-}
-
-func GetCategoryByUrl(categories []*model_public.Categories, url string) <-chan *model_public.Categories {
-
-	category := make(chan *model_public.Categories)
-	go func() {
-		defer close(category)
-
-	Loop:
-		for _, categ := range categories {
-			if categ.URL == url {
-				category <- categ
-				break Loop
-			}
-			if len(categ.Children) != 0 {
-				childsGroup := GetCategoryByUrl(categ.Children, url)
-				for child := range childsGroup {
-					category <- child
-					break Loop
-				}
-			}
-		}
-	}()
-	return category
 }

@@ -56,19 +56,6 @@ func IterateNestedCategory(parent *model_public.Categories, categories []*model_
 	return nil
 }
 
-func (api *CategoryDumpApi) IterateCategory(handler CategoryDumpHandler) error {
-
-	res, err := api.pubapi.HeaderMainData()
-	if err != nil {
-		return err
-	}
-
-	categories := res.Data.CategoryAllListLite.Categories
-	err = IterateNestedCategory(nil, categories, handler)
-
-	return err
-}
-
 type DumpCategoryResponse struct {
 	ErrCode int    `json:"errcode"`
 	Message string `json:"message,omitempty"`
@@ -78,13 +65,31 @@ type DumpCategoryResponse struct {
 func (api *CategoryDumpApi) DumpCategory(c *gin.Context) {
 
 	items := []*csv.CategoryCsv{}
-	err := api.IterateCategory(func(parent, category *model_public.Categories) error {
+	res, err := api.pubapi.HeaderMainData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, DumpCategoryResponse{
+			ErrCode: 500,
+			Message: err.Error(),
+			Status:  "Internal Server Error",
+		})
+		return
+	}
 
-		item := csv.NewCategoryCsv(parent, category)
-		items = append(items, item)
+	categories := res.Data.CategoryAllListLite.Categories
+	err = categories.Iterate(func(parents []*model_public.Categories, category *model_public.Categories) (stop bool, err error) {
 
-		err := csv.SaveCategoryCsv(api.base, items)
-		return err
+		if len(parents) > 0 {
+			parent := parents[0]
+			item := csv.NewCategoryCsv(parent.Name, category)
+			items = append(items, item)
+
+		} else {
+			item := csv.NewCategoryCsv("", category)
+			items = append(items, item)
+		}
+
+		err = csv.SaveCategoryCsv(api.base, items)
+		return false, err
 	})
 
 	if err != nil {

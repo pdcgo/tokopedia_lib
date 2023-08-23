@@ -38,6 +38,19 @@ func TestSearchProductQueryV4(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotEmpty(t, hasil.Data.AceSearchProductV4.Data.Products)
 
+	t.Run("test iterate chunk items", func(t *testing.T) {
+
+		count := 0
+		err := hasil.Data.AceSearchProductV4.Data.Products.IterateChunks(10, func(ps []*model_public.ProductSearch) error {
+			count++
+			assert.Equal(t, len(ps), 10)
+			return nil
+		})
+
+		assert.Nil(t, err)
+		assert.Equal(t, count, 10)
+	})
+
 	t.Run("test ketika ada kota count items tidak sama dengan 0", func(t *testing.T) {
 
 		searchVar := model_public.NewSearchProductVar()

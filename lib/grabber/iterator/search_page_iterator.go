@@ -2,7 +2,7 @@ package iterator
 
 import (
 	"context"
-	"math"
+	"errors"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -37,23 +37,21 @@ Parent:
 			}
 
 			products := resp.Data.AceSearchProductV4.Data.Products
-			prodLength := len(products)
-			maxArray := math.Ceil(float64(prodLength) / 10)
-			for i := 1; i <= int(maxArray); i++ {
+			err = products.IterateChunks(10, func(ps []*model_public.ProductSearch) error {
 				select {
 				case <-ctx.Done():
-					break Parent
-				default:
-					startIndex := i*10 - 10
-					endIndex := i * 10
-					if endIndex > prodLength {
-						endIndex = prodLength
-					}
+					return ctx.Err()
 
-					err := handler(products[startIndex:endIndex])
-					if err != nil {
-						pdc_common.ReportError(err)
-					}
+				default:
+					return handler(ps)
+				}
+			})
+
+			if err != nil {
+				if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+					break Parent
+				} else {
+					pdc_common.ReportError(err)
 				}
 			}
 
