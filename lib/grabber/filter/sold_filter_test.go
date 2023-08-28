@@ -28,7 +28,7 @@ func TestSoldFilter(t *testing.T) {
 
 			t.Run("test filter sold ok", func(t *testing.T) {
 
-				layout.Data.PdpGetLayout.BasicInfo.TxStats.CountSold = "200"
+				layout.Data.PdpGetLayout.BasicInfo.TxStats.CountSold = 200
 
 				cek, reason, err := filterSold(&layout, &pdp)
 				assert.False(t, cek)
@@ -38,7 +38,7 @@ func TestSoldFilter(t *testing.T) {
 
 			t.Run("test filter sold not ok", func(t *testing.T) {
 
-				layout.Data.PdpGetLayout.BasicInfo.TxStats.CountSold = "91"
+				layout.Data.PdpGetLayout.BasicInfo.TxStats.CountSold = 91
 
 				cek, reason, err := filterSold(&layout, &pdp)
 				assert.True(t, cek)

@@ -100,7 +100,7 @@ func CreateCacheProduct(
 		return mongorepo.CacheProduct{}, err
 	}
 
-	sold, err := strconv.Atoi(pdpLayout.BasicInfo.TxStats.CountSold)
+	sold := pdpLayout.BasicInfo.TxStats.CountSold
 	if err != nil {
 		return mongorepo.CacheProduct{}, err
 	}

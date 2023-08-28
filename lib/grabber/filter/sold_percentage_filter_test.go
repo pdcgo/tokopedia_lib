@@ -28,8 +28,8 @@ func TestSoldPercentageFilter(t *testing.T) {
 
 			t.Run("test filter sold percentage ok", func(t *testing.T) {
 
-				layout.Data.PdpGetLayout.BasicInfo.TxStats.TransactionSuccess = "30"
-				layout.Data.PdpGetLayout.BasicInfo.TxStats.CountSold = "33"
+				layout.Data.PdpGetLayout.BasicInfo.TxStats.TransactionSuccess = 30
+				layout.Data.PdpGetLayout.BasicInfo.TxStats.CountSold = 33
 
 				cek, reason, err := filterSoldPercentage(&layout, &pdp)
 				assert.False(t, cek)
@@ -39,8 +39,8 @@ func TestSoldPercentageFilter(t *testing.T) {
 
 			t.Run("test filter sold percentage not ok", func(t *testing.T) {
 
-				layout.Data.PdpGetLayout.BasicInfo.TxStats.TransactionSuccess = "20"
-				layout.Data.PdpGetLayout.BasicInfo.TxStats.CountSold = "50"
+				layout.Data.PdpGetLayout.BasicInfo.TxStats.TransactionSuccess = 20
+				layout.Data.PdpGetLayout.BasicInfo.TxStats.CountSold = 50
 
 				cek, reason, err := filterSoldPercentage(&layout, &pdp)
 				assert.True(t, cek)

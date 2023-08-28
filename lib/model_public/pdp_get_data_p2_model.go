@@ -356,10 +356,10 @@ func (p *ComponentParser) UnmarshalJSON(data []byte) error {
 }
 
 type ProductTxStats struct {
-	TransactionSuccess string `json:"transactionSuccess"`
-	TransactionReject  string `json:"transactionReject"`
-	CountSold          string `json:"countSold"`
-	PaymentVerified    string `json:"paymentVerified"`
+	TransactionSuccess int    `json:"transactionSuccess,string"`
+	TransactionReject  int    `json:"transactionReject,string"`
+	CountSold          int    `json:"countSold,string"`
+	PaymentVerified    int    `json:"paymentVerified,string"`
 	ItemSoldFmt        string `json:"itemSoldFmt"`
 	Typename           string `json:"__typename"`
 }
