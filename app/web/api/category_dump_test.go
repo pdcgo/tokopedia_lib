@@ -35,7 +35,7 @@ func TestApiCategoryDump(t *testing.T) {
 
 					items, err := csv.LoadCategoryCsv(scen)
 					assert.Nil(t, err)
-					assert.Greater(t, 100, len(items))
+					assert.Greater(t, len(items), 100)
 				})
 			})
 

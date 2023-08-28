@@ -365,11 +365,46 @@ type ProductTxStats struct {
 }
 
 type BasicInfoStats struct {
-	CountView   string  `json:"countView"`
-	CountReview string  `json:"countReview"`
-	CountTalk   string  `json:"countTalk"`
+	CountView   int     `json:"countView"`
+	CountReview int     `json:"countReview"`
+	CountTalk   int     `json:"countTalk"`
 	Rating      float64 `json:"rating"`
 	Typename    string  `json:"__typename"`
+}
+
+func (stat *BasicInfoStats) UnmarshalJSON(data []byte) error {
+	type Alias BasicInfoStats
+	aux := &struct {
+		CountView   string `json:"countView"`
+		CountReview string `json:"countReview"`
+		CountTalk   string `json:"countTalk"`
+		*Alias
+	}{
+		Alias: (*Alias)(stat),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	cview, err := strconv.Atoi(aux.CountView)
+	if err != nil {
+		return err
+	}
+
+	creview, err := strconv.Atoi(aux.CountReview)
+	if err != nil {
+		return err
+	}
+
+	ctalk, err := strconv.Atoi(aux.CountTalk)
+	if err != nil {
+		return err
+	}
+	stat.CountView = cview
+	stat.CountReview = creview
+	stat.CountTalk = ctalk
+
+	return nil
 }
 
 type CategoryDetail []struct {

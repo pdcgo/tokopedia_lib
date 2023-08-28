@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"log"
 
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	"github.com/pdcgo/go_v2_shopeelib/lib/upload_config"
+	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/app/grab"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 )
@@ -18,7 +18,7 @@ func RunGrab(ctx context.Context) error {
 	}
 
 	base := &legacy_source.BaseConfig{
-		BaseData: "./..",
+		BaseData: "./../../pdcgo/pdc_launcher/test_base",
 	}
 
 	botConfig := upload_config.NewBotConfig(base)
@@ -32,20 +32,20 @@ func RunGrab(ctx context.Context) error {
 }
 
 func main() {
-	// driver, _ := tokopedia_lib.NewDriverAccount("delaccozz12@yahoo.com", "M@ret2022", "QFY76RQYBXJ6NPBWVF24HF7QUT7IAG74")
+	driver, _ := tokopedia_lib.NewDriverAccount("farikahmad84@gmail.com", "Jatim123", "5OWGYNU7TM3C34SDDDJ7XVC3M4SAI6H4")
 
-	// driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
-	// 	driver.SellerLogin(dctx)
+	driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
+		driver.SellerLogin(dctx)
 
-	// 	time.Sleep(time.Hour)
+		// time.Sleep(time.Hour)
 
-	// 	return nil
-	// })
+		return nil
+	})
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	// ctx, cancel := context.WithCancel(context.Background())
+	// defer cancel()
 
-	if err := RunGrab(ctx); err != nil {
-		log.Fatal(err)
-	}
+	// if err := RunGrab(ctx); err != nil {
+	// 	log.Fatal(err)
+	// }
 }
