@@ -86,7 +86,7 @@ func (flow *ShopeeToTopedFlow) createVariantHandler(spin shopeeuploader.SpinFunc
 			}
 
 			if flow.ConfigFlow.VariantHandlerConfig.RandomStock {
-				product.Stock = flow.ConfigFlow.VariantHandlerConfig.StockSpin.GenerateSpin()
+				product.Stock = flow.ConfigFlow.VariantHandlerConfig.StockSpin.GenerateSpin(len(source.Models))
 			}
 
 			products = append(products, product)

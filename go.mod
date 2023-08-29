@@ -6,13 +6,13 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/gocarina/gocsv v0.0.0-20230513223533-9ddd7fd60602
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.3.1
 	github.com/pdcgo/common_conf v1.1.12
-	github.com/pdcgo/go_v2_shopeelib v1.1.26
+	github.com/pdcgo/go_v2_shopeelib v1.1.30
 	github.com/pdcgo/v2_gots_sdk v1.2.4
 	github.com/sethvargo/go-retry v0.2.4
 	go.mongodb.org/mongo-driver v1.11.3
-	gorm.io/gorm v1.25.3
+	gorm.io/gorm v1.25.4
 	nhooyr.io/websocket v1.8.7
 )
 
@@ -41,7 +41,7 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
-	github.com/google/s2a-go v0.1.4 // indirect
+	github.com/google/s2a-go v0.1.5 // indirect
 	github.com/google/wire v0.5.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
@@ -93,8 +93,8 @@ require (
 	golang.org/x/term v0.11.0 // indirect
 	golang.org/x/tools v0.12.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230807174057-1744710a1577 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230807174057-1744710a1577 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )
 
@@ -105,7 +105,7 @@ require (
 	cloud.google.com/go/logging v1.8.1 // indirect
 	cloud.google.com/go/longrunning v0.5.1 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
-	github.com/chromedp/cdproto v0.0.0-20230808232040-5d0fb3432de3
+	github.com/chromedp/cdproto v0.0.0-20230828023241-f357fd93b5d6
 	github.com/chromedp/chromedp v0.9.2
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -150,11 +150,11 @@ require (
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
-	google.golang.org/api v0.136.0 // indirect
+	google.golang.org/api v0.138.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230807174057-1744710a1577 // indirect
+	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d // indirect
 	google.golang.org/grpc v1.57.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/driver/sqlite v1.5.2
+	gorm.io/driver/sqlite v1.5.3
 )

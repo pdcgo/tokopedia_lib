@@ -65,7 +65,7 @@ func (flow *ShopeeToTopedFlow) createSpinHandler(akun *repo.AkunItem, spin shope
 			payload.NovariantStockPrice.Stock = int64(source.Stock)
 
 			if flow.ConfigFlow.VariantHandlerConfig.RandomStock {
-				stock := flow.ConfigFlow.VariantHandlerConfig.StockSpin.GenerateSpin()
+				stock := flow.ConfigFlow.VariantHandlerConfig.StockSpin.GenerateSpin(1)
 				payload.NovariantStockPrice.Stock = int64(stock)
 			}
 
