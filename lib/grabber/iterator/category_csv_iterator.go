@@ -1,6 +1,7 @@
 package iterator
 
 import (
+	"errors"
 	"log"
 	"os"
 
@@ -14,6 +15,11 @@ type CategoryCsvHandler func(item *csv.CategoryCsv) error
 func IterateCategoryCsv(base *legacy_source.BaseConfig, handler CategoryCsvHandler) error {
 	categories, err := csv.LoadCategoryCsv(base)
 	if err != nil {
+
+		if errors.Is(err, csv.ErrDeprecatedCategoryCsv) {
+			log.Println("[ warning ]", err)
+			return nil
+		}
 
 		if os.IsNotExist(err) {
 			log.Println("[ warning ] file tokopedia_list_category.csv tidak ditemukan")

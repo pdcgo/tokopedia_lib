@@ -40,7 +40,8 @@ func (g *CategoryCsvGrabber) Run() error {
 
 	return iterator.IterateCategoryCsv(g.Base, func(item *csv.CategoryCsv) error {
 
-		log.Println("[ info ] grab category", item.Name)
+		catname := item.GetName()
+		log.Println("[ info ] grab category", catname)
 
 		filterLimit, addCount := filter.CreateLimiter(grabBasic)
 		filters := []filter.FilterHandler{
@@ -57,7 +58,7 @@ func (g *CategoryCsvGrabber) Run() error {
 			}
 
 			pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
-				return event.Str("category", item.Name).Str("url", item.Url)
+				return event.Str("category", catname).Str("url", item.Url)
 			})
 
 			return nil

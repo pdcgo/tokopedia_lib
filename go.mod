@@ -7,7 +7,7 @@ require (
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/gocarina/gocsv v0.0.0-20230513223533-9ddd7fd60602
 	github.com/google/uuid v1.3.0
-	github.com/pdcgo/common_conf v1.1.10
+	github.com/pdcgo/common_conf v1.1.12
 	github.com/pdcgo/go_v2_shopeelib v1.1.26
 	github.com/pdcgo/v2_gots_sdk v1.2.4
 	github.com/sethvargo/go-retry v0.2.4
@@ -17,7 +17,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/bigquery v1.53.0 // indirect
+	cloud.google.com/go/bigquery v1.54.0 // indirect
 	cloud.google.com/go/iam v1.1.2 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
@@ -102,7 +102,7 @@ require (
 	cloud.google.com/go v0.110.7 // indirect
 	cloud.google.com/go/compute v1.23.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
-	cloud.google.com/go/logging v1.8.0 // indirect
+	cloud.google.com/go/logging v1.8.1 // indirect
 	cloud.google.com/go/longrunning v0.5.1 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/chromedp/cdproto v0.0.0-20230808232040-5d0fb3432de3

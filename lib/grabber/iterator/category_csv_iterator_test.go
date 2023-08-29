@@ -1,7 +1,6 @@
 package iterator_test
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
@@ -28,22 +27,17 @@ func TestCategoryCsvIterator(t *testing.T) {
 
 				assert.Nil(t, err)
 				assert.Equal(t, 0, len(items))
-
 			})
 
-			t.Run("test category csv iterator with file", func(t *testing.T) {
+			t.Run("test category csv iterator with file deprecated", func(t *testing.T) {
 
 				// create file category csv
 				fname := base.Path("tokopedia_list_category.csv")
-				fdata := []string{
-					"type,parent_name,name,url,status",
-					"category,Rumah Tangga,Cover Kipas Angin,https://www.tokopedia.com/p/rumah-tangga/dekorasi/cover-kipas-angin,",
-					"category,Rumah Tangga,Cover Kursi,https://www.tokopedia.com/p/rumah-tangga/dekorasi/cover-kursi,grabbed",
-					"category,Rumah Tangga,Hiasan Dinding,https://www.tokopedia.com/p/rumah-tangga/dekorasi/hiasan-dinding,",
-				}
-				fbdata := []byte(strings.Join(fdata, "\n"))
+				fdata := `type,parent_name,name,url,status
+category,Rumah Tangga,Cover Kipas Angin,https://www.tokopedia.com/p/rumah-tangga/dekorasi/cover-kipas-angin,`
 
-				scen.CreateFile(fbdata, fname)
+				remove := scen.CreateFile([]byte(fdata), fname)
+				defer remove()
 
 				items := []*csv.CategoryCsv{}
 				err := iterator.IterateCategoryCsv(base, func(item *csv.CategoryCsv) error {
@@ -52,8 +46,29 @@ func TestCategoryCsvIterator(t *testing.T) {
 				})
 
 				assert.Nil(t, err)
-				assert.Equal(t, 2, len(items))
+				assert.Empty(t, len(items))
+			})
 
+			t.Run("test category csv iterator with file", func(t *testing.T) {
+
+				// create file category csv
+				fname := base.Path("tokopedia_list_category.csv")
+				fdata := `type,cat_1,cat_2,cat_3,url,status
+category,Rumah Tangga,,,https://www.tokopedia.com/p/rumah-tangga,
+category,Rumah Tangga,Dekorasi,,https://www.tokopedia.com/p/rumah-tangga/dekorasi,
+category,Rumah Tangga,Dekorasi,Cover Kipas Angin,https://www.tokopedia.com/p/rumah-tangga/dekorasi/cover-kipas-angin,`
+
+				remove := scen.CreateFile([]byte(fdata), fname)
+				defer remove()
+
+				items := []*csv.CategoryCsv{}
+				err := iterator.IterateCategoryCsv(base, func(item *csv.CategoryCsv) error {
+					items = append(items, item)
+					return nil
+				})
+
+				assert.Nil(t, err)
+				assert.Equal(t, 3, len(items))
 			})
 
 		})

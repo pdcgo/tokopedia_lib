@@ -78,16 +78,13 @@ func (api *CategoryDumpApi) DumpCategory(c *gin.Context) {
 	categories := res.Data.CategoryAllListLite.Categories
 	err = categories.Iterate(func(parents []*model_public.Categories, category *model_public.Categories) (stop bool, err error) {
 
-		if len(parents) > 0 {
-			parent := parents[0]
-			item := csv.NewCategoryCsv(parent.Name, category)
-			items = append(items, item)
-
-		} else {
-			item := csv.NewCategoryCsv("", category)
-			items = append(items, item)
+		categories := append(parents, category)
+		item, err := csv.NewCategoryCsv(categories)
+		if err != nil {
+			return false, err
 		}
 
+		items = append(items, item)
 		err = csv.SaveCategoryCsv(api.base, items)
 		return false, err
 	})
