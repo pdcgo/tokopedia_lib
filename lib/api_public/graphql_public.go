@@ -19,9 +19,24 @@ type GraphqlPayload struct {
 func (api *TokopediaApiPublic) graphqlDefaultHeader(req *http.Request) {
 
 	headers := map[string]string{
-		"User-Agent":   api.Session.Ua,
-		"Content-Type": "application/json",
-		"Origin":       "https://www.tokopedia.com",
+		"Content-Type":        "application/json",
+		"Origin":              "https://www.tokopedia.com",
+		"Sec-Ch-Ua":           `"Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"`,
+		"Sec-Ch-Ua-Mobile":    "?0",
+		"Sec-Ch-Ua-Platform":  `"Windows"`,
+		"User-Agent":          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+		"X-Device":            "desktop",
+		"X-Source":            "tokopedia-lite",
+		"X-Tkpd-Lite-Service": "zeus",
+		"X-Version":           "b078a1e",
+		"Pragma":              "no-cache",
+		"Cache-Control":       "no-cache",
+		"Sec-Fetch-Site":      "same-site",
+		"Sec-Fetch-Mode":      "cors",
+		"Sec-Fetch-Dest":      "empty",
+		"Referer":             "https://www.tokopedia.com/",
+		// "Accept-Encoding":     "gzip, deflate, br",
+		"Accept-Language": "en,en-US;q=0.9,id-ID;q=0.8,id;q=0.7",
 	}
 
 	for key, value := range headers {
@@ -43,10 +58,6 @@ func (api *TokopediaApiPublic) NewGraphqlReq(payload *GraphqlPayload) *http.Requ
 		pdc_common.ReportError(err)
 	}
 	api.graphqlDefaultHeader(req)
-
-	for _, cookie := range api.Session.Cookies {
-		req.AddCookie(cookie)
-	}
 
 	return req
 }
@@ -80,10 +91,6 @@ func (api *TokopediaApiPublic) NewGraphqlReqBatch(operationName string, payloads
 		return req, err
 	}
 	api.graphqlDefaultHeader(req)
-
-	for _, cookie := range api.Session.Cookies {
-		req.AddCookie(cookie)
-	}
 
 	return req, nil
 }

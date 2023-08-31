@@ -25,8 +25,7 @@ func TestBatchLayoutIterator(t *testing.T) {
 
 		ctx := context.Background()
 		layouts := []*model_public.PdpGetlayoutQueryResp{}
-
-		err := iterator.IterateBatchLayout(api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
+		err := iterator.GetBatchLayout(api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
 			layouts = append(layouts, layout)
 			return nil
 		})
@@ -42,7 +41,7 @@ func TestBatchLayoutIterator(t *testing.T) {
 		cancel()
 		layouts := []*model_public.PdpGetlayoutQueryResp{}
 
-		err := iterator.IterateBatchLayout(api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
+		err := iterator.GetBatchLayout(api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
 			layouts = append(layouts, layout)
 			return nil
 		})

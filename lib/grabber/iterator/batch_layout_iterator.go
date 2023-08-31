@@ -3,8 +3,8 @@ package iterator
 import (
 	"context"
 	"errors"
+	"log"
 	"sync"
-	"time"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -13,73 +13,118 @@ import (
 
 type BatchLayoutHandler func(layout *model_public.PdpGetlayoutQueryResp) error
 
-func IterateBatchLayout(
+// deprecated
+func GetBatchLayout(
 	api *api_public.TokopediaApiPublic,
 	ctx context.Context,
 	urls []string,
 	handler BatchLayoutHandler,
 ) (err error) {
 
-	wg := sync.WaitGroup{}
-	batchLayoutGuard := make(chan int, 3)
+	// api, _ := api_public.NewTokopediaApiPublic()
 
-	wg.Add(1)
-	batchLayoutGuard <- 1
+	var layoutVars []*model_public.PdpGetlayoutQueryVar
 
-	go func() {
-		defer wg.Done()
-		defer func() {
-			time.Sleep(time.Second)
-			<-batchLayoutGuard
-		}()
+Urls:
+	for _, url := range urls {
+		select {
 
-		var layoutVars []*model_public.PdpGetlayoutQueryVar
+		case <-ctx.Done():
+			break Urls
 
-	Urls:
-		for _, url := range urls {
-			select {
+		default:
+			layoutVar, err := model_public.NewPdpGetlayoutQueryVar(url)
+			if err != nil {
+				pdc_common.ReportError(err)
+				return err
+			}
 
-			case <-ctx.Done():
-				break Urls
+			layoutVars = append(layoutVars, layoutVar)
+		}
+	}
 
-			default:
-				layoutVar, err := model_public.NewPdpGetlayoutQueryVar(url)
-				if err != nil {
-					pdc_common.ReportError(err)
-					return
-				}
+	resp, err := api.PdpGetlayoutQueryBatch(layoutVars)
+	if err != nil {
+		if errors.Is(api_public.ErrGraphqlBatchNoQuery, err) {
+			return err
+		}
+		pdc_common.ReportError(err)
+		return err
+	}
 
-				layoutVars = append(layoutVars, layoutVar)
+Resp:
+	for _, resp := range resp {
+		select {
+
+		case <-ctx.Done():
+			break Resp
+
+		default:
+			err := handler(resp)
+			if err != nil {
+				pdc_common.ReportError(err)
+				return err
 			}
 		}
-
-		resp, err := api.PdpGetlayoutQueryBatch(layoutVars)
-		if err != nil {
-			if errors.Is(api_public.ErrGraphqlBatchNoQuery, err) {
-				return
-			}
-			pdc_common.ReportError(err)
-			return
-		}
-
-	Resp:
-		for _, resp := range resp {
-			select {
-
-			case <-ctx.Done():
-				break Resp
-
-			default:
-				err := handler(resp)
-				if err != nil {
-					pdc_common.ReportError(err)
-					return
-				}
-			}
-		}
-	}()
-
-	wg.Wait()
+	}
 
 	return nil
+}
+
+func V2GetBatchLayout(
+	searchItem <-chan []*model_public.ProductSearch,
+	limit int,
+	taskcount int,
+	ctxErr *ContextError,
+	api *api_public.TokopediaApiPublic,
+) (<-chan *model_public.PdpGetlayoutQueryResp, error) {
+
+	result := make(chan *model_public.PdpGetlayoutQueryResp, limit)
+
+	var gr sync.WaitGroup
+	gr.Add(taskcount)
+
+	for c := 0; c < taskcount; c++ {
+		go func() {
+			defer gr.Done()
+
+			for items := range searchItem {
+				var layoutVars []*model_public.PdpGetlayoutQueryVar
+				for _, item := range items {
+					layoutVar, err := model_public.NewPdpGetlayoutQueryVar(item.URL)
+					if err != nil {
+						ctxErr.SendError(err)
+						return
+					}
+
+					layoutVars = append(layoutVars, layoutVar)
+				}
+
+				resp, err := api.PdpGetlayoutQueryBatch(layoutVars)
+				if err != nil {
+					ctxErr.SendError(err)
+					return
+
+				}
+			Item:
+				for _, item := range resp {
+					select {
+					case <-ctxErr.Ctx.Done():
+						break Item
+					default:
+						result <- item
+					}
+
+				}
+			}
+		}()
+	}
+
+	go func() {
+		gr.Wait()
+		log.Println("layout iterator selesai")
+		close(result)
+	}()
+
+	return result, nil
 }

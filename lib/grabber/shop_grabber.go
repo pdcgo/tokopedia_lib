@@ -55,7 +55,7 @@ func (g *ShopGrabber) Run() error {
 				urls = append(urls, item.ProductURL)
 			}
 
-			return iterator.IterateBatchLayout(g.Api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
+			return iterator.GetBatchLayout(g.Api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
 
 				g.wg.Add(1)
 				g.limitGuard <- 1

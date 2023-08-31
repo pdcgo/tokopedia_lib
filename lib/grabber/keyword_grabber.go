@@ -49,14 +49,18 @@ func (g *KeywordGrabber) Run() error {
 		ctx, cancel := context.WithCancel(context.Background())
 		filterItem := filter.NewFilterItem(ctx, filters...)
 
-		err := iterator.IterateSearchPage(g.Api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
+		cfg := iterator.IterateConfig{
+			ChuckSize:      10,
+			ConcurentGuard: make(chan int, 5),
+		}
+		err := iterator.IterateSearchPage(&cfg, g.Api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
 
 			var urls []string
 			for _, item := range items {
 				urls = append(urls, item.URL)
 			}
 
-			return iterator.IterateBatchLayout(g.Api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
+			return iterator.GetBatchLayout(g.Api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
 				g.wg.Add(1)
 				g.limitGuard <- 1
 

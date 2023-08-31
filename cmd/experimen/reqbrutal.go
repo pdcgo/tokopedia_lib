@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
+	"github.com/pdcgo/tokopedia_lib/lib/grabber/iterator"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
 
@@ -13,6 +14,11 @@ func RunReqBrutal() error {
 	if err != nil {
 		return err
 	}
+
+	// batchlayout, err := api_public.NewTokopediaApiPublic()
+	// if err != nil {
+	// 	return err
+	// }
 
 	headerData, err := pubapi.HeaderMainData()
 	if err != nil {
@@ -26,51 +32,37 @@ func RunReqBrutal() error {
 
 		log.Println("request category ", category.Name)
 
-		itemCount := searchVar.Rows
-		currentCount := 0
-		for currentCount < itemCount {
+		ctx := iterator.NewContextError()
 
-			variable := &model_public.ParamsVar{
-				Params: searchVar.GetQuery(),
-			}
-			resp, err := pubapi.SearchProductQueryV4(variable)
-			if err != nil {
-				return false, err
-			}
+		// mulai iterasi per page
+		chunks, err := iterator.V2IterateSearchPage(ctx, 10, pubapi, searchVar)
 
-			products := resp.Data.AceSearchProductV4.Data.Products
-
-			for _, p := range products {
-				go func(url string) {
-					query, err := model_public.NewPdpGetlayoutQueryVar(url)
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					playout, _ := pubapi.PdpGetlayoutQuery(query)
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					log.Println(playout.Data.PdpGetLayout.GetProductName())
-				}(p.URL)
-			}
-
-			log.Println("page", searchVar.Page, ", products :", len(products))
-
-			itemCount = resp.Data.AceSearchProductV4.Header.TotalData
-			currentCount = searchVar.Rows * searchVar.Page
-
-			start := searchVar.Page * searchVar.Rows
-			searchVar.Page += 1
-			searchVar.Start = start
-
-			if itemCount == 0 {
-				break
-			}
+		if err != nil {
+			panic(err)
 		}
+
+		layouts, err := iterator.V2GetBatchLayout(chunks, 1000, 10, ctx, pubapi)
+
+		if err != nil {
+			panic(err)
+		}
+
+		count := 0
+	Parent:
+		for layout := range layouts {
+			select {
+			case <-ctx.Ctx.Done():
+				break Parent
+			default:
+				count++
+				name, _ := layout.Data.PdpGetLayout.GetProductName()
+				log.Println(count, name)
+			}
+
+		}
+
+		log.Println(count)
+		panic("asdasdasd")
 
 		return false, err
 	})
