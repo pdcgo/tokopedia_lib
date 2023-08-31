@@ -28,8 +28,9 @@ func BatchShopCore[T ShopCoreItem](
 
 	go func() {
 		defer close(filteredChan)
-		payloads := []*api_public.GraphqlPayload{}
+
 		for items := range itemsChan {
+			payloads := []*api_public.GraphqlPayload{}
 			for _, item := range items {
 				uri, err := url.Parse(item.GetShopUrl())
 
@@ -96,8 +97,9 @@ func BatchShopStatistic[T ShopCoreItem](
 
 	go func() {
 		defer close(filteredChan)
-		payloads := []*api_public.GraphqlPayload{}
+
 		for items := range itemsChan {
+			payloads := []*api_public.GraphqlPayload{}
 			for _, item := range items {
 
 				shopID := item.GetShopID()
@@ -135,6 +137,13 @@ func BatchShopStatistic[T ShopCoreItem](
 					ctxErr.SendError(err)
 					return
 				}
+			}
+
+			select {
+			case filteredChan <- items:
+				continue
+			case <-ctxErr.Ctx.Done():
+				continue
 			}
 		}
 
