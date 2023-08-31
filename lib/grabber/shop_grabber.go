@@ -2,6 +2,7 @@ package grabber
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
@@ -42,7 +43,8 @@ func (g *ShopGrabber) Run() error {
 			filters = append(filters, filtersOpt...)
 		}
 
-		shopId := shopCore.Data.Result[0].ShopCore.ShopID
+		shopId := strconv.Itoa(shopCore.Data.Result[0].ShopCore.ShopID)
+
 		searchVar := model_public.NewShopProductVar(shopId)
 
 		ctx, cancel := context.WithCancel(context.Background())

@@ -1,7 +1,6 @@
 package iterator_test
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -20,19 +19,19 @@ func (shop *ShopProd) GetShopID() int {
 	return shop.shopID
 }
 
-func (shop *ShopProd) SetStatistic(data *model_public.ShopStatisticQueryResp) {
+func (shop *ShopProd) SetStatistic(data *model_public.ShopStatisticQueryResp) error {
 	assert.NotEmpty(shop.t, data)
+	return nil
 }
 
 func (shop *ShopProd) GetShopUrl() string {
 	return shop.url
 }
 
-func (shop *ShopProd) SetShopCore(data *model_public.ShopCoreInfoResp) {
+func (shop *ShopProd) SetShopCore(data *model_public.ShopCoreInfoResp) error {
 	assert.NotEmpty(shop.t, data)
-	shopID, err := strconv.Atoi(data.Data.Result[0].ShopCore.ShopID)
-	assert.Nil(shop.t, err)
-	shop.shopID = shopID
+	shop.shopID = data.Data.Result[0].ShopCore.ShopID
+	return nil
 
 }
 

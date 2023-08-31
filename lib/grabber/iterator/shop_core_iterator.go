@@ -12,9 +12,9 @@ import (
 
 type ShopCoreItem interface {
 	GetShopUrl() string
-	SetShopCore(data *model_public.ShopCoreInfoResp)
+	SetShopCore(data *model_public.ShopCoreInfoResp) error
 	GetShopID() int
-	SetStatistic(data *model_public.ShopStatisticQueryResp)
+	SetStatistic(data *model_public.ShopStatisticQueryResp) error
 }
 
 func BatchShopCore[T ShopCoreItem](
@@ -64,7 +64,18 @@ func BatchShopCore[T ShopCoreItem](
 			}
 
 			for ind, core := range hasil {
-				items[ind].SetShopCore(core)
+				err := items[ind].SetShopCore(core)
+				if err != nil {
+					ctxErr.SendError(err)
+					return
+				}
+			}
+
+			select {
+			case filteredChan <- items:
+				continue
+			case <-ctxErr.Ctx.Done():
+				continue
 			}
 		}
 
@@ -119,7 +130,11 @@ func BatchShopStatistic[T ShopCoreItem](
 			}
 
 			for ind, stat := range hasil {
-				items[ind].SetStatistic(stat)
+				err := items[ind].SetStatistic(stat)
+				if err != nil {
+					ctxErr.SendError(err)
+					return
+				}
 			}
 		}
 
