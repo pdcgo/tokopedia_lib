@@ -7,6 +7,8 @@ require (
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/gocarina/gocsv v0.0.0-20230513223533-9ddd7fd60602
 	github.com/google/uuid v1.3.1
+	github.com/google/wire v0.5.0
+	github.com/googollee/go-socket.io v1.7.0
 	github.com/pdcgo/common_conf v1.1.12
 	github.com/pdcgo/go_v2_shopeelib v1.1.30
 	github.com/pdcgo/v2_gots_sdk v1.2.4
@@ -39,7 +41,9 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/gomodule/redigo v1.8.4 // indirect
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
 	github.com/google/s2a-go v0.1.5 // indirect
 	github.com/google/wire v0.5.0 // indirect

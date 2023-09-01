@@ -13,7 +13,7 @@ type AccountUser struct {
 	Typename       string `json:"__typename"`
 }
 type AccountInfo struct {
-	ShopID     string `json:"shopId"`
+	ShopID     int    `json:"shopId,string"`
 	ShopName   string `json:"shopName"`
 	ShopDomain string `json:"shopDomain"`
 	ShopAvatar string `json:"shopAvatar"`

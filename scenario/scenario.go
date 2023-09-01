@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/legacy"
+	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app/config"
 	"github.com/pdcgo/tokopedia_lib/lib/datasource"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
@@ -106,7 +107,7 @@ func (scen *Scenario) createConfigFile(data any, fname string) func() {
 func (scen *Scenario) WithUploadConfig(cfgmodifier func(cfg *config.UploadBaseConfig) error, handler func(cfg *config.UploadBaseConfig)) {
 	cfg := config.UploadBaseConfig{
 		Database: config.DatabaseConfig{
-			DbURI:  "mongodb://root:password@localhost",
+			DbURI:  "mongodb://localhost:27017",
 			DbName: "kampretcode2",
 		},
 	}
@@ -130,6 +131,28 @@ func (scen *Scenario) WithSqliteDatabase(handler func(db *gorm.DB)) {
 	db := datasource.NewSqliteDatabase(dbloc)
 
 	db.AutoMigrate(&repo.AkunItem{})
+
+	handler(db)
+}
+
+func (scen *Scenario) WithChatSqliteDatabase(handler func(db *gorm.DB)) {
+	dbloc := filepath.Join(scen.Base, "tokopedia_chat_test.db")
+	db := datasource.NewSqliteDatabase(dbloc)
+
+	defer func() {
+		sqldb, _ := db.DB()
+		sqldb.Close()
+		os.Remove(dbloc)
+	}()
+
+	db.AutoMigrate(
+		&model.AccountData{},
+		&model.Group{},
+		&model.Account{},
+		&model.OrderItem{},
+		&model.OrderSheet{},
+		&model.Order{},
+	)
 
 	handler(db)
 }
