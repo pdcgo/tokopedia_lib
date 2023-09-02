@@ -34,4 +34,9 @@ func TestHeaderMainData(t *testing.T) {
 	t.Log(hasil)
 	assert.NotEmpty(t, hasil)
 	assert.Nil(t, err)
+
+	categ := hasil.Data.CategoryAllListLite.Categories[0]
+
+	assert.NotEmpty(t, categ.IconImageUrl, "categ level pertama ada png")
+	assert.NotEmpty(t, categ.IsCrawlable, "categ level pertama ada field is crawlable")
 }
