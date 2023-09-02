@@ -74,14 +74,9 @@ func (data CategoriesData) GetCategoryByUrl(url string) (*Categories, error) {
 	return result, err
 }
 
-type CategoryAllListLite struct {
-	Categories CategoriesData `json:"categories"`
-	Typename   string         `json:"__typename"`
-}
-
 type HeaderMainData struct {
-	DynamicHomeIcon     DynamicHomeIcon     `json:"dynamicHomeIcon"`
-	CategoryAllListLite CategoryAllListLite `json:"categoryAllListLite"`
+	DynamicHomeIcon     DynamicHomeIcon         `json:"dynamicHomeIcon"`
+	CategoryAllListLite CategoryAllListLiteData `json:"categoryAllListLite"`
 }
 
 type HeaderMainDataResp struct {

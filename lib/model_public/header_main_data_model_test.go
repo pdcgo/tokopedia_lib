@@ -13,26 +13,34 @@ func TestHeaderMainDataModel(t *testing.T) {
 
 		categories := model_public.CategoriesData{
 			{
-				ID:   1,
-				Name: "cat1",
-				URL:  "https://www.tokopedia.com/1",
+				BaseCategories: &model_public.BaseCategories{
+					ID:   1,
+					Name: "cat1",
+					URL:  "https://www.tokopedia.com/1",
+				},
 				Children: []*model_public.Categories{
 					{
-						ID:   11,
-						Name: "cat11",
-						URL:  "https://www.tokopedia.com/11",
+						BaseCategories: &model_public.BaseCategories{
+							ID:   11,
+							Name: "cat11",
+							URL:  "https://www.tokopedia.com/11",
+						},
 					},
 				},
 			},
 			{
-				ID:   2,
-				Name: "cat2",
-				URL:  "https://www.tokopedia.com/2",
+				BaseCategories: &model_public.BaseCategories{
+					ID:   2,
+					Name: "cat2",
+					URL:  "https://www.tokopedia.com/2",
+				},
 			},
 			{
-				ID:   3,
-				Name: "cat2",
-				URL:  "https://www.tokopedia.com/3",
+				BaseCategories: &model_public.BaseCategories{
+					ID:   3,
+					Name: "cat2",
+					URL:  "https://www.tokopedia.com/3",
+				},
 			},
 		}
 
