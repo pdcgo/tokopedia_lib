@@ -491,3 +491,63 @@ func (api *TokopediaApi) BulkProductEditV3(payload *model.BulkProductEditV3Var) 
 	err := api.SendRequest(req, &hasil)
 	return hasil, err
 }
+
+type ProductAddRuleData struct {
+	ProductAddRule struct {
+		Header struct {
+			Reason    string `json:"reason"`
+			Messages  []any  `json:"messages"`
+			ErrorCode string `json:"errorCode"`
+			Typename  string `json:"__typename"`
+		} `json:"header"`
+		Data struct {
+			Eligible struct {
+				Value        bool     `json:"value"`
+				TotalProduct int      `json:"totalProduct"`
+				Limit        int      `json:"limit"`
+				ActionItems  []string `json:"actionItems"`
+				Typename     string   `json:"__typename"`
+			} `json:"eligible"`
+			Typename string `json:"__typename"`
+		} `json:"data"`
+		Typename string `json:"__typename"`
+	} `json:"ProductAddRule"`
+}
+
+type ProductAddRuleRes struct {
+	Data ProductAddRuleData `json:"data"`
+}
+
+func (api *TokopediaApi) GetProductAddRule() (*ProductAddRuleRes, error) {
+	gqlQuery := GraphqlPayload{
+		OperationName: "ProductAddRule",
+		Variables:     map[string]any{},
+		Query: `query ProductAddRule {
+			ProductAddRule {
+			  header {
+				reason
+				messages
+				errorCode
+				__typename
+			  }
+			  data {
+				eligible {
+				  value
+				  totalProduct
+				  limit
+				  actionItems
+				  __typename
+				}
+				__typename
+			  }
+			  __typename
+			}
+		}`,
+	}
+
+	req := api.NewGraphqlReq(&gqlQuery)
+
+	var hasil *ProductAddRuleRes
+	err := api.SendRequest(req, &hasil)
+	return hasil, err
+}

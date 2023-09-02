@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -306,7 +307,7 @@ type GetProductV3 struct {
 		ID       string `json:"id"`
 		Typename string `json:"__typename"`
 	} `json:"shop"`
-	ProductID     string        `json:"productID"`
+	ProductID     int64         `json:"productID,string"`
 	ProductName   string        `json:"productName"`
 	Status        string        `json:"status"`
 	Stock         int           `json:"stock"`
@@ -377,12 +378,44 @@ type ProductAddResp struct {
 	Data *ProductAddData `json:"data"`
 }
 
+type ExtraInfo struct {
+	Aggregate bool `json:"aggregate"`
+	Event     bool `json:"event"`
+}
+
 type GetProductV3Var struct {
-	ProductID string  `json:"productID"`
-	Options   Options `json:"options"`
-	ExtraInfo struct {
-		Event bool `json:"event"`
-	} `json:"extraInfo"`
+	ProductID string    `json:"productID"`
+	Options   Options   `json:"options"`
+	ExtraInfo ExtraInfo `json:"extraInfo"`
+}
+
+func NewProductV3Var(productId int64) *GetProductV3Var {
+
+	productIdStr := strconv.FormatInt(productId, 10)
+
+	return &GetProductV3Var{
+		ProductID: productIdStr,
+		Options: Options{
+			Basic:       true,
+			Menu:        true,
+			Shop:        true,
+			Category:    true,
+			Wholesale:   true,
+			Preorder:    true,
+			Picture:     true,
+			Sku:         true,
+			Lock:        true,
+			Variant:     true,
+			Video:       true,
+			Edit:        true,
+			TxStats:     true,
+			Dimension:   true,
+			CustomVideo: true,
+		},
+		ExtraInfo: ExtraInfo{
+			Aggregate: true,
+		},
+	}
 }
 
 type GetProductV3Resp struct {
