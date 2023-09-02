@@ -6,8 +6,8 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pdcgo/tokopedia_lib/app/cek_verification"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
+	"github.com/pdcgo/tokopedia_lib/lib/report"
 	"github.com/pdcgo/v2_gots_sdk"
 )
 
@@ -17,7 +17,7 @@ type CheckVerifApi struct {
 
 type RunCheckVerifPayload struct {
 	Fname string `json:"fname"`
-	Akuns []*cek_verification.VerifDriverAccount
+	Akuns []*report.CekVerifReport
 }
 
 func (cekbot *CheckVerifApi) runBin(fname string) {
@@ -36,16 +36,16 @@ func (cekbot *CheckVerifApi) RunCekverif(ctx *gin.Context) {
 	var payload RunCheckbotPayload
 	ctx.BindJSON(&payload)
 
-	hasil := make([]*cek_verification.VerifDriverAccount, len(payload.Akuns))
+	hasil := make([]*report.CekVerifReport, len(payload.Akuns))
 
 	for ind, akun := range payload.Akuns {
-		hasil[ind] = &cek_verification.VerifDriverAccount{
+		hasil[ind] = &report.CekVerifReport{
 			DriverAccount: akun,
 		}
 	}
 	fname := cekbot.base.Path(payload.Fname)
 
-	cek_verification.SaveCekReport(fname, hasil)
+	report.SaveCekVerifReport(fname, hasil)
 
 	cekbot.runBin(payload.Fname)
 	ctx.JSON(http.StatusOK, Response{
