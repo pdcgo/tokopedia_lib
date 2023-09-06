@@ -1,6 +1,10 @@
 package api
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/pdcgo/tokopedia_lib/lib/model"
+)
 
 type ShopInfoByIDRes struct {
 	Data struct {
@@ -341,6 +345,91 @@ func (api *TokopediaApi) GetShopScoreLevel() (*GetShopScoreLevelRes, error) {
 	req := api.NewGraphqlReq(&query)
 
 	var hasil *GetShopScoreLevelRes
+	err := api.SendRequest(req, &hasil)
+
+	return hasil, err
+}
+
+type GetShopLocationAllVar struct {
+	ShopId int `json:"shop_id"`
+}
+
+type GetShopLocationAllRes struct {
+	Data struct {
+		ShopLocGetAllLocations model.ShopLocationAll
+	} `json:"data"`
+}
+
+func (api *TokopediaApi) GetShopLocationAll(shopid int) (*GetShopLocationAllRes, error) {
+	query := GraphqlPayload{
+		OperationName: "getAllShopLocations",
+		Variables: GetShopLocationAllVar{
+			ShopId: shopid,
+		},
+		Query: `
+		query getAllShopLocations($shop_id: Int!) {
+			ShopLocGetAllLocations(input: {shop_id: $shop_id}) {
+			  status
+			  message
+			  error {
+				id
+				description
+				__typename
+			  }
+			  data {
+				general_ticker {
+				  header
+				  body
+				  body_link_text
+				  body_link_url
+				  __typename
+				}
+				warehouses {
+				  warehouse_id
+				  warehouse_name
+				  warehouse_type
+				  shop_id {
+					int64
+					valid
+					__typename
+				  }
+				  partner_id {
+					int64
+					valid
+					__typename
+				  }
+				  address_detail
+				  postal_code
+				  latlon
+				  district_id
+				  district_name
+				  city_id
+				  city_name
+				  province_id
+				  province_name
+				  country
+				  status
+				  is_covered_by_couriers
+				  ticker {
+					text_inactive
+					text_courier_setting
+					link_courier_setting
+					__typename
+				  }
+				  __typename
+				}
+				__typename
+			  }
+			  __typename
+			}
+		}`,
+	}
+
+	req := api.NewGraphqlReq(&query)
+
+	var hasil *GetShopLocationAllRes
+	var test map[string]any
+	api.SendRequest(req, &test)
 	err := api.SendRequest(req, &hasil)
 
 	return hasil, err

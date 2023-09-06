@@ -2,6 +2,7 @@ package group
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/pdcgo/common_conf/common_concept"
@@ -10,6 +11,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
+	"github.com/pdcgo/tokopedia_lib/lib/chat"
 	"github.com/rs/zerolog"
 	"nhooyr.io/websocket"
 )
@@ -110,13 +112,12 @@ func (g *ChatGroup) Reconnect(username string) error {
 	defer g.reconnectLock.Unlock()
 
 	// disconnect socket if exist
-	socket, _ := g.socketGroup.GetSocket(username)
-	if socket != nil {
-		err := socket.Con.Close(websocket.StatusNormalClosure, "reconnect")
-
-		if err != nil {
-			return err
-		}
+	err := g.socketGroup.WithSocket(username, func(sc *chat.SocketClient) error {
+		err := sc.Con.Close(websocket.StatusNormalClosure, "reconnect")
+		return err
+	})
+	if err != nil && !errors.Is(err, ErrNoSocket) {
+		return err
 	}
 
 	return g.driverGroup.WithDriverApi(username, func(api *api.TokopediaApi) error {

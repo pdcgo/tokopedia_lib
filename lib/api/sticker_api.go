@@ -5,11 +5,13 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/query"
 )
 
-func (api *TokopediaApi) ChatGetGroupSticker(payload *model.TypeVar) (*model.ChatGetGroupStickerResp, error) {
+func (api *TokopediaApi) ChatGetGroupSticker(typevar int) (*model.ChatGetGroupStickerResp, error) {
 	gqlQuery := GraphqlPayload{
 		OperationName: "chatGetGroupSticker",
-		Variables:     payload,
-		Query:         query.ChatGetGroupSticker,
+		Variables: model.TypeVar{
+			Type: typevar,
+		},
+		Query: query.ChatGetGroupSticker,
 	}
 	req := api.NewGraphqlReq(&gqlQuery)
 

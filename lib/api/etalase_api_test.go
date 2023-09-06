@@ -39,4 +39,11 @@ func TestEtalase(t *testing.T) {
 
 		assert.True(t, found)
 	})
+
+	t.Run("test get etalase query", func(t *testing.T) {
+		hasil, err := api.ShopShowcasesQuery(7125740)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil)
+		assert.NotEmpty(t, hasil.Data.ShopShowcases.Result)
+	})
 }

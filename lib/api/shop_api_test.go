@@ -31,4 +31,10 @@ func TestShopApi(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
+	t.Log("---------------")
+	t.Run("test shop location all", func(t *testing.T) {
+		ghasil, err := api.GetShopLocationAll(7125740)
+		assert.NotEmpty(t, ghasil)
+		assert.Nil(t, err)
+	})
 }

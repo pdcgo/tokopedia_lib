@@ -18,14 +18,20 @@ func NewAccountRepo(db *gorm.DB) *AccountRepo {
 	}
 }
 
-func (repo *AccountRepo) GetChatAccountData(groupName string, shopid int) (*model.AccountData, error) {
+func (repo *AccountRepo) GetChatAccount(groupName string, shopid int) (*model.Account, error) {
 
-	var account model.AccountData
-	tx := repo.db.Preload("Groups", "name = ?", groupName).
-		Where("shop_id = ?", shopid).
+	var account model.Account
+	tx := repo.db.
+		Preload("AccountData.Groups").
+		Joins("AccountData").
+		Where("AccountData__shop_id = ?", shopid).
 		First(&account)
 
-	if len(account.Groups) == 0 {
+	if account.AccountData == nil {
+		return &account, errors.New("akun data tidak ditemukan")
+	}
+
+	if len(account.AccountData.Groups) == 0 {
 		msg := fmt.Sprintf("%d tidak ditemukan pada group %s", shopid, groupName)
 		return &account, errors.New(msg)
 	}
@@ -73,6 +79,33 @@ func (repo *AccountRepo) AddAccountData(groupName string, accountData model.Acco
 
 	accountData.AppendGroup(group)
 	tx = repo.db.Save(&accountData)
+	return tx.Error
+}
+
+type UpdateAccountHandler func(account *model.Account)
+
+func (repo *AccountRepo) UpdateAccount(shopid int, handler UpdateAccountHandler) error {
+
+	account := model.Account{
+		ID: shopid,
+	}
+	tx := repo.db.Preload("AccountData").First(&account)
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if account.ID == 0 {
+		return errors.New("shopid tidak ditemukan")
+	}
+
+	handler(&account)
+
+	tx = repo.db.Save(&account)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	tx = repo.db.Save(&account.AccountData)
 	return tx.Error
 }
 

@@ -12,31 +12,34 @@ import (
 var encoder = schema.NewEncoder()
 
 type SearchProductVar struct {
-	Sort           string   `schema:"ob,omitempty"`
-	Page           int      `schema:"page"`
-	Rows           int      `schema:"rows,omitempty"`
-	Device         string   `schema:"device"`
-	Related        bool     `schema:"related"`
-	SafeSearch     bool     `schema:"safe_search"`
-	Scheme         string   `schema:"scheme"`
-	UserDistrictID string   `schema:"user_districtId"`
-	UserCityID     string   `schema:"user_cityId"`
-	Source         string   `schema:"source"`
-	TopadsBucket   bool     `schema:"topads_bucket"`
-	Start          int      `schema:"start"`
-	PriceMin       int      `schema:"pmin,omitempty"`
-	PriceMax       int      `schema:"pmax,omitempty"`
-	Rate           []string `schema:"rt,omitempty"`
-	Query          string   `schema:"q,omitempty"`
-	Fcity          []string `schema:"fcity,omitempty"`
-	Condition      []string `schema:"condition,omitempty"`
-	ShopTier       []string `schema:"shop_tier,omitempty"`
-	CategoryId     int      `schema:"sc,omitempty"`
-	Identifier     string   `schema:"identifier,omitempty"`
-	Navsource      string   `schema:"navsource"`
-	UniqueId       string   `schema:"unique_id"`
-	Shipping       []string `schema:"shipping,omitempty"`
-	PreOrder       bool     `schema:"preorder,omitempty"`
+	Sort            string   `json:"ob,omitempty" schema:"ob,omitempty" form:"ob,omitempty"`
+	Page            int      `json:"page,omitempty" schema:"page,omitempty" form:"page,omitempty"`
+	Rows            int      `json:"rows,omitempty" schema:"rows,omitempty" form:"rows,omitempty"`
+	Device          string   `json:"device,omitempty" schema:"device,omitempty" form:"device,omitempty"`
+	Related         bool     `json:"related,omitempty" schema:"related,omitempty" form:"related,omitempty"`
+	SafeSearch      bool     `json:"safe_search,omitempty" schema:"safe_search,omitempty" form:"safe_search,omitempty"`
+	Scheme          string   `json:"scheme,omitempty" schema:"scheme,omitempty" form:"scheme,omitempty"`
+	UserDistrictID  string   `json:"user_districtId,omitempty" schema:"user_districtId,omitempty" form:"user_districtId,omitempty"`
+	UserCityID      string   `json:"user_cityId,omitempty" schema:"user_cityId,omitempty" form:"user_cityId,omitempty"`
+	Source          string   `json:"source,omitempty" schema:"source,omitempty" form:"source,omitempty"`
+	TopadsBucket    bool     `json:"topads_bucket,omitempty" schema:"topads_bucket,omitempty" form:"topads_bucket,omitempty"`
+	Start           int      `json:"start,omitempty" schema:"start,omitempty" form:"start,omitempty"`
+	PriceMin        int      `json:"pmin,omitempty" schema:"pmin,omitempty" form:"pmin,omitempty"`
+	PriceMax        int      `json:"pmax,omitempty" schema:"pmax,omitempty" form:"pmax,omitempty"`
+	Rate            []string `json:"rt,omitempty" schema:"rt,omitempty" form:"rt,omitempty"`
+	Query           string   `json:"q,omitempty" schema:"q,omitempty" form:"q,omitempty"`
+	Fcity           []string `json:"fcity,omitempty" schema:"fcity,omitempty" form:"fcity,omitempty"`
+	Condition       []string `json:"condition,omitempty" schema:"condition,omitempty" form:"condition,omitempty"`
+	ShopTier        []string `json:"shop_tier,omitempty" schema:"shop_tier,omitempty" form:"shop_tier,omitempty"`
+	CategoryId      int      `json:"sc,omitempty" schema:"sc,omitempty" form:"sc,omitempty"`
+	Identifier      string   `json:"identifier,omitempty" schema:"identifier,omitempty" form:"identifier,omitempty"`
+	Navsource       string   `json:"navsource,omitempty" schema:"navsource,omitempty" form:"navsource,omitempty"`
+	UniqueId        string   `json:"unique_id,omitempty" schema:"unique_id,omitempty" form:"unique_id,omitempty"`
+	Shipping        []string `json:"shipping,omitempty" schema:"shipping,omitempty" form:"shipping,omitempty"`
+	PreOrder        bool     `json:"preorder,omitempty" schema:"preorder,omitempty" form:"preorder,omitempty"`
+	Etalase         string   `json:"etalase,omitempty" schema:"etalase,omitempty" form:"etalase,omitempty"`
+	ShopId          int      `json:"shop_id,omitempty" schema:"shop_id,omitempty" form:"shop_id,omitempty"`
+	UserWarehouseId int      `json:"user_warehouseId,omitempty" schema:"user_warehouseId,omitempty" form:"user_warehouseId,omitempty"`
 }
 
 func (v *SearchProductVar) GetQuery() string {

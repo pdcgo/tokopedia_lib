@@ -16,6 +16,14 @@ type Account struct {
 	Orders      []Order      `gorm:"foreignKey:ShopID" json:"-"`
 }
 
+func (a *Account) GetUsername() string {
+	if a.AccountData == nil {
+		return a.ShopName
+	}
+
+	return a.AccountData.Username
+}
+
 type AccountData struct {
 	ID          int    `gorm:"primaryKey;autoIncrement:true" json:"-"`
 	Username    string `gorm:"unique" json:"username"`

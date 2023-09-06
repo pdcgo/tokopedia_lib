@@ -5,9 +5,8 @@ import (
 
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/pdcgo/common_conf/common_concept"
+	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
 )
-
-type TestSocketEvent struct{}
 
 func CreateSocketIO(event *common_concept.CoreEvent) *socketio.Server {
 	server := socketio.NewServer(nil)
@@ -15,14 +14,10 @@ func CreateSocketIO(event *common_concept.CoreEvent) *socketio.Server {
 	// handle socket events
 	go func() {
 		for event := range event.GetEvent() {
-
-			log.Println(event)
-
 			switch ev := event.(type) {
 
-			case *TestSocketEvent:
-				log.Println(ev)
-
+			case *sio_event.FrontendNotificationEvent:
+				go server.BroadcastToNamespace("", "notification", ev)
 			}
 		}
 	}()
@@ -31,10 +26,6 @@ func CreateSocketIO(event *common_concept.CoreEvent) *socketio.Server {
 	server.OnConnect("", func(c socketio.Conn) error {
 		log.Println("[ socket ] connected", c.ID())
 		return nil
-	})
-
-	server.OnDisconnect("", func(c socketio.Conn, msg string) {
-		log.Println("[ socket ] disconnected", c.ID(), "-", msg)
 	})
 
 	// run socketio

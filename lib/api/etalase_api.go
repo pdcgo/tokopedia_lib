@@ -1,5 +1,11 @@
 package api
 
+import (
+	"strconv"
+
+	"github.com/pdcgo/tokopedia_lib/lib/model"
+)
+
 type DeleteShopShowcaseVar struct {
 	Input *DeleteShopShowcaseInput `json:"input"`
 }
@@ -144,6 +150,69 @@ func (api *TokopediaApi) AddShopShowcase(name string) (*AddShopShowcaseRes, erro
 	req := api.NewGraphqlReq(&query)
 
 	var hasil AddShopShowcaseRes
+	err := api.SendRequest(req, &hasil)
+
+	return &hasil, err
+}
+
+type ShopShowcasesQueryVar struct {
+	ShopID string `json:"shopID"`
+}
+
+type ShopShowcasesQueryRes struct {
+	Data model.ShopShowcasesData `json:"data"`
+}
+
+func (api *TokopediaApi) ShopShowcasesQuery(shopid int) (*ShopShowcaseRes, error) {
+	query := GraphqlPayload{
+		OperationName: "ShopShowcasesQuery",
+		Variables: ShopShowcasesQueryVar{
+			ShopID: strconv.Itoa(shopid),
+		},
+		Query: `query ShopShowcasesQuery($shopID: String!) {
+			shopShowcases(withDefault: true) {
+			  error {
+				message
+				__typename
+			  }
+			  result {
+				id
+				name
+				count
+				type
+				highlighted
+				alias
+				uri
+				useAce
+				badge
+				imageURL
+				isFeatured
+				__typename
+			  }
+			  __typename
+			}
+			getFeaturedShowcase(input: {shopID: $shopID}) {
+			  error {
+				message
+				__typename
+			  }
+			  result {
+				id
+				name
+				count
+				uri
+				imageURL
+				__typename
+			  }
+			  __typename
+			}
+		  }
+		`,
+	}
+
+	req := api.NewGraphqlReq(&query)
+
+	var hasil ShopShowcaseRes
 	err := api.SendRequest(req, &hasil)
 
 	return &hasil, err

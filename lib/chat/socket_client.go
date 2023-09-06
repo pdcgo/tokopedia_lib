@@ -3,6 +3,8 @@ package chat
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"io"
 	"log"
 	"net/http"
 	"sync"
@@ -90,6 +92,13 @@ Parent:
 
 		default:
 			tipe, msg, err := socket.Con.Read(socket.Ctx)
+
+			if errors.Is(err, io.EOF) {
+				name := socket.Api.AuthenticatedData.User.Name
+				log.Printf("[ %s ] socket disconnected EOF", name)
+				break Parent
+			}
+
 			if err != nil {
 				pdc_common.ReportError(err)
 				continue

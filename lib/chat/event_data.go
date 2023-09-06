@@ -103,14 +103,19 @@ func (event *RcvEventSocket) UnmarshalJSON(data []byte) error {
 }
 
 type SendChat struct {
-	MessageID    int64     `json:"message_id"`
-	Message      string    `json:"message"`
-	StartTime    time.Time `json:"start_time"`
-	ParentReply  any       `json:"parent_reply"`
-	From         string    `json:"from"`
-	FromUserName string    `json:"from_user_name"`
-	Source       string    `json:"source"`
-	LocalID      string    `json:"local_id"`
+	MessageID      int64           `json:"message_id"`
+	Message        string          `json:"message"`
+	From           string          `json:"from"`
+	FromUserName   string          `json:"from_user_name"`
+	Source         string          `json:"source"`
+	LocalID        string          `json:"local_id"`
+	StartTime      time.Time       `json:"start_time"`
+	ParentReply    *ParentReply    `json:"parent_reply"`
+	Payload        any             `json:"payload,omitempty"`
+	AttachmentType int             `json:"attachment_type,omitempty"`
+	ProductId      int             `json:"product_id,omitempty"`
+	ProductProfile *ProductProfile `json:"product_profile,omitempty"`
+	InvoiceLink    *InvoiceLink    `json:"invoice_link,omitempty"`
 }
 
 type ReaduserChat struct {
@@ -129,6 +134,7 @@ type ReminderTicker struct {
 	URL          string `json:"url"`
 	URLLabel     string `json:"url_label"`
 }
+
 type Message struct {
 	CensoredReply     string    `json:"censored_reply"`
 	OriginalReply     string    `json:"original_reply"`

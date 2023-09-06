@@ -46,7 +46,7 @@ require (
 	github.com/gomodule/redigo v1.8.4 // indirect
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
 	github.com/google/s2a-go v0.1.5 // indirect
-	github.com/google/wire v0.5.0 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/jezek/xgb v1.0.0 // indirect

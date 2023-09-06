@@ -8,76 +8,98 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSearchProductQuery(t *testing.T) {
+func TestProductApi(t *testing.T) {
 
 	api, err := api_public.NewTokopediaApiPublic()
 	assert.Nil(t, err)
 
-	variable := model_public.SearchProductQueryVar{
-		Params:   "ob=8&page=1&rows=100&device=desktop&related=true&safe_search=false&scheme=https&user_districtId=176&user_cityId=1759&source=search&topads_bucket=true&pmin=10000&pmax=100000&rt=0%231%232%233%234%235&condition=1&sc=1759&start=1&identifier=fashion-pria&navsource=&unique_id=&shipping=%23%23%2310%2312%2313&page=1",
-		AdParams: "page=1&ep=product&item=15&src=directory&device=desktop&user_id=0&minimum_item=15&start=1&no_autofill_range=5-14&dep_id=1759&ob=0&page=1",
-	}
+	t.Run("test search product api", func(t *testing.T) {
+		searchVar := model_public.NewSearchProductVar()
+		searchVar.CategoryId = 1759
+		searchVar.Identifier = "fashion-pria"
 
-	hasil, err := api.SearchProductQuery(&variable)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, hasil)
-}
+		variable := model_public.SearchProductQueryVar{
+			Params: searchVar.GetQuery(),
+		}
 
-func TestSearchProductQueryV4(t *testing.T) {
+		hasil, err := api.SearchProductQuery(&variable)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil)
+		assert.NotEmpty(t, hasil.Data.CategoryProducts)
+	})
 
-	api, err := api_public.NewTokopediaApiPublic()
-	assert.Nil(t, err)
+	t.Run("test search product v4", func(t *testing.T) {
+		searchVar := model_public.NewSearchProductVar()
+		searchVar.Query = "ayam"
+		variable := model_public.ParamsVar{
+			Params: searchVar.GetQuery(),
+		}
 
-	searchVar := model_public.NewSearchProductVar()
-	searchVar.Query = "ayam"
-	variable := model_public.ParamsVar{
-		Params: searchVar.GetQuery(),
-	}
+		hasil, err := api.SearchProductQueryV4(&variable)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil.Data.AceSearchProductV4.Data.Products)
 
-	hasil, err := api.SearchProductQueryV4(&variable)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, hasil.Data.AceSearchProductV4.Data.Products)
+		t.Run("test iterate chunk items", func(t *testing.T) {
 
-	t.Run("test iterate chunk items", func(t *testing.T) {
+			count := 0
+			err := hasil.Data.AceSearchProductV4.Data.Products.IterateChunks(10, func(ps []*model_public.ProductSearch) error {
+				count++
+				assert.Equal(t, len(ps), 10)
+				return nil
+			})
 
-		count := 0
-		err := hasil.Data.AceSearchProductV4.Data.Products.IterateChunks(10, func(ps []*model_public.ProductSearch) error {
-			count++
-			assert.Equal(t, len(ps), 10)
-			return nil
+			assert.Nil(t, err)
+			assert.Equal(t, count, 10)
 		})
 
-		assert.Nil(t, err)
-		assert.Equal(t, count, 10)
-	})
+		t.Run("test ketika ada kota count items tidak sama dengan 0", func(t *testing.T) {
 
-	t.Run("test ketika ada kota count items tidak sama dengan 0", func(t *testing.T) {
+			searchVar := model_public.NewSearchProductVar()
+			searchVar.Query = "ayam"
+			searchVar.Fcity = []string{"174,175,176,177,178,179"}
 
-		searchVar := model_public.NewSearchProductVar()
-		searchVar.Query = "ayam"
-		searchVar.Fcity = []string{"174,175,176,177,178,179"}
+			variable := model_public.ParamsVar{
+				Params: searchVar.GetQuery(),
+			}
 
-		variable := model_public.ParamsVar{
-			Params: searchVar.GetQuery(),
-		}
+			hasil, err := api.SearchProductQueryV4(&variable)
+			assert.Nil(t, err)
+			assert.NotEmpty(t, hasil.Data.AceSearchProductV4.Data.Products)
+		})
 
-		hasil, err := api.SearchProductQueryV4(&variable)
-		assert.Nil(t, err)
-		assert.NotEmpty(t, hasil.Data.AceSearchProductV4.Data.Products)
-	})
+		t.Run("test ketika ada kota dobel count items tidak sama dengan 0", func(t *testing.T) {
 
-	t.Run("test ketika ada kota dobel count items tidak sama dengan 0", func(t *testing.T) {
+			searchVar := model_public.NewSearchProductVar()
+			searchVar.Query = "ayam"
+			searchVar.Fcity = []string{"174,175,176,177,178,179", "174", "258,259,260,261,262,263,264,265,476,266"}
 
-		searchVar := model_public.NewSearchProductVar()
-		searchVar.Query = "ayam"
-		searchVar.Fcity = []string{"174,175,176,177,178,179", "174", "258,259,260,261,262,263,264,265,476,266"}
+			variable := model_public.ParamsVar{
+				Params: searchVar.GetQuery(),
+			}
 
-		variable := model_public.ParamsVar{
-			Params: searchVar.GetQuery(),
-		}
+			hasil, err := api.SearchProductQueryV4(&variable)
+			assert.Nil(t, err)
+			assert.NotEmpty(t, hasil.Data.AceSearchProductV4.Data.Products)
+		})
 
-		hasil, err := api.SearchProductQueryV4(&variable)
-		assert.Nil(t, err)
-		assert.NotEmpty(t, hasil.Data.AceSearchProductV4.Data.Products)
+		t.Run("test search attach product toko spesifik", func(t *testing.T) {
+
+			searchVar := model_public.NewSearchProductVar()
+			searchVar.ShopId = 7125740
+			searchVar.Source = "attach_product"
+			searchVar.Rows = 5
+
+			variable := model_public.ParamsVar{
+				Params: searchVar.GetQuery(),
+			}
+
+			hasil, err := api.SearchProductQueryV4(&variable)
+			assert.Nil(t, err)
+			assert.NotEmpty(t, hasil.Data.AceSearchProductV4.Data.Products)
+
+			for _, p := range hasil.Data.AceSearchProductV4.Data.Products {
+				assert.Equal(t, p.Shop.ShopID, searchVar.ShopId)
+			}
+		})
 	})
 }

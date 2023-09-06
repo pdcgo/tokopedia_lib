@@ -9,6 +9,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
+	"github.com/pdcgo/tokopedia_lib/lib/api"
 )
 
 type AccountService struct {
@@ -95,5 +96,17 @@ func (s *AccountService) AddAccount(account Account, groupName string) error {
 	}
 
 	err = s.accountRepo.AddAccountData(groupName, accountData)
+	return err
+}
+
+func (s *AccountService) UpdateAccountNotifications(shopid int, notif *api.NotificationCounterRes) (err error) {
+
+	notifData := notif.Data.Notifications
+	err = s.accountRepo.UpdateAccount(shopid, func(account *model.Account) {
+		account.UnreadChat = notifData.Chat.UnreadsSeller
+		account.NewOrder = notifData.SellerOrderStatus.NewOrder
+		account.Diskusi = notifData.Inbox.TalkSeller
+		account.Online = true
+	})
 	return err
 }

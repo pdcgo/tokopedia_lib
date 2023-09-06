@@ -14,6 +14,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/tokopedia_lib/app/chat/service"
+	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 )
 
 // Injectors from wire.go:
@@ -27,13 +28,21 @@ func InitApplication(cfg *config.AppConfig) (*Application, error) {
 	db := CreateSqliteDatabase(cfg)
 	accountRepo := repo.NewAccountRepo(db)
 	accountService := service.NewAccountService(accountRepo)
-	accountApi := api.NewAccountApi(accountRepo, accountService)
-	initConfig := config.NewInitConfig(cfg)
 	driverGroup := group.NewDriverGroup()
+	initConfig := config.NewInitConfig(cfg)
+	accountApi := api.NewAccountApi(accountRepo, accountService, driverGroup, initConfig)
 	socketGroup := group.NewSocketGroup(coreEvent)
 	chatGroup := group.NewChatGroup(coreEvent, initConfig, accountRepo, driverGroup, socketGroup)
 	groupApi := api.NewGroupApi(db, chatGroup)
-	chatApi := api.NewChatApi(initConfig, accountRepo, driverGroup)
-	application := NewApplication(cfg, apiSdk, coreEvent, server, mainApi, accountApi, groupApi, chatApi)
+	chatService := service.NewChatService(socketGroup)
+	notificationService := service.NewNotificationService(coreEvent, driverGroup, accountService)
+	chatApi := api.NewChatApi(initConfig, accountRepo, driverGroup, chatService, notificationService)
+	tokopediaApiPublic, err := api_public.NewTokopediaApiPublic()
+	if err != nil {
+		return nil, err
+	}
+	productApi := api.NewProductApi(tokopediaApiPublic)
+	stickerApi := api.NewStickerApi(initConfig, accountRepo, driverGroup)
+	application := NewApplication(cfg, apiSdk, coreEvent, server, mainApi, accountApi, groupApi, chatApi, productApi, stickerApi)
 	return application, nil
 }

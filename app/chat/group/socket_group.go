@@ -8,6 +8,7 @@ import (
 	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/chat"
+	"nhooyr.io/websocket"
 )
 
 type SocketGroup struct {
@@ -44,6 +45,11 @@ func (g *SocketGroup) AddSocket(ctx context.Context, username string, api *api.T
 	g.Lock()
 	defer g.Unlock()
 
+	oldSocket := g.data[username]
+	if oldSocket != nil {
+		oldSocket.Con.Close(websocket.StatusNormalClosure, "renew")
+	}
+
 	socket := chat.NewSocketClient(api)
 	g.data[username] = socket
 
@@ -55,14 +61,17 @@ func (g *SocketGroup) AddSocket(ctx context.Context, username string, api *api.T
 
 var ErrNoSocket = errors.New("socket not found")
 
-func (g *SocketGroup) GetSocket(username string) (*chat.SocketClient, error) {
+type SocketHandler func(*chat.SocketClient) error
+
+func (g *SocketGroup) WithSocket(username string, handler SocketHandler) error {
 	g.RLock()
 	defer g.RUnlock()
 
 	socket := g.data[username]
 	if socket == nil {
-		return socket, ErrNoSocket
+		return ErrNoSocket
 	}
 
-	return socket, nil
+	err := handler(socket)
+	return err
 }

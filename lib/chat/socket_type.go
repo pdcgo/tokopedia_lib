@@ -76,6 +76,48 @@ type Payload struct {
 	Intention string `json:"intention"`
 }
 
+type Voucher struct {
+	Applink                        string `json:"applink"`
+	GaladrielVoucherId             int    `json:"galadriel_voucher_id"`
+	IsLockToProduct                int    `json:"is_lock_to_product"`
+	IsPublic                       int    `json:"is_public"`
+	IsQuotaAvaiable                int    `json:"is_quota_avaiable"`
+	RemainingQuota                 int    `json:"remaining_quota"`
+	Tnc                            string `json:"tnc"`
+	VoucherCode                    string `json:"voucher_code"`
+	VoucherDiscount_amt            int    `json:"voucher_discount_amt"`
+	VoucherDiscount_type           int    `json:"voucher_discount_type"`
+	VoucherDiscount_type_formatted string `json:"voucher_discount_type_formatted"`
+	VoucherFinish_time             string `json:"voucher_finish_time"`
+	VoucherId                      string `json:"voucher_id"`
+	VoucherImage                   string `json:"voucher_image"`
+	VoucherMinimum_amt             int    `json:"voucher_minimum_amt"`
+	VoucherName                    string `json:"voucher_name"`
+	VoucherStatus                  int    `json:"voucher_status"`
+	VoucherType                    int    `json:"voucher_type"`
+	VoucherType_formatted          string `json:"voucher_type_formatted"`
+	Weblink                        string `json:"weblink"`
+}
+
+type InvoiceAttribute struct {
+	Type        string `json:"type"`
+	Id          int    `json:"id"`
+	Code        string `json:"code"`
+	Title       string `json:"title"`
+	CreateTime  string `json:"create_time"`
+	ImageUrl    string `json:"image_url"`
+	HrefUrl     string `json:"href_url"`
+	StatusId    int    `json:"status_id"`
+	Status      string `json:"status"`
+	TotalAmount string `json:"total_amount"`
+}
+
+type InvoiceLink struct {
+	TypeId     int              `json:"type_id"`
+	Type       string           `json:"type"`
+	Attributes InvoiceAttribute `json:"attributes"`
+}
+
 type ExtrasProduct struct {
 	Url       string `json:"url"`
 	ProductId string `json:"product_id"`
