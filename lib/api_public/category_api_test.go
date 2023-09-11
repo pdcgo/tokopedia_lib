@@ -59,5 +59,20 @@ func TestHeaderMainData(t *testing.T) {
 			t.Log(string(data))
 		}
 
+		t.Run("test sekali lagi dengan data yang beda", func(t *testing.T) {
+			hasil, err := categsData.GetBulkCats([]int{
+				1877, 1876, 1881,
+			})
+
+			assert.Nil(t, err)
+			assert.NotEmpty(t, hasil)
+
+			for _, cat := range hasil {
+				data, err := json.Marshal(cat)
+				assert.Nil(t, err)
+				t.Log(string(data))
+			}
+		})
+
 	})
 }

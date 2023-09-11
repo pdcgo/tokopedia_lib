@@ -13,6 +13,7 @@ import (
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/sethvargo/go-retry"
+	"golang.org/x/net/http2"
 )
 
 type TokpedHttpClient struct {
@@ -22,13 +23,20 @@ type TokpedHttpClient struct {
 
 func NewTokpedHttpClient() *TokpedHttpClient {
 	jar, _ := cookiejar.New(nil)
+
+	transport := &http2.Transport{
+		DisableCompression: false,
+	}
+	// transport := &http.Transport{
+	// 	// MaxIdleConnsPerHost: 10,
+	// 	DisableCompression: false,
+	// }
+
 	return &TokpedHttpClient{
 		Client: &http.Client{
-			// Transport: &http.Transport{
-			// 	MaxIdleConnsPerHost: 10,
-			// },
-			Jar:     jar,
-			Timeout: 30 * time.Second,
+			Transport: transport,
+			Jar:       jar,
+			Timeout:   30 * time.Second,
 		},
 	}
 }
@@ -38,6 +46,7 @@ func NewTokpedHttpClient() *TokpedHttpClient {
 type TokopediaApiPublic struct {
 	sync.RWMutex
 	Client *http.Client
+	guard  chan int
 }
 
 func (api *TokopediaApiPublic) NewRequest(method, ur string, query any, body io.Reader) *http.Request {
@@ -62,23 +71,37 @@ func (api *TokopediaApiPublic) NewRequest(method, ur string, query any, body io.
 
 func (api *TokopediaApiPublic) SendRequest(req *http.Request, hasil any) error {
 
-	b := retry.NewFibonacci(time.Second * 2)
-	err := retry.Do(context.Background(), retry.WithMaxRetries(3, b), func(ctx context.Context) error {
-		// api.RLock()
-		res, err := api.Client.Do(req)
-		// api.RUnlock()
+	b := retry.NewFibonacci(time.Second * 5)
 
+	err := retry.Do(context.Background(), retry.WithMaxRetries(3, b), func(ctx context.Context) error {
+		api.guard <- 1
+
+		defer func() {
+			<-api.guard
+		}()
+
+		var res *http.Response
+		var err error
+
+		api.RLock()
+		res, err = api.Client.Do(req)
+		api.RUnlock()
 		if err != nil {
-			pdc_common.ReportError(err)
+			// pdc_common.ReportError(err)
 			return retry.RetryableError(err)
 		}
 
 		if res.StatusCode == 403 {
-			log.Println("retry 403")
-			api.Lock()
-			// time.Sleep(time.Second * 5)
+
+			// api.Lock()
 			// TODO: BAKALAN REFACTOR
+
+			// api.Unlock()
+			// api.guard <- 1
+
+			log.Println("retry 403")
 			jar, _ := cookiejar.New(nil)
+			api.Lock()
 			api.Client.Jar = jar
 			api.Unlock()
 
@@ -87,11 +110,17 @@ func (api *TokopediaApiPublic) SendRequest(req *http.Request, hasil any) error {
 
 		body, _ := io.ReadAll(res.Body)
 		// log.Println(string(body))
+
+		if res.StatusCode != 200 {
+			log.Println(string(body))
+			return retry.RetryableError(errors.New("request api limit"))
+		}
+
 		err = json.Unmarshal(body, hasil)
 		if err != nil {
-			return pdc_common.ReportError(err)
+			log.Println(string(body))
 		}
-		return err
+		return retry.RetryableError(err)
 	})
 
 	if err != nil {
@@ -129,8 +158,20 @@ func NewTokopediaApiPublic() (*TokopediaApiPublic, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// transport := &http2.Transport{
+	// 	DisableCompression: false,
+	// }
+	transport := &http.Transport{
+		// MaxIdleConnsPerHost: 20,
+		DisableCompression: false,
+	}
+
 	return &TokopediaApiPublic{
+		guard: make(chan int, 5),
+
 		Client: &http.Client{
+			Transport: transport,
 			// Transport: &http.Transport{
 			// 	MaxIdleConnsPerHost: 10,
 			// },
