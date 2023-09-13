@@ -70,8 +70,7 @@ func BatchShopCore[T ShopCoreItem](
 				err := items[ind].SetShopCore(core)
 				if err != nil {
 					pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
-
-						return event.Interface("core", hasil).Interface("itemcore", core)
+						return event.Interface("core", hasil).Interface("itemcore", core).Interface("payload", payloads)
 					})
 					ctxErr.SendError(err)
 					return
