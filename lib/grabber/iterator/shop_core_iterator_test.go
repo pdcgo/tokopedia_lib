@@ -30,7 +30,12 @@ func (shop *ShopProd) GetShopUrl() string {
 
 func (shop *ShopProd) SetShopCore(data *model_public.ShopCoreInfoResp) error {
 	assert.NotEmpty(shop.t, data)
+	shopdata := data.Data.Result[0]
+
 	shop.shopID = data.Data.Result[0].ShopCore.ShopID
+
+	assert.NotEmpty(shop.t, shopdata.ShopAssets.Avatar)
+
 	return nil
 
 }
@@ -64,6 +69,7 @@ func TestShopCoreIterator(t *testing.T) {
 		assert.Nil(t, err)
 		for shop := range statpipe {
 			t.Log(shop)
+
 		}
 	})
 

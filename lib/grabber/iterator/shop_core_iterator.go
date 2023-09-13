@@ -5,9 +5,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/pdcgo/tokopedia_lib/lib/query"
+	"github.com/rs/zerolog"
 )
 
 type ShopCoreItem interface {
@@ -67,6 +69,10 @@ func BatchShopCore[T ShopCoreItem](
 			for ind, core := range hasil {
 				err := items[ind].SetShopCore(core)
 				if err != nil {
+					pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+
+						return event.Interface("core", hasil).Interface("itemcore", core)
+					})
 					ctxErr.SendError(err)
 					return
 				}
