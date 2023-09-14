@@ -9,6 +9,7 @@ import (
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
+	"github.com/rs/zerolog"
 )
 
 type SearchPageHandler func(items []*model_public.ProductSearch) error
@@ -109,10 +110,15 @@ func NewContextError() *ContextError {
 	return ctxErr
 }
 
-func (ctx *ContextError) SendError(err error) {
+func (ctx *ContextError) SendError(err error, handlers ...func(event *zerolog.Event) *zerolog.Event) {
 
 	if err != nil {
-		pdc_common.ReportError(err)
+		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+			for _, hand := range handlers {
+				event = hand(event)
+			}
+			return event
+		})
 		ctx.Cancel()
 		if ctx.Err == nil {
 			ctx.Err = err
