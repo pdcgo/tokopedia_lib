@@ -61,7 +61,7 @@ func TestShopCoreIterator(t *testing.T) {
 	api, err := api_public.NewTokopediaApiPublic()
 	assert.Nil(t, err)
 
-	shopcore, err := iterator.BatchShopCore(ctxErr, productsChan, 10, 5, api)
+	shopcore, err := iterator.BatchShopCore(ctxErr, productsChan, nil, 10, 5, api)
 	assert.Nil(t, err)
 
 	t.Run("test iterate statistic", func(t *testing.T) {

@@ -19,9 +19,15 @@ type ShopCoreItem interface {
 	SetStatistic(data *model_public.ShopStatisticQueryResp) error
 }
 
+type ItemError[T ShopCoreItem] struct {
+	Item *T
+	Err  error
+}
+
 func BatchShopCore[T ShopCoreItem](
 	ctxErr *ContextError,
 	itemsChan <-chan []T,
+	setErrChan chan<- *ItemError[T],
 	limitTask int,
 	limitChan int,
 	api *api_public.TokopediaApiPublic,
@@ -68,12 +74,18 @@ func BatchShopCore[T ShopCoreItem](
 
 			for ind, core := range hasil {
 				err := items[ind].SetShopCore(core)
+
 				if err != nil {
 					pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
 						return event.Interface("core", hasil).Interface("itemcore", core).Interface("payload", payloads)
 					})
-					ctxErr.SendError(err)
-					return
+
+					if setErrChan != nil {
+						setErrChan <- &ItemError[T]{
+							Item: &items[ind],
+							Err:  err,
+						}
+					}
 				}
 			}
 
