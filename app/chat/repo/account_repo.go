@@ -130,10 +130,16 @@ func (repo *AccountRepo) List(filter *ListAccountFilter) ([]*model.Account, erro
 			AND "groups".id = account_groups.group_id
 			AND "groups".name = ?
 		)`, filter.GroupName)
+	} else {
+		tx = tx.Where(`EXISTS (
+			SELECT 1 FROM "groups", account_groups
+			WHERE AccountData__id = account_groups.account_data_id
+			AND "groups".id = account_groups.group_id
+		)`)
 	}
 
 	if filter.Name != "" {
-		tx = tx.Where("shop_name LIKE %?%", filter.Name)
+		tx = tx.Where("shop_name LIKE ?", "%"+filter.Name+"%")
 	}
 
 	if filter.HaveChat {

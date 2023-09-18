@@ -12,6 +12,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/chat/api"
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/group"
+	"github.com/pdcgo/tokopedia_lib/app/chat/helper"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/tokopedia_lib/app/chat/service"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -31,18 +32,21 @@ func InitApplication(cfg *config.AppConfig) (*Application, error) {
 	driverGroup := group.NewDriverGroup()
 	initConfig := config.NewInitConfig(cfg)
 	accountApi := api.NewAccountApi(accountRepo, accountService, driverGroup, initConfig)
-	socketGroup := group.NewSocketGroup(coreEvent)
-	chatGroup := group.NewChatGroup(coreEvent, initConfig, accountRepo, driverGroup, socketGroup)
-	groupApi := api.NewGroupApi(db, chatGroup)
-	chatService := service.NewChatService(socketGroup)
-	notificationService := service.NewNotificationService(coreEvent, driverGroup, accountService)
-	chatApi := api.NewChatApi(initConfig, accountRepo, driverGroup, chatService, notificationService)
+	groupRepo := repo.NewGroupRepo(db)
+	socketGroup := group.NewSocketGroup(coreEvent, server)
+	chatGroup := group.NewChatGroup(server, initConfig, accountRepo, driverGroup, socketGroup)
+	groupApi := api.NewGroupApi(db, initConfig, accountRepo, groupRepo, chatGroup)
+	baseDriverApi := api.NewBaseDriverApi(initConfig, accountRepo, driverGroup)
+	soundPlayer := helper.NewSoundPlayer(cfg)
+	chatService := service.NewChatService(coreEvent, socketGroup, soundPlayer)
+	notificationService := service.NewNotificationService(coreEvent, initConfig, server, accountRepo, driverGroup, accountService)
+	chatApi := api.NewChatApi(baseDriverApi, soundPlayer, chatService, notificationService)
 	tokopediaApiPublic, err := api_public.NewTokopediaApiPublic()
 	if err != nil {
 		return nil, err
 	}
 	productApi := api.NewProductApi(tokopediaApiPublic)
-	stickerApi := api.NewStickerApi(initConfig, accountRepo, driverGroup)
+	stickerApi := api.NewStickerApi(baseDriverApi)
 	application := NewApplication(cfg, apiSdk, coreEvent, server, mainApi, accountApi, groupApi, chatApi, productApi, stickerApi)
 	return application, nil
 }

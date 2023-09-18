@@ -17,6 +17,7 @@ func TestAccountModel(t *testing.T) {
 		scen.WithChatSqliteDatabase(func(db *gorm.DB) {
 
 			accountRepo := repo.NewAccountRepo(db)
+			groupName := "test"
 			testAccountData := model.AccountData{
 				ID:          100,
 				Username:    "test",
@@ -26,6 +27,11 @@ func TestAccountModel(t *testing.T) {
 				Account: model.Account{
 					ID:       100,
 					ShopName: "test",
+				},
+				Groups: []model.Group{
+					{
+						Name: groupName,
+					},
 				},
 			}
 
@@ -61,6 +67,30 @@ func TestAccountModel(t *testing.T) {
 					assert.Equal(t, testAccountData.ID, account.ID)
 					assert.Equal(t, testAccountData.Account.ID, account.Account.ID)
 					assert.Equal(t, "updated", account.Account.ShopName)
+				})
+			})
+
+			t.Run("test get account", func(t *testing.T) {
+				account, err := accountRepo.GetChatAccount(groupName, testAccountData.ShopID)
+				assert.Nil(t, err)
+				assert.Equal(t, account.ID, testAccountData.ID)
+			})
+
+			t.Run("test get list", func(t *testing.T) {
+
+				t.Run("test get list groups tidak kosong", func(t *testing.T) {
+					list, err := accountRepo.List(&repo.ListAccountFilter{})
+					assert.Nil(t, err)
+					assert.NotEmpty(t, list)
+					assert.NotEmpty(t, list[0].AccountData.Groups)
+				})
+
+				t.Run("test get list filter name", func(t *testing.T) {
+					list, err := accountRepo.List(&repo.ListAccountFilter{
+						Name: "testAccountData.Account.ShopName",
+					})
+					assert.Nil(t, err)
+					assert.NotEmpty(t, list)
 				})
 			})
 

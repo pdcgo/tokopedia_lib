@@ -3,19 +3,33 @@ package service
 import (
 	"log"
 
+	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/tokopedia_lib/app/chat/group"
+	"github.com/pdcgo/tokopedia_lib/app/chat/helper"
+	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
 	"github.com/pdcgo/tokopedia_lib/lib/chat"
 )
 
 type ChatService struct {
+	event       *common_concept.CoreEvent
 	socketGroup *group.SocketGroup
+	sound       *helper.SoundPlayer
 }
 
-func NewChatService(socketGroup *group.SocketGroup) *ChatService {
+func NewChatService(
+	event *common_concept.CoreEvent,
+	socketGroup *group.SocketGroup,
+	sound *helper.SoundPlayer,
+) *ChatService {
 
-	return &ChatService{
+	chatService := ChatService{
+		event:       event,
 		socketGroup: socketGroup,
+		sound:       sound,
 	}
+
+	go chatService.handleEvent()
+	return &chatService
 }
 
 func (s *ChatService) ReadChat(username string, msgId uint) error {
@@ -95,4 +109,16 @@ func (s *ChatService) SendChat(username, name string, sendChat *SendChat) error 
 		return err
 	})
 	return err
+}
+
+func (s *ChatService) handleEvent() {
+	for event := range s.event.GetEvent() {
+		switch ev := event.(type) {
+
+		case *sio_event.SendChatEvent:
+			if ev.Event.IsOpposite {
+				s.sound.Play()
+			}
+		}
+	}
 }

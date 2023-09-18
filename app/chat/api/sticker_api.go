@@ -4,10 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pdcgo/tokopedia_lib/app/chat/config"
-	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
-	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	tokpedapi "github.com/pdcgo/tokopedia_lib/lib/api"
 	apimodel "github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/v2_gots_sdk"
@@ -17,13 +14,7 @@ type StickerApi struct {
 	*BaseDriverApi
 }
 
-func NewStickerApi(
-	initConfig *config.InitConfig,
-	accountRepo *repo.AccountRepo,
-	driverGroup *group.DriverGroup,
-) *StickerApi {
-
-	driverApi := NewBaseDriverApi(initConfig, accountRepo, driverGroup)
+func NewStickerApi(driverApi *BaseDriverApi) *StickerApi {
 	return &StickerApi{
 		BaseDriverApi: driverApi,
 	}

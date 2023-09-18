@@ -99,7 +99,7 @@ func (s *AccountService) AddAccount(account Account, groupName string) error {
 	return err
 }
 
-func (s *AccountService) UpdateAccountNotifications(shopid int, notif *api.NotificationCounterRes) (err error) {
+func (s *AccountService) SyncAccount(shopid int, notifHash string, notif *api.NotificationCounterRes) (err error) {
 
 	notifData := notif.Data.Notifications
 	err = s.accountRepo.UpdateAccount(shopid, func(account *model.Account) {
@@ -107,6 +107,7 @@ func (s *AccountService) UpdateAccountNotifications(shopid int, notif *api.Notif
 		account.NewOrder = notifData.SellerOrderStatus.NewOrder
 		account.Diskusi = notifData.Inbox.TalkSeller
 		account.Online = true
+		account.NotifHash = notifHash
 	})
 	return err
 }

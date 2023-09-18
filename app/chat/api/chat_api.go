@@ -5,10 +5,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pdcgo/tokopedia_lib/app/chat/config"
-	"github.com/pdcgo/tokopedia_lib/app/chat/group"
+	"github.com/pdcgo/tokopedia_lib/app/chat/helper"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
-	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/tokopedia_lib/app/chat/service"
 	tokpedapi "github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/v2_gots_sdk"
@@ -16,21 +14,21 @@ import (
 
 type ChatApi struct {
 	*BaseDriverApi
+	sound               *helper.SoundPlayer
 	chatService         *service.ChatService
 	notificationService *service.NotificationService
 }
 
 func NewChatApi(
-	initConfig *config.InitConfig,
-	accountRepo *repo.AccountRepo,
-	driverGroup *group.DriverGroup,
+	driverApi *BaseDriverApi,
+	sound *helper.SoundPlayer,
 	chatService *service.ChatService,
 	notificationService *service.NotificationService,
 ) *ChatApi {
 
-	driverApi := NewBaseDriverApi(initConfig, accountRepo, driverGroup)
 	return &ChatApi{
 		BaseDriverApi:       driverApi,
+		sound:               sound,
 		chatService:         chatService,
 		notificationService: notificationService,
 	}
@@ -107,6 +105,8 @@ type ChatReadQuery struct {
 
 func (api *ChatApi) read(ctx *gin.Context) {
 
+	api.sound.Pause()
+
 	query := ChatReadQuery{}
 	err := ctx.BindQuery(&query)
 	if err != nil {
@@ -126,7 +126,7 @@ func (api *ChatApi) read(ctx *gin.Context) {
 		return
 	}
 
-	err = api.notificationService.SendAccountNotifications(account)
+	err = api.notificationService.SendSyncAccountNotification(account)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return

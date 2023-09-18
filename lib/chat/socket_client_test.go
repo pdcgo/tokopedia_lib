@@ -26,6 +26,9 @@ func TestRunningSocket(t *testing.T) {
 
 	cha.Connect(ctx, func(socket *chat.SocketClient, event *chat.RcvEventSocket) error {
 		return nil
+	}, func(socket *chat.SocketClient, err error) bool {
+		t.Error(err)
+		return true
 	})
 
 }

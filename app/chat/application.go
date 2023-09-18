@@ -10,9 +10,9 @@ import (
 )
 
 type Application struct {
-	config         *config.AppConfig
-	event          *common_concept.CoreEvent
-	socketFrontend *socketio.Server
+	config *config.AppConfig
+	event  *common_concept.CoreEvent
+	sio    *socketio.Server
 
 	sdk        *v2_gots_sdk.ApiSdk
 	mainApi    *api.MainApi
@@ -27,7 +27,7 @@ func NewApplication(
 	config *config.AppConfig,
 	sdk *v2_gots_sdk.ApiSdk,
 	event *common_concept.CoreEvent,
-	socketFrontend *socketio.Server,
+	sio *socketio.Server,
 	mainApi *api.MainApi,
 	accountApi *api.AccountApi,
 	groupApi *api.GroupApi,
@@ -37,25 +37,25 @@ func NewApplication(
 ) *Application {
 
 	return &Application{
-		sdk:            sdk,
-		config:         config,
-		event:          event,
-		socketFrontend: socketFrontend,
-		mainApi:        mainApi,
-		accountApi:     accountApi,
-		groupApi:       groupApi,
-		chatApi:        chatApi,
-		productApi:     productApi,
-		stickerApi:     stickerApi,
+		sdk:        sdk,
+		config:     config,
+		event:      event,
+		sio:        sio,
+		mainApi:    mainApi,
+		accountApi: accountApi,
+		groupApi:   groupApi,
+		chatApi:    chatApi,
+		productApi: productApi,
+		stickerApi: stickerApi,
 	}
 }
 
 func (app *Application) Run() error {
 
 	// register socketio
-	defer app.socketFrontend.Close()
-	app.sdk.R.GET("/socket.io/*any", gin.WrapH(app.socketFrontend))
-	app.sdk.R.POST("/socket.io/*any", gin.WrapH(app.socketFrontend))
+	defer app.sio.Close()
+	app.sdk.R.GET("/socket.io/*any", gin.WrapH(app.sio))
+	app.sdk.R.POST("/socket.io/*any", gin.WrapH(app.sio))
 
 	apiGr := app.sdk.Group("api")
 	accountGr := apiGr.Group("akuns")

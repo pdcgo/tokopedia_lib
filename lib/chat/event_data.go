@@ -12,6 +12,8 @@ type EventType int
 const (
 	ReadUserChatEvent = 301
 	ChatEvent         = 103
+	StartTypingEvent  = 203
+	EndTypingEvent    = 204
 )
 
 type EventCode struct {
@@ -50,6 +52,14 @@ func (event *EmitEventSocket) UnmarshalJSON(data []byte) error {
 
 	case ChatEvent:
 		event.Data = &SendChat{}
+		err = parse(event)
+
+	case StartTypingEvent:
+		event.Data = &RcvStartTyping{}
+		err = parse(event)
+
+	case EndTypingEvent:
+		event.Data = &RcvEndTyping{}
 		err = parse(event)
 
 	default:
@@ -159,4 +169,25 @@ type RcvChat struct {
 	LocalID           string         `json:"local_id"`
 	ClientConnectTime time.Time      `json:"client_connect_time"`
 	Source            string         `json:"source"`
+}
+
+type RcvStartTyping struct {
+	MsgID             int64     `json:"msg_id"`
+	FromUID           int       `json:"from_uid"`
+	FromUserName      string    `json:"from_user_name"`
+	FromRole          string    `json:"from_role"`
+	IsOpposite        bool      `json:"is_opposite"`
+	ToUID             int       `json:"to_uid"`
+	ClientConnectTime time.Time `json:"client_connect_time"`
+}
+
+type RcvEndTyping struct {
+	MsgID             int64          `json:"msg_id"`
+	FromUID           int            `json:"from_uid"`
+	FromUserName      string         `json:"from_user_name"`
+	FromRole          string         `json:"from_role"`
+	ReminderTicker    ReminderTicker `json:"reminder_ticker"`
+	IsOpposite        bool           `json:"is_opposite"`
+	ToUID             int            `json:"to_uid"`
+	ClientConnectTime time.Time      `json:"client_connect_time"`
 }

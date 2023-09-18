@@ -5,11 +5,12 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/pdcgo/common_conf/common_concept"
+	socketio "github.com/googollee/go-socket.io"
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
+	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/chat"
 	"github.com/rs/zerolog"
@@ -17,7 +18,7 @@ import (
 )
 
 type ChatGroup struct {
-	event       *common_concept.CoreEvent
+	sio         *socketio.Server
 	initConfig  *config.InitConfig
 	accountRepo *repo.AccountRepo
 	driverGroup *DriverGroup
@@ -29,25 +30,21 @@ type ChatGroup struct {
 }
 
 func NewChatGroup(
-	event *common_concept.CoreEvent,
+	sio *socketio.Server,
 	initConfig *config.InitConfig,
 	accountRepo *repo.AccountRepo,
 	driverGroup *DriverGroup,
 	socketGroup *SocketGroup,
 ) *ChatGroup {
 
-	ChatGroup := ChatGroup{
-		event:         event,
+	return &ChatGroup{
+		sio:           sio,
 		initConfig:    initConfig,
 		accountRepo:   accountRepo,
 		driverGroup:   driverGroup,
 		socketGroup:   socketGroup,
 		connectCancel: func() {},
 	}
-
-	go ChatGroup.handleEvent()
-
-	return &ChatGroup
 }
 
 func (g *ChatGroup) reportErr(err error, ev string, data any) error {
@@ -86,7 +83,7 @@ func (g *ChatGroup) Connect(groupName string) {
 			}
 
 			err = g.driverGroup.WithDriverApi(account.Username, func(api *api.TokopediaApi) error {
-				return g.socketGroup.AddSocket(g.connectCtx, account.Username, api)
+				return g.socketGroup.AddSocket(g.connectCtx, &account, api)
 			})
 			if err != nil {
 				g.reportErr(err, "connect", map[string]string{
@@ -106,13 +103,24 @@ func (g *ChatGroup) Connect(groupName string) {
 	}
 }
 
-func (g *ChatGroup) Reconnect(username string) error {
+func (g *ChatGroup) Reconnect(shopid int) error {
+
+	account, err := g.accountRepo.GetChatAccount(g.initConfig.ActiveGroup, shopid)
+	if err != nil {
+		return err
+	}
 
 	g.reconnectLock.Lock()
 	defer g.reconnectLock.Unlock()
 
 	// disconnect socket if exist
-	err := g.socketGroup.WithSocket(username, func(sc *chat.SocketClient) error {
+	username := account.GetUsername()
+	err = g.socketGroup.WithSocket(username, func(sc *chat.SocketClient) error {
+
+		g.sio.BroadcastToNamespace("", "disconnected_event", sio_event.SocketDisconnectedEvent{
+			Shopid: int(sc.Api.AuthenticatedData.UserShopInfo.Info.ShopID),
+		})
+
 		err := sc.Con.Close(websocket.StatusNormalClosure, "reconnect")
 		return err
 	})
@@ -121,27 +129,6 @@ func (g *ChatGroup) Reconnect(username string) error {
 	}
 
 	return g.driverGroup.WithDriverApi(username, func(api *api.TokopediaApi) error {
-		return g.socketGroup.AddSocket(g.connectCtx, username, api)
+		return g.socketGroup.AddSocket(g.connectCtx, account.AccountData, api)
 	})
-}
-
-type ChatGroupConnectEvent struct {
-	Groupname string `json:"group_name"`
-}
-
-type ChatGroupReconnectEvent struct {
-	Username string `json:"username"`
-}
-
-func (g *ChatGroup) handleEvent() {
-	for event := range g.event.GetEvent() {
-		switch ev := event.(type) {
-
-		case *ChatGroupConnectEvent:
-			g.Connect(ev.Groupname)
-
-		case *ChatGroupReconnectEvent:
-			g.Reconnect(ev.Username)
-		}
-	}
 }

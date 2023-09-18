@@ -3,8 +3,6 @@ package chat
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"io"
 	"log"
 	"net/http"
 	"sync"
@@ -52,8 +50,9 @@ func (socket *SocketClient) logError(err error, handlers ...func(event *zerolog.
 }
 
 type SocketEventhandler func(socket *SocketClient, event *RcvEventSocket) error
+type SocketErrorhandler func(socket *SocketClient, err error) bool
 
-func (socket *SocketClient) Connect(ctx context.Context, eventhandler SocketEventhandler) {
+func (socket *SocketClient) Connect(ctx context.Context, eventhandler SocketEventhandler, errhandler SocketErrorhandler) {
 	socket.Lock()
 	defer socket.Unlock()
 
@@ -79,11 +78,11 @@ func (socket *SocketClient) Connect(ctx context.Context, eventhandler SocketEven
 
 	socket.Con = con
 	socket.Ctx = ctx
-	socket.ListenData(eventhandler)
+	socket.ListenData(eventhandler, errhandler)
 
 }
 
-func (socket *SocketClient) ListenData(eventhandler SocketEventhandler) {
+func (socket *SocketClient) ListenData(eventhandler SocketEventhandler, errhandler SocketErrorhandler) {
 Parent:
 	for {
 		select {
@@ -92,14 +91,12 @@ Parent:
 
 		default:
 			tipe, msg, err := socket.Con.Read(socket.Ctx)
-
-			if errors.Is(err, io.EOF) {
-				name := socket.Api.AuthenticatedData.User.Name
-				log.Printf("[ %s ] socket disconnected EOF", name)
-				break Parent
-			}
-
 			if err != nil {
+				isBreak := errhandler(socket, err)
+				if isBreak {
+					break Parent
+				}
+
 				pdc_common.ReportError(err)
 				continue
 			}
