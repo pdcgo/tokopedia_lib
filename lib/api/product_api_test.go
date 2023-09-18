@@ -20,6 +20,56 @@ func TestProductApi(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
+	t.Run("test get product list", func(t *testing.T) {
+		shopId := strconv.Itoa(int(apiSession.AuthenticatedData.UserShopInfo.Info.ShopID))
+		query := model.ProductListVar{
+			ShopID: shopId,
+			Filter: []model.Filter{
+				{
+					ID:    "pageSize",
+					Value: []string{"20"},
+				}, {
+					ID:    "keyword",
+					Value: []string{""},
+				}, {
+					ID:    "status",
+					Value: []string{},
+				},
+				{
+					ID:    "page",
+					Value: []string{"1"},
+				},
+			},
+			Sort: model.Sort{
+				ID:    "DEFAULT",
+				Value: "DESC",
+			},
+			ExtraInfo:   []string{"view", "topads", "rbac", "price-suggestion"},
+			WarehouseID: "",
+		}
+
+		hasil, err := apiSession.ProductList(&query)
+		assert.NotEmpty(t, hasil)
+		assert.Nil(t, err)
+	})
+
+	t.Run("test get product v3", func(t *testing.T) {
+		productId := int64(9909542408)
+		variable := model.NewProductV3Var(productId)
+		hasil, err := apiSession.GetProductV3(variable)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil)
+		assert.Equal(t, hasil.Data.GetProductV3.ProductID, productId)
+		t.Log(hasil)
+	})
+
+	t.Run("test product add rule", func(t *testing.T) {
+
+		hasil, err := apiSession.GetProductAddRule()
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil)
+		assert.Equal(t, hasil.Data.ProductAddRule.Data.Eligible.Limit, 200)
+	})
 }
 
 func TestProductAddApi(t *testing.T) {
@@ -74,81 +124,4 @@ func TestProductAddApi(t *testing.T) {
 	// 		assert.Equal(t, hasil.Data.ProductAddV3.Header.ErrorCode, "2")
 	// 	}
 	// })
-}
-
-func TestProductList(t *testing.T) {
-
-	apiSession, saveSession := scenario.GetTokopediaApiClient()
-	defer saveSession()
-
-	t.Run("test get product list", func(t *testing.T) {
-		shopId := strconv.Itoa(int(apiSession.AuthenticatedData.UserShopInfo.Info.ShopID))
-		query := model.ProductListVar{
-			ShopID: shopId,
-			Filter: []model.Filter{
-				{
-					ID:    "pageSize",
-					Value: []string{"20"},
-				}, {
-					ID:    "keyword",
-					Value: []string{""},
-				}, {
-					ID:    "status",
-					Value: []string{},
-				},
-				{
-					ID:    "page",
-					Value: []string{"1"},
-				},
-			},
-			Sort: model.Sort{
-				ID:    "DEFAULT",
-				Value: "DESC",
-			},
-			ExtraInfo:   []string{"view", "topads", "rbac", "price-suggestion"},
-			WarehouseID: "",
-		}
-
-		hasil, err := apiSession.ProductList(&query)
-		assert.NotEmpty(t, hasil)
-		assert.Nil(t, err)
-	})
-}
-
-func TestGetProductV3(t *testing.T) {
-
-	apiSession, saveSession := scenario.GetTokopediaApiClient()
-	defer saveSession()
-
-	t.Run("test getProductV3", func(t *testing.T) {
-		variable := model.GetProductV3Var{
-			ProductID: "9781591960",
-			Options: model.Options{
-				Basic:       true,
-				Menu:        true,
-				Shop:        true,
-				Category:    true,
-				Wholesale:   true,
-				Preorder:    true,
-				Picture:     true,
-				Sku:         true,
-				Lock:        true,
-				Variant:     true,
-				Video:       true,
-				Edit:        true,
-				TxStats:     true,
-				Dimension:   true,
-				CustomVideo: true,
-			},
-			ExtraInfo: struct {
-				Event bool "json:\"event\""
-			}{
-				Event: false,
-			},
-		}
-		hasil, err := apiSession.GetProductV3(&variable)
-		assert.NotEmpty(t, hasil)
-		assert.Nil(t, err)
-		t.Log(hasil)
-	})
 }

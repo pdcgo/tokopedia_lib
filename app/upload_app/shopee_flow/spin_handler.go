@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/pdcgo/common_conf/common_concept"
+	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/spin"
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	"github.com/pdcgo/go_v2_shopeelib/lib/public_api"
 	shopeeuploader "github.com/pdcgo/go_v2_shopeelib/lib/uploader"
@@ -12,7 +13,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/uploader"
 )
 
-func (flow *ShopeeToTopedFlow) createSpinHandler(akun *repo.AkunItem, spin shopeeuploader.SpinFunc) uploader.UploadHandler {
+func (flow *ShopeeToTopedFlow) createSpinHandler(akun *repo.AkunItem, spinner shopeeuploader.SpinFunc) uploader.UploadHandler {
 	return func(eventcore uploader.EmitFunc, tokpedup *uploader.TokopediaUploader, payload *uploader.PayloadUpload, sub *common_concept.Subscriber) error {
 
 		var source *public_api.PublicProduct
@@ -38,17 +39,10 @@ func (flow *ShopeeToTopedFlow) createSpinHandler(akun *repo.AkunItem, spin shope
 		berat := float64(distance.Price) / distance.Km / ratio
 
 		fixprice := source.GetPrice(true) // TODO: fixing
-		priceprofit := spin.Price(int(fixprice))
+		priceprofit := spinner.Price(int(fixprice))
 
-		productName := spin.Title(source.Name)
-		if len(productName) > 70 {
-			productName = productName[:70]
-		}
-
-		description := spin.Description(productName, source.Description)
-		if len(description) > 2000 {
-			description = description[:2000]
-		}
+		productName := spinner.Title(source.Name, spin.MaxTokpedTitle)
+		description := spinner.Description(productName, source.Description, spin.MaxTokpedDesc)
 
 		payload.Lock()
 		defer payload.Unlock()

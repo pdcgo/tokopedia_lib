@@ -1,4 +1,4 @@
-package cek_verification
+package report
 
 import (
 	"fmt"
@@ -9,13 +9,13 @@ import (
 	"github.com/pdcgo/tokopedia_lib"
 )
 
-type VerifDriverAccount struct {
+type CekVerifReport struct {
 	*tokopedia_lib.DriverAccount
 	Pesan  string
 	Status string
 }
 
-func SaveCekReport(fname string, akuns []*VerifDriverAccount) error {
+func SaveCekVerifReport(fname string, akuns []*CekVerifReport) error {
 	f, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
 		return err
@@ -29,8 +29,8 @@ func SaveCekReport(fname string, akuns []*VerifDriverAccount) error {
 	return nil
 }
 
-func getakunFromFile(fname string) ([]*VerifDriverAccount, func(), error) {
-	hasil := []*VerifDriverAccount{}
+func NewCekVerifReport(fname string) (akuns []*CekVerifReport, save func() error, err error) {
+	hasil := []*CekVerifReport{}
 	data, _ := os.ReadFile(fname)
 	lines := strings.Split(string(data), "\n")
 
@@ -53,7 +53,7 @@ Parent:
 		}
 
 		acdriver, err := tokopedia_lib.NewDriverAccount(dataline[0], dataline[1], dataline[2])
-		driver := VerifDriverAccount{
+		driver := CekVerifReport{
 			DriverAccount: acdriver,
 			Status:        dataline[3],
 			Pesan:         dataline[4],
@@ -66,16 +66,9 @@ Parent:
 		hasil = append(hasil, &driver)
 	}
 
-	return hasil, func() {
-		f, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-		if err != nil {
-			pdc_common.ReportError(err)
-		}
-		defer f.Close()
-		for _, driver := range hasil {
-			f.WriteString(fmt.Sprintf("%s,%s,%s,%s,%s\n", driver.Username, driver.Password, driver.Secret, driver.Status, driver.Pesan))
-		}
+	save = func() error {
+		return SaveCekVerifReport(fname, hasil)
+	}
 
-	}, nil
-
+	return hasil, save, nil
 }

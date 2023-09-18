@@ -6,53 +6,55 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/lib/report"
 	"github.com/urfave/cli/v2"
 )
 
-// func reportFile() (func(data string), func()) {
+func CheckVerif(driver *report.CekVerifReport) error {
+	return driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
 
-// }
+		driver.MitraLogin(dctx.Ctx)
 
-func (driver *VerifDriverAccount) CheckVerif(dctx *tokopedia_lib.DriverContext) error {
-	timeout := time.After(time.Second * 30)
-	success := make(chan int, 1)
-	gagal := make(chan string, 1)
+		timeout := time.After(time.Second * 30)
+		success := make(chan int, 1)
+		gagal := make(chan string, 1)
 
-	go func() {
-		pathverif := `//*/div[contains(text(), "Terverifikasi")]`
-		chromedp.Run(dctx.Ctx,
-			chromedp.Navigate("https://mitra.tokopedia.com/user/akun-saya"),
-			chromedp.WaitVisible(pathverif, chromedp.BySearch),
-		)
+		go func() {
+			pathverif := `//*/div[contains(text(), "Terverifikasi")]`
+			chromedp.Run(dctx.Ctx,
+				chromedp.Navigate("https://mitra.tokopedia.com/user/akun-saya"),
+				chromedp.WaitVisible(pathverif, chromedp.BySearch),
+			)
 
-		success <- 1
-	}()
+			success <- 1
+		}()
 
-	go func() {
-		var hasil string
-		title := `//*/h5[@data-unify="Typography"]`
-		chromedp.Run(dctx.Ctx,
-			chromedp.WaitVisible(title, chromedp.BySearch),
-			chromedp.Text(`//*/div[@aria-label="Gagal Verifikasi"]/div/span/p[@data-unify="Typography"]`, &hasil, chromedp.NodeVisible),
-		)
+		go func() {
+			var hasil string
+			title := `//*/h5[@data-unify="Typography"]`
+			chromedp.Run(dctx.Ctx,
+				chromedp.WaitVisible(title, chromedp.BySearch),
+				chromedp.Text(`//*/div[@aria-label="Gagal Verifikasi"]/div/span/p[@data-unify="Typography"]`, &hasil, chromedp.NodeVisible),
+			)
 
-		gagal <- hasil
-	}()
+			gagal <- hasil
+		}()
 
-	select {
-	case <-timeout:
-		driver.Status = "unknown"
-		log.Println(driver.Username, " unknown")
-	case <-success:
-		driver.Status = "success"
-		log.Println(driver.Username, " success")
-	case pesangagal := <-gagal:
-		driver.Status = "gagal"
-		driver.Pesan = pesangagal
-		log.Println(driver.Username, " gagal ", pesangagal)
-	}
+		select {
+		case <-timeout:
+			driver.Status = "unknown"
+			log.Println(driver.Username, " unknown")
+		case <-success:
+			driver.Status = "success"
+			log.Println(driver.Username, " success")
+		case pesangagal := <-gagal:
+			driver.Status = "gagal"
+			driver.Pesan = pesangagal
+			log.Println(driver.Username, " gagal ", pesangagal)
+		}
 
-	return nil
+		return nil
+	})
 }
 
 func runCheckKtp(cCtx *cli.Context) error {
@@ -61,22 +63,16 @@ func runCheckKtp(cCtx *cli.Context) error {
 	// pdc_common.InitializeLogger()
 
 	fname := cCtx.String("fname")
-	akuns, save, _ := getakunFromFile(fname)
+	akuns, save, _ := report.NewCekVerifReport(fname)
+	defer save()
 	log.Println("running checkverif...")
 
 	for _, driver := range akuns {
 		if driver.Status == "success" || driver.Status == "gagal" {
 			continue
 		}
-		driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
-			driver.MitraLogin(dctx.Ctx)
-			driver.CheckVerif(dctx)
 
-			save()
-
-			return nil
-		})
-
+		CheckVerif(driver)
 	}
 
 	return nil
