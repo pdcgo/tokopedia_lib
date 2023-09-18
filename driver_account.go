@@ -230,8 +230,13 @@ func (d *DriverAccount) CreateApi() (*api.TokopediaApi, func(), error) {
 		acapi := api.NewTokopediaApi(d.Session)
 		sapi = acapi
 		_, err = acapi.IsAutheticated()
-		// log.Println("get auth")
+
 		if err != nil {
+
+			if errors.Is(err, api.ErrNoShopid) {
+				d.Session.DeleteSession()
+			}
+
 			errlogin := loginBrowser()
 			if errlogin != nil {
 				return errlogin

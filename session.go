@@ -185,6 +185,7 @@ func (sess *Session) Load() error {
 
 func (sess *Session) DeleteSession() error {
 	pathdata := filepath.Join(BaseSessionPath, sess.fname+".json")
+	sess.Cookies = []*http.Cookie{}
 	return os.Remove(pathdata)
 
 }
