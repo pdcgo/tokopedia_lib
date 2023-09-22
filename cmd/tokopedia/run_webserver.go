@@ -58,7 +58,7 @@ func (webtoped *TokopediaWebServer) SetupRouter(r *gin.Engine, prefix string) er
 	save := func() {}
 	if webtoped.DevMode {
 		BuildExeOnDev(webtoped.Base)
-		save = sdk.GenerateSdkFunc("frontend/src/client/sdk_types_test.ts", true)
+		save, _ = sdk.GenerateSdkFunc("frontend/src/client/sdk_types_test_v2.ts")
 	}
 
 	defer save()

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -213,41 +214,41 @@ func RegisterAkunApi(g *v2_gots_sdk.SdkGroup, db *gorm.DB, repo *repo.AkunRepo) 
 
 	akun := g.Group("akun")
 
-	akun.Register(&v2_gots_sdk.Api{
+	akun.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "list",
 		Query:        AkunListQuery{},
 		Response:     AkunListResponse{},
 	}, akapi.List)
 
-	akun.Register(&v2_gots_sdk.Api{
+	akun.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "bulk_add",
 		Payload:      BulkPayload{},
 		Response:     Response{},
 	}, akapi.BulkAdd)
 
-	akun.Register(&v2_gots_sdk.Api{
+	akun.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "update",
 		Payload:      AkunUpdatePayload{},
 		Response:     Response{},
 	}, akapi.Update)
 
-	akun.Register(&v2_gots_sdk.Api{
+	akun.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "delete",
 		Payload:      AkunDeletePayload{},
 		Response:     Response{},
 	}, akapi.Delete)
 
-	akun.Register(&v2_gots_sdk.Api{
+	akun.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "reset_all_count",
 		Response:     Response{},
 	}, akapi.ResetAll)
 
-	// akun.Register(&v2_gots_sdk.Api{
+	// akun.Register(&pdc_api.Api{
 	// 	Method:       http.MethodPost,
 	// 	RelativePath: "reset",
 	// 	Response:     Response{},

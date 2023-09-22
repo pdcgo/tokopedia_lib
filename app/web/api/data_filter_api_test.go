@@ -7,6 +7,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/web/api"
 	"github.com/pdcgo/tokopedia_lib/scenario"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,7 @@ func TestDataFilterApi(t *testing.T) {
 		dapi.RegisterApi(sdk.Group("filter"))
 
 		t.Run("test getting filter kota", func(t *testing.T) {
-			res := sendApi(&v2_gots_sdk.Api{
+			res := sendApi(&pdc_api.Api{
 				Method:       http.MethodGet,
 				RelativePath: "/filter/fcity",
 			})

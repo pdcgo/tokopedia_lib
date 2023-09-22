@@ -9,6 +9,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/autosubmit"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type SubmitApi struct {
@@ -20,7 +21,7 @@ func RegisterSubmitApi(grp *v2_gots_sdk.SdkGroup, base repo.BaseInterface) {
 		base: base,
 	}
 
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "run",
 		Payload:      &autosubmit.AutoSubmit{},
