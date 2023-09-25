@@ -66,6 +66,22 @@ func (api *TokopediaApi) SendRequest(req *http.Request, hasil any) error {
 	return api.Session.Update(res.Cookies())
 }
 
+func (api *TokopediaApi) SendRequestTest(req *http.Request, hasil any) ([]byte, error) {
+	res, err := ClientApi.Do(req)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	body, _ := io.ReadAll(res.Body)
+	// log.Println(string(body))
+	err = json.Unmarshal(body, hasil)
+	if err != nil {
+		return body, err
+	}
+
+	return body, api.Session.Update(res.Cookies())
+}
+
 func NewTokopediaApi(session Session) *TokopediaApi {
 	encoder := schema.NewEncoder()
 
