@@ -8,7 +8,7 @@ require (
 	github.com/gocarina/gocsv v0.0.0-20230513223533-9ddd7fd60602
 	github.com/google/uuid v1.3.1
 	github.com/pdcgo/common_conf v1.1.12
-	github.com/pdcgo/go_v2_shopeelib v1.1.45
+	github.com/pdcgo/go_v2_shopeelib v1.1.47
 	github.com/pdcgo/v2_gots_sdk v1.2.19
 	github.com/sethvargo/go-retry v0.2.4
 	go.mongodb.org/mongo-driver v1.11.3
@@ -134,7 +134,7 @@ require (
 	github.com/pquerna/otp v1.4.0
 	github.com/robotn/xgb v0.0.0-20190912153532-2cb92d044934 // indirect
 	github.com/robotn/xgbutil v0.0.0-20190912154524-c861d6f87770 // indirect
-	github.com/rs/zerolog v1.30.0
+	github.com/rs/zerolog v1.31.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
@@ -151,7 +151,7 @@ require (
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	google.golang.org/api v0.142.0 // indirect
+	google.golang.org/api v0.143.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20230920204549-e6e6cdab5c13 // indirect
 	google.golang.org/grpc v1.58.2 // indirect
