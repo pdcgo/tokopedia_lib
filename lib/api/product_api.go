@@ -1,10 +1,13 @@
 package api
 
 import (
+	"errors"
 	"log"
 	"strconv"
 
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/model"
+	"github.com/rs/zerolog"
 )
 
 type ProductListMetaRes struct {
@@ -147,8 +150,18 @@ func (api *TokopediaApi) ProductAdd(variables *model.ProductAddVar) (*model.Prod
 	req := api.NewGraphqlReq(&gqlQuery)
 
 	var hasil model.ProductAddResp
-	err := api.SendRequest(req, &hasil)
+	body, err := api.SendRequestTest(req, &hasil)
 	if err != nil {
+		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+			return event.Str("body", string(body))
+		})
+		return &hasil, err
+	}
+
+	if hasil.Data == nil || hasil.Data.ProductAddV3 == nil {
+		err := pdc_common.ReportErrorCustom(errors.New("upload error"), func(event *zerolog.Event) *zerolog.Event {
+			return event.Str("body", string(body))
+		})
 		return &hasil, err
 	}
 
