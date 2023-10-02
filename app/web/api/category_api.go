@@ -8,6 +8,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type CategoryApi struct {
@@ -42,13 +43,13 @@ func RegisterCategoryApi(grp *v2_gots_sdk.SdkGroup, base repo.BaseInterface) {
 
 	grp = grp.Group("category")
 
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "list",
 		Response:     api.CategoryAllListLiteRes{},
 	}, catapi.GetListCateg)
 
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "update_category",
 		Payload:      repo.UpdateTopedCategoryPayload{},

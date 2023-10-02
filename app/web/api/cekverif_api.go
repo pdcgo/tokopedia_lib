@@ -6,9 +6,10 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pdcgo/tokopedia_lib/app/cek_verification"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
+	"github.com/pdcgo/tokopedia_lib/lib/report"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type CheckVerifApi struct {
@@ -17,7 +18,7 @@ type CheckVerifApi struct {
 
 type RunCheckVerifPayload struct {
 	Fname string `json:"fname"`
-	Akuns []*cek_verification.VerifDriverAccount
+	Akuns []*report.CekVerifReport
 }
 
 func (cekbot *CheckVerifApi) runBin(fname string) {
@@ -36,16 +37,16 @@ func (cekbot *CheckVerifApi) RunCekverif(ctx *gin.Context) {
 	var payload RunCheckbotPayload
 	ctx.BindJSON(&payload)
 
-	hasil := make([]*cek_verification.VerifDriverAccount, len(payload.Akuns))
+	hasil := make([]*report.CekVerifReport, len(payload.Akuns))
 
 	for ind, akun := range payload.Akuns {
-		hasil[ind] = &cek_verification.VerifDriverAccount{
+		hasil[ind] = &report.CekVerifReport{
 			DriverAccount: akun,
 		}
 	}
 	fname := cekbot.base.Path(payload.Fname)
 
-	cek_verification.SaveCekReport(fname, hasil)
+	report.SaveCekVerifReport(fname, hasil)
 
 	cekbot.runBin(payload.Fname)
 	ctx.JSON(http.StatusOK, Response{
@@ -58,7 +59,7 @@ func RegisterCheckVerifApi(grp *v2_gots_sdk.SdkGroup, base repo.BaseInterface) {
 		base: base,
 	}
 	delgrp := grp.Group("check_verif")
-	delgrp.Register(&v2_gots_sdk.Api{
+	delgrp.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "run",
 		Payload:      RunCheckVerifPayload{},

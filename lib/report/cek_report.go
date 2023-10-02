@@ -16,6 +16,8 @@ type CekReport struct {
 	ProductActive    int
 	ProductInActive  int
 	ProductViolation int
+	ProductTotal     int
+	ProductLimit     int
 	ShopScore        float32
 	UreadChat        int
 	NewOrder         int
@@ -33,10 +35,10 @@ func SaveCekReport(fname string, akuns []*CekReport) error {
 	}
 	defer f.Close()
 
-	f.WriteString("username,password,secret,shopname,product_active,product_inactive,product_violation,shop_score,unread_chat,new_order,pm_status,extend_status,status,penalty,penalty_amount\n")
+	f.WriteString("username,password,secret,shopname,product_active,product_inactive,product_violation,product_total,product_limit,shop_score,unread_chat,new_order,pm_status,extend_status,status,penalty,penalty_amount\n")
 	for _, driver := range akuns {
 
-		f.WriteString(fmt.Sprintf("%s,%s,%s,%s,%d,%d,%d,%.2f,%d,%d,%s,%s,%s,%s,%s\n",
+		f.WriteString(fmt.Sprintf("%s,%s,%s,%s,%d,%d,%d,%d,%d,%.2f,%d,%d,%s,%s,%s,%s,%s\n",
 			driver.Username,
 			driver.Password,
 			driver.Secret,
@@ -44,6 +46,8 @@ func SaveCekReport(fname string, akuns []*CekReport) error {
 			driver.ProductActive,
 			driver.ProductInActive,
 			driver.ProductViolation,
+			driver.ProductTotal,
+			driver.ProductLimit,
 			driver.ShopScore,
 			driver.UreadChat,
 			driver.NewOrder,
@@ -72,7 +76,7 @@ Parent:
 			continue
 		}
 
-		dataline := make([]string, 15)
+		dataline := make([]string, 17)
 
 		fixline := strings.ReplaceAll(line, "\r", "")
 

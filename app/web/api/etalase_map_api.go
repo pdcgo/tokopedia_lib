@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pdcgo/tokopedia_lib/app/services"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type EtalaseMapApi struct {
@@ -24,27 +25,27 @@ func NewEtalaseMapApi(
 }
 
 func (api *EtalaseMapApi) RegisterApi(gr *v2_gots_sdk.SdkGroup) {
-	gr.Register(&v2_gots_sdk.Api{
+	gr.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "list",
 		Response:     &ListMapEtalaseRes{},
 		Query:        ListMapEtalaseQuery{},
 	}, api.ListMapEtalase)
 
-	gr.Register(&v2_gots_sdk.Api{
+	gr.Register(&pdc_api.Api{
 		Method:       http.MethodDelete,
 		RelativePath: "delete",
 		Query:        &DeleteEtalaseQuery{},
 	}, api.DeleteEtalase)
 
-	gr.Register(&v2_gots_sdk.Api{
+	gr.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "update",
 		Response:     &Response{},
 		Payload:      []*services.EtalaseMapItem{},
 	}, api.UpdateMapEtalase)
 
-	gr.Register(&v2_gots_sdk.Api{
+	gr.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "list_etalase",
 		Response:     []*services.EtalasePayload{},

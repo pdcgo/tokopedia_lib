@@ -6,7 +6,7 @@ import (
 
 	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/common_conf/pdc_common"
-	"github.com/pdcgo/go_v2_shopeelib/lib/public_api"
+	"github.com/pdcgo/go_v2_shopeelib/lib/public_api/public_model"
 	"github.com/pdcgo/tokopedia_lib/app/config"
 	"github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/tokopedia_lib/lib/uploader"
@@ -27,12 +27,12 @@ func (flow *ShopeeToTopedFlow) createCategoryHandler() uploader.UploadHandler {
 
 	return func(eventcore uploader.EmitFunc, tokpedup *uploader.TokopediaUploader, payload *uploader.PayloadUpload, sub *common_concept.Subscriber) error {
 
-		var source *public_api.PublicProduct
+		var source *public_model.PublicProduct
 	Parent:
 		for {
 			ev := <-sub.Chan
 			switch event := ev.(type) {
-			case *public_api.PublicProduct:
+			case *public_model.PublicProduct:
 				source = event
 				sub.Cancel()
 				break Parent

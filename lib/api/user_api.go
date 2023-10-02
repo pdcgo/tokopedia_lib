@@ -1,16 +1,48 @@
 package api
 
+import (
+	"encoding/json"
+	"errors"
+	"strconv"
+)
+
+type Info struct {
+	ShopID         int64  `json:"shop_id,string"`
+	ShopDomain     string `json:"shop_domain"`
+	ShopName       string `json:"shop_name"`
+	ShopAvatar     string `json:"shop_avatar"`
+	ShopIsOfficial string `json:"shop_is_official"`
+	ShopScore      int    `json:"shop_score"`
+	ShopLocation   string `json:"shop_location"`
+	Typename       string `json:"__typename"`
+}
+
+func (info *Info) UnmarshalJSON(data []byte) (err error) {
+	type Alias Info
+	aux := &struct {
+		*Alias
+		ShopID string `json:"shop_id"`
+	}{
+		Alias: (*Alias)(info),
+	}
+	if err = json.Unmarshal(data, &aux); err != nil {
+		return
+	}
+
+	if aux.ShopID == "" {
+		info.ShopID = 0
+	} else {
+		info.ShopID, err = strconv.ParseInt(aux.ShopID, 10, 64)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
 type UserShopInfo struct {
-	Info struct {
-		ShopID         int64  `json:"shop_id,string"`
-		ShopDomain     string `json:"shop_domain"`
-		ShopName       string `json:"shop_name"`
-		ShopAvatar     string `json:"shop_avatar"`
-		ShopIsOfficial string `json:"shop_is_official"`
-		ShopScore      int    `json:"shop_score"`
-		ShopLocation   string `json:"shop_location"`
-		Typename       string `json:"__typename"`
-	} `json:"info"`
+	Info  Info `json:"info"`
 	Owner struct {
 		OwnerID        int    `json:"owner_id"`
 		IsGoldMerchant bool   `json:"is_gold_merchant"`
@@ -36,6 +68,8 @@ type IsAtuheticatedData struct {
 type IsAuthenticatedRes struct {
 	Data IsAtuheticatedData `json:"data"`
 }
+
+var ErrNoShopid = errors.New("no shopid")
 
 func (api *TokopediaApi) IsAutheticated() (*IsAuthenticatedRes, error) {
 	var variable struct{}
@@ -99,6 +133,9 @@ func (api *TokopediaApi) IsAutheticated() (*IsAuthenticatedRes, error) {
 	}
 
 	api.AuthenticatedData = &hasil.Data
+	if hasil.Data.UserShopInfo.Info.ShopID == 0 {
+		return &hasil, ErrNoShopid
+	}
 
 	return &hasil, err
 }

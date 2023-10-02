@@ -11,6 +11,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type ShopeeCategoryApi struct {
@@ -76,7 +77,7 @@ func RegisterShopeeCategoryApi(sdk *v2_gots_sdk.ApiSdk, base repo.BaseInterface)
 		base: base,
 	}
 
-	sdk.Register(&v2_gots_sdk.Api{
+	sdk.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "/api/updateTokpedCategories",
 		Response:     controller.BaseResponse{},

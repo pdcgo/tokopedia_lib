@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/schema"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +20,7 @@ func CreateSdk() *v2_gots_sdk.ApiSdk {
 	return v2_gots_sdk.NewApiSdk(r)
 }
 
-type SendRequest func(req *v2_gots_sdk.Api) *httptest.ResponseRecorder
+type SendRequest func(req *pdc_api.Api) *httptest.ResponseRecorder
 type RunHandler func(sdk *v2_gots_sdk.ApiSdk, sendApi SendRequest) error
 
 var encoder = schema.NewEncoder()
@@ -27,7 +28,7 @@ var encoder = schema.NewEncoder()
 func RunWebSdk(t *testing.T, handler RunHandler) {
 	sdk := CreateSdk()
 
-	var sendApi SendRequest = func(api *v2_gots_sdk.Api) *httptest.ResponseRecorder {
+	var sendApi SendRequest = func(api *pdc_api.Api) *httptest.ResponseRecorder {
 		w := httptest.NewRecorder()
 
 		data := bytes.NewBuffer(nil)

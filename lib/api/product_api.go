@@ -1,10 +1,13 @@
 package api
 
 import (
+	"errors"
 	"log"
 	"strconv"
 
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/model"
+	"github.com/rs/zerolog"
 )
 
 type ProductListMetaRes struct {
@@ -147,8 +150,18 @@ func (api *TokopediaApi) ProductAdd(variables *model.ProductAddVar) (*model.Prod
 	req := api.NewGraphqlReq(&gqlQuery)
 
 	var hasil model.ProductAddResp
-	err := api.SendRequest(req, &hasil)
+	body, err := api.SendRequestTest(req, &hasil)
 	if err != nil {
+		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+			return event.Str("body", string(body))
+		})
+		return &hasil, err
+	}
+
+	if hasil.Data == nil || hasil.Data.ProductAddV3 == nil {
+		err := pdc_common.ReportErrorCustom(errors.New("upload error"), func(event *zerolog.Event) *zerolog.Event {
+			return event.Str("body", string(body))
+		})
 		return &hasil, err
 	}
 
@@ -488,6 +501,66 @@ func (api *TokopediaApi) BulkProductEditV3(payload *model.BulkProductEditV3Var) 
 	req := api.NewGraphqlReq(&gqlQuery)
 
 	var hasil *model.BulkProductEditV3Resp
+	err := api.SendRequest(req, &hasil)
+	return hasil, err
+}
+
+type ProductAddRuleData struct {
+	ProductAddRule struct {
+		Header struct {
+			Reason    string `json:"reason"`
+			Messages  []any  `json:"messages"`
+			ErrorCode string `json:"errorCode"`
+			Typename  string `json:"__typename"`
+		} `json:"header"`
+		Data struct {
+			Eligible struct {
+				Value        bool     `json:"value"`
+				TotalProduct int      `json:"totalProduct"`
+				Limit        int      `json:"limit"`
+				ActionItems  []string `json:"actionItems"`
+				Typename     string   `json:"__typename"`
+			} `json:"eligible"`
+			Typename string `json:"__typename"`
+		} `json:"data"`
+		Typename string `json:"__typename"`
+	} `json:"ProductAddRule"`
+}
+
+type ProductAddRuleRes struct {
+	Data ProductAddRuleData `json:"data"`
+}
+
+func (api *TokopediaApi) GetProductAddRule() (*ProductAddRuleRes, error) {
+	gqlQuery := GraphqlPayload{
+		OperationName: "ProductAddRule",
+		Variables:     map[string]any{},
+		Query: `query ProductAddRule {
+			ProductAddRule {
+			  header {
+				reason
+				messages
+				errorCode
+				__typename
+			  }
+			  data {
+				eligible {
+				  value
+				  totalProduct
+				  limit
+				  actionItems
+				  __typename
+				}
+				__typename
+			  }
+			  __typename
+			}
+		}`,
+	}
+
+	req := api.NewGraphqlReq(&gqlQuery)
+
+	var hasil *ProductAddRuleRes
 	err := api.SendRequest(req, &hasil)
 	return hasil, err
 }

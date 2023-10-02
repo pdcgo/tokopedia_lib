@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type baseInterface interface {
@@ -29,19 +30,19 @@ func NewDataFilterApi(
 
 func (fapi *DataFilterApi) RegisterApi(grp *v2_gots_sdk.SdkGroup) {
 
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "fcity",
 		Response:     []*api_public.Fcity{},
 	}, fapi.FcityData)
 
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "categories",
 		Response:     []*api_public.Fcity{},
 	}, fapi.FcityData)
 
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "shipping",
 		Response:     []*api_public.PubShippingItem{},

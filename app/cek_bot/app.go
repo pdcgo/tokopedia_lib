@@ -143,6 +143,19 @@ func Cekbot(driver *report.CekReport) {
 
 		}()
 
+		// product add rule
+		waitall.Add(1)
+		go func() {
+			defer waitall.Done()
+			hasil, err := apiclient.GetProductAddRule()
+			if err != nil {
+				pdc_common.ReportError(err)
+			}
+
+			driver.ProductTotal = hasil.Data.ProductAddRule.Data.Eligible.TotalProduct
+			driver.ProductLimit = hasil.Data.ProductAddRule.Data.Eligible.Limit
+		}()
+
 		// getting ShopInfo
 		waitall.Add(1)
 		go func() {
