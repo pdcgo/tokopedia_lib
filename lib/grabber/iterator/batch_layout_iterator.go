@@ -75,7 +75,7 @@ func V2GetBatchLayout(
 	searchItem <-chan []*model_public.ProductSearch,
 	limit int,
 	taskcount int,
-	ctxErr *ContextError,
+	ctxErr ContextError,
 	api *api_public.TokopediaApiPublic,
 ) (<-chan *model_public.PdpGetlayoutQueryResp, error) {
 
@@ -87,14 +87,14 @@ func V2GetBatchLayout(
 	for c := 0; c < taskcount; c++ {
 		go func() {
 			defer gr.Done()
-
+		Parent:
 			for items := range searchItem {
 				var layoutVars []*model_public.PdpGetlayoutQueryVar
 				for _, item := range items {
 					layoutVar, err := model_public.NewPdpGetlayoutQueryVar(item.URL)
 					if err != nil {
-						ctxErr.SendError(err)
-						return
+						ctxErr.SetError(err)
+						continue
 					}
 
 					layoutVars = append(layoutVars, layoutVar)
@@ -102,15 +102,14 @@ func V2GetBatchLayout(
 
 				resp, err := api.PdpGetlayoutQueryBatch(layoutVars)
 				if err != nil {
-					ctxErr.SendError(err)
-					return
+					ctxErr.SetError(err)
+					continue
 
 				}
-			Item:
 				for _, item := range resp {
 					select {
-					case <-ctxErr.Ctx.Done():
-						break Item
+					case <-ctxErr.GetCtx().Done():
+						break Parent
 					default:
 						result <- item
 					}

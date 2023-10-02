@@ -1,9 +1,11 @@
 package iterator_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
+	"github.com/pdcgo/tokopedia_lib/lib/core_concept"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/iterator"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/stretchr/testify/assert"
@@ -41,7 +43,8 @@ func (shop *ShopProd) SetShopCore(data *model_public.ShopCoreInfoResp) error {
 }
 
 func TestShopCoreIterator(t *testing.T) {
-	ctxErr := iterator.NewContextError()
+	ctxErr := core_concept.NewTaskContext(context.Background())
+
 	productsChan := make(chan []*ShopProd, 1)
 
 	go func() {
@@ -65,6 +68,7 @@ func TestShopCoreIterator(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Run("test iterate statistic", func(t *testing.T) {
+		defer ctxErr.Cancel()
 		statpipe, err := iterator.BatchShopStatistic(ctxErr, shopcore, 10, 5, api)
 		assert.Nil(t, err)
 		for shop := range statpipe {
@@ -72,6 +76,15 @@ func TestShopCoreIterator(t *testing.T) {
 
 		}
 	})
+Parent:
+	for {
+		select {
+		case err := <-ctxErr.Err:
+			assert.Nil(t, err)
+		case <-ctxErr.Ctx.Done():
+			break Parent
+		}
 
-	assert.Nil(t, ctxErr.Err)
+	}
+
 }

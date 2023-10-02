@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
+	"github.com/pdcgo/tokopedia_lib/lib/core_concept"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/iterator"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 )
@@ -32,7 +34,8 @@ func RunReqBrutal() error {
 
 		log.Println("request category ", category.Name)
 
-		ctx := iterator.NewContextError()
+		ctx := core_concept.NewTaskContext(context.Background())
+		defer ctx.Cancel()
 
 		// mulai iterasi per page
 		chunks, err := iterator.V2IterateSearchPage(ctx, 10, pubapi, searchVar)

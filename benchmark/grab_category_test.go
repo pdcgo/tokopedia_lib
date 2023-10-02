@@ -1,9 +1,11 @@
 package benchmark_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
+	"github.com/pdcgo/tokopedia_lib/lib/core_concept"
 	"github.com/pdcgo/tokopedia_lib/lib/grabber/iterator"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/stretchr/testify/assert"
@@ -27,7 +29,8 @@ func BenchmarkCategorypage(b *testing.B) {
 	searchVar := model_public.NewSearchProductVar()
 	searchVar.CategoryId = category.ID
 
-	ctx := iterator.NewContextError()
+	ctx := core_concept.NewTaskContext(context.Background())
+	defer ctx.Cancel()
 	chunks, err := iterator.V2IterateSearchPage(ctx, 10, pubapi, searchVar)
 	assert.Nil(b, err)
 

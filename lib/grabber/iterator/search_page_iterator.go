@@ -93,48 +93,21 @@ Parent:
 	return nil
 }
 
-type ContextError struct {
-	Ctx    context.Context
-	Err    error
-	Cancel context.CancelFunc
-}
-
-func NewContextError() *ContextError {
-	ctx, cancel := context.WithCancel(context.TODO())
-
-	ctxErr := &ContextError{
-		Ctx:    ctx,
-		Cancel: cancel,
-	}
-
-	return ctxErr
-}
-
-func (ctx *ContextError) SendError(err error, handlers ...func(event *zerolog.Event) *zerolog.Event) {
-
-	if err != nil {
-		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
-			for _, hand := range handlers {
-				event = hand(event)
-			}
-			return event
-		})
-		ctx.Cancel()
-		if ctx.Err == nil {
-			ctx.Err = err
-		}
-
-	}
+type ContextError interface {
+	GetCtx() context.Context
+	SetError(err error)
+	SetErrorCustom(err error, handler func(event *zerolog.Event) *zerolog.Event)
+	Cancel()
 }
 
 func V2IterateSearchPage(
-	ctxErr *ContextError,
+	ctxErr ContextError,
 	chunkSize int,
 	api *api_public.TokopediaApiPublic,
 	searchVar *model_public.SearchProductVar,
 ) (<-chan []*model_public.ProductSearch, error) {
 
-	ctx := ctxErr.Ctx
+	ctx := ctxErr.GetCtx()
 	currentCount := 0
 	chunkChan := make(chan []*model_public.ProductSearch, 100)
 
@@ -171,7 +144,7 @@ func V2IterateSearchPage(
 
 				resp, err := api.SearchProductQueryV4(variable)
 				if err != nil {
-					ctxErr.SendError(err)
+					ctxErr.SetError(err)
 					return
 				}
 				products := resp.Data.AceSearchProductV4.Data.Products

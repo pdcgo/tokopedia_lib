@@ -25,7 +25,7 @@ type ItemError[T ShopCoreItem] struct {
 }
 
 func BatchShopCore[T ShopCoreItem](
-	ctxErr *ContextError,
+	ctxErr ContextError,
 	itemsChan <-chan []T,
 	setErrChan chan<- *ItemError[T],
 	limitTask int,
@@ -43,7 +43,7 @@ func BatchShopCore[T ShopCoreItem](
 				uri, err := url.Parse(item.GetShopUrl())
 
 				if err != nil {
-					ctxErr.SendError(err)
+					ctxErr.SetError(err)
 					return
 				}
 				domain := strings.ReplaceAll(uri.Path, "/", "")
@@ -63,12 +63,12 @@ func BatchShopCore[T ShopCoreItem](
 			hasil := []*model_public.ShopCoreInfoResp{}
 			req, err := api.NewGraphqlReqBatch("ShopInfoCore", payloads)
 			if err != nil {
-				ctxErr.SendError(err)
+				ctxErr.SetError(err)
 				return
 			}
 			err = api.SendRequest(req, &hasil)
 			if err != nil {
-				ctxErr.SendError(err)
+				ctxErr.SetError(err)
 				return
 			}
 
@@ -92,7 +92,7 @@ func BatchShopCore[T ShopCoreItem](
 			select {
 			case filteredChan <- items:
 				continue
-			case <-ctxErr.Ctx.Done():
+			case <-ctxErr.GetCtx().Done():
 				continue
 			}
 		}
@@ -104,7 +104,7 @@ func BatchShopCore[T ShopCoreItem](
 }
 
 func BatchShopStatistic[T ShopCoreItem](
-	ctxErr *ContextError,
+	ctxErr ContextError,
 	itemsChan <-chan []T,
 	limitTask int,
 	limitChan int,
@@ -139,19 +139,19 @@ func BatchShopStatistic[T ShopCoreItem](
 			hasil := []*model_public.ShopStatisticQueryResp{}
 			req, err := api.NewGraphqlReqBatch("ShopStatisticQuery", payloads)
 			if err != nil {
-				ctxErr.SendError(err)
+				ctxErr.SetError(err)
 				return
 			}
 			err = api.SendRequest(req, &hasil)
 			if err != nil {
-				ctxErr.SendError(err)
+				ctxErr.SetError(err)
 				return
 			}
 
 			for ind, stat := range hasil {
 				err := items[ind].SetStatistic(stat)
 				if err != nil {
-					ctxErr.SendError(err)
+					ctxErr.SetError(err)
 					return
 				}
 			}
@@ -159,7 +159,7 @@ func BatchShopStatistic[T ShopCoreItem](
 			select {
 			case filteredChan <- items:
 				continue
-			case <-ctxErr.Ctx.Done():
+			case <-ctxErr.GetCtx().Done():
 				continue
 			}
 		}
