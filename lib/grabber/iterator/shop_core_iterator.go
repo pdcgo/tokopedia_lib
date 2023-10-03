@@ -36,7 +36,7 @@ func BatchShopCore[T ShopCoreItem](
 
 	go func() {
 		defer close(filteredChan)
-
+	Parent:
 		for items := range itemsChan {
 			payloads := []*api_public.GraphqlPayload{}
 			for _, item := range items {
@@ -44,7 +44,7 @@ func BatchShopCore[T ShopCoreItem](
 
 				if err != nil {
 					ctxErr.SetError(err)
-					return
+					continue Parent
 				}
 				domain := strings.ReplaceAll(uri.Path, "/", "")
 				pay := model_public.ShopCoreInfoVar{
@@ -64,12 +64,12 @@ func BatchShopCore[T ShopCoreItem](
 			req, err := api.NewGraphqlReqBatch("ShopInfoCore", payloads)
 			if err != nil {
 				ctxErr.SetError(err)
-				return
+				continue Parent
 			}
 			err = api.SendRequest(req, &hasil)
 			if err != nil {
 				ctxErr.SetError(err)
-				return
+				continue Parent
 			}
 
 			for ind, core := range hasil {
@@ -114,7 +114,7 @@ func BatchShopStatistic[T ShopCoreItem](
 
 	go func() {
 		defer close(filteredChan)
-
+	Parent:
 		for items := range itemsChan {
 			payloads := []*api_public.GraphqlPayload{}
 			for _, item := range items {
@@ -140,19 +140,19 @@ func BatchShopStatistic[T ShopCoreItem](
 			req, err := api.NewGraphqlReqBatch("ShopStatisticQuery", payloads)
 			if err != nil {
 				ctxErr.SetError(err)
-				return
+				continue Parent
 			}
 			err = api.SendRequest(req, &hasil)
 			if err != nil {
 				ctxErr.SetError(err)
-				return
+				continue Parent
 			}
 
 			for ind, stat := range hasil {
 				err := items[ind].SetStatistic(stat)
 				if err != nil {
 					ctxErr.SetError(err)
-					return
+					continue Parent
 				}
 			}
 
