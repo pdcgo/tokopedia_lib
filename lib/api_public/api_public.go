@@ -1,45 +1,18 @@
 package api_public
 
 import (
-	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"io"
 	"log"
 	"net/http"
-	"net/http/cookiejar"
 	"sync"
 	"time"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/sethvargo/go-retry"
-	"golang.org/x/net/http2"
 )
-
-type TokpedHttpClient struct {
-	sync.Mutex
-	Client *http.Client
-}
-
-func NewTokpedHttpClient() *TokpedHttpClient {
-	jar, _ := cookiejar.New(nil)
-
-	transport := &http2.Transport{
-		DisableCompression: false,
-	}
-	// transport := &http.Transport{
-	// 	// MaxIdleConnsPerHost: 10,
-	// 	DisableCompression: false,
-	// }
-
-	return &TokpedHttpClient{
-		Client: &http.Client{
-			Transport: transport,
-			Jar:       jar,
-			Timeout:   30 * time.Second,
-		},
-	}
-}
 
 // var CountClientPool int = 5
 
@@ -70,64 +43,34 @@ func (api *TokopediaApiPublic) NewRequest(method, ur string, query any, body io.
 }
 
 func (api *TokopediaApiPublic) SendRequest(req *http.Request, hasil any) error {
-
-	b := retry.NewFibonacci(time.Second * 5)
-
-	err := retry.Do(context.Background(), retry.WithMaxRetries(3, b), func(ctx context.Context) error {
-		api.guard <- 1
-
-		defer func() {
-			<-api.guard
-		}()
-
-		var res *http.Response
-		var err error
-
-		api.RLock()
-		res, err = api.Client.Do(req)
-		api.RUnlock()
-		if err != nil {
-			// pdc_common.ReportError(err)
-			return retry.RetryableError(err)
-		}
-
-		if res.StatusCode == 403 {
-
-			// api.Lock()
-			// TODO: BAKALAN REFACTOR
-
-			// api.Unlock()
-			// api.guard <- 1
-
-			log.Println("retry 403")
-			jar, _ := cookiejar.New(nil)
-			api.Lock()
-			api.Client.Jar = jar
-			api.Unlock()
-
-			return retry.RetryableError(errors.New("request api limit"))
-		}
-
-		body, _ := io.ReadAll(res.Body)
-		// log.Println(string(body))
-
-		if res.StatusCode != 200 {
-			log.Println(string(body))
-			return retry.RetryableError(errors.New("request api limit"))
-		}
-
-		err = json.Unmarshal(body, hasil)
-		if err != nil {
-			log.Println(string(body))
-		}
-		return retry.RetryableError(err)
-	})
+	res, err := api.Client.Do(req)
 
 	if err != nil {
-		pdc_common.ReportError(err)
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == 403 {
+		log.Println("retry 403")
+
+		return errors.New("request api limit")
 	}
 
-	return err
+	body, _ := io.ReadAll(res.Body)
+	// log.Println(string(body))
+
+	if res.StatusCode != 200 {
+		log.Println(string(body))
+		return retry.RetryableError(errors.New("request api limit"))
+	}
+
+	err = json.Unmarshal(body, hasil)
+	if err != nil {
+		log.Println(string(body))
+		return err
+	}
+
+	return nil
 }
 
 // func defaultHeader() map[string]string {
@@ -154,29 +97,31 @@ func NewTokopediaApiPublic() (*TokopediaApiPublic, error) {
 	// if err != nil {
 	// 	return nil, err
 	// }
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		return nil, err
-	}
+	// jar, err := cookiejar.New(nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// transport := &http2.Transport{
 	// 	DisableCompression: false,
 	// }
 	transport := &http.Transport{
-		// MaxIdleConnsPerHost: 20,
+		ForceAttemptHTTP2:  false,
 		DisableCompression: false,
+		// DisableKeepAlives:  true,
+		TLSNextProto: make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
 	}
 
 	return &TokopediaApiPublic{
-		guard: make(chan int, 5),
+		guard: make(chan int, 100),
 
 		Client: &http.Client{
 			Transport: transport,
 			// Transport: &http.Transport{
 			// 	MaxIdleConnsPerHost: 10,
 			// },
-			Jar:     jar,
-			Timeout: 30 * time.Second,
+			// Jar:     jar,
+			Timeout: 60 * time.Second,
 		},
 	}, nil
 }
