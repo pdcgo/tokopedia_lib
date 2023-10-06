@@ -79,9 +79,9 @@ func RegisterDeleterApi(grp *v2_gots_sdk.SdkGroup, base repo.BaseInterface) {
 		Response:     DeleteSettingRes{},
 	}, deleter.UpdateSetting)
 
-	delgrp.Register(&pdc_api.Api{
-		Method:       http.MethodPut,
-		RelativePath: "run_delete",
-		Response:     Response{},
-	}, deleter.RunDelete)
+	// delgrp.Register(&pdc_api.Api{
+	// 	Method:       http.MethodPut,
+	// 	RelativePath: "run_delete",
+	// 	Response:     Response{},
+	// }, deleter.RunDelete)
 }
