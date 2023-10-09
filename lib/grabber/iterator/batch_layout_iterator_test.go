@@ -50,4 +50,24 @@ func TestBatchLayoutIterator(t *testing.T) {
 		assert.Equal(t, 0, len(layouts))
 
 	})
+
+	t.Run("testing obat yang view 0", func(t *testing.T) {
+		urls := []string{
+			"https://www.tokopedia.com/srherbaloriginal/obat-herbal-kanker-tumor-serviks-miom-kista-payudara-mazon-b-kmuricata-6-sachet",
+		}
+
+		ctx := context.Background()
+		layouts := []*model_public.PdpGetlayoutQueryResp{}
+		err := iterator.GetBatchLayout(api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
+			view := layout.Data.PdpGetLayout.BasicInfo.Stats.CountView
+			t.Log(view)
+			assert.GreaterOrEqual(t, 70, view)
+
+			layouts = append(layouts, layout)
+			return nil
+		})
+
+		assert.Nil(t, err)
+		assert.Equal(t, len(urls), len(layouts))
+	})
 }

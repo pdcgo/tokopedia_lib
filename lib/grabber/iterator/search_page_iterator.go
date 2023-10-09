@@ -126,6 +126,9 @@ func V2IterateSearchPage(
 
 	go func() {
 		defer close(chunkChan)
+
+		log.Println("start iterate chunk")
+
 	Parent:
 		for currentCount < itemCount {
 			select {
@@ -153,7 +156,12 @@ func V2IterateSearchPage(
 				}
 
 				for _, items := range products.Chunks(chunkSize) {
-					chunkChan <- items
+					select {
+					case <-ctx.Done():
+						break Parent
+					case chunkChan <- items:
+						continue
+					}
 
 				}
 
