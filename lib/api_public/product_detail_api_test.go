@@ -3,6 +3,7 @@ package api_public_test
 import (
 	"testing"
 
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/stretchr/testify/assert"
@@ -157,6 +158,40 @@ func TestProductDetailApi(t *testing.T) {
 		for ind, v := range hasil {
 			assert.Equal(t, expectIds[ind], v.Data.PdpGetLayout.BasicInfo.ID)
 		}
+
+		t.Run("test api layout batch urls", func(t *testing.T) {
+			urls := []string{
+				"https://www.tokopedia.com/alvaboard/alvaboard-kardus-kotak-pengiriman-box-pindahan-60x40x30-cm-hitam?extParam=fcity%3D258%2C259%2C260%2C261%2C262%2C263%2C264%2C265%2C476%2C266%26ivf%3Dtrue%26src%3Dsearch%26whid%3D14634330",
+				"https://www.tokopedia.com/aceindonesiaid/ace-proclean-alat-pel-spray-putih-abu-abu?extParam=fcity%3D258%2C259%2C260%2C261%2C262%2C263%2C264%2C265%2C476%2C266%26ivf%3Dtrue%26src%3Dsearch%26whid%3D15257554",
+				"https://www.tokopedia.com/aceindonesiaid/ace-krisbow-dispenser-sabun-cair-silver?extParam=fcity%3D258%2C259%2C260%2C261%2C262%2C263%2C264%2C265%2C476%2C266%26ivf%3Dtrue%26src%3Dsearch%26whid%3D15257554",
+				// "https://www.tokopedia.com/aceindonesiaid/ace-ace-set-10-pcs-lap-microfiber?extParam=fcity%3D258%2C259%2C260%2C261%2C262%2C263%2C264%2C265%2C476%2C266%26ivf%3Dfalse%26src%3Dsearch%26whid%3D15257554",
+				// "https://www.tokopedia.com/aceindonesiaid/ace-krisbow-set-2-pcs-baterai-cr2032?extParam=fcity%3D258%2C259%2C260%2C261%2C262%2C263%2C264%2C265%2C476%2C266%26ivf%3Dfalse%26src%3Dsearch%26whid%3D15257554",
+				// "https://www.tokopedia.com/aceindonesiaid/ace-astonish-750-ml-cairan-pembersih-stainless-steel-n-clear?extParam=fcity%3D258%2C259%2C260%2C261%2C262%2C263%2C264%2C265%2C476%2C266%26ivf%3Dfalse%26src%3Dsearch%26whid%3D15257554",
+				// "https://www.tokopedia.com/aceindonesiaid/ace-susino-53-5-cm-payung-lipat?extParam=fcity%3D258%2C259%2C260%2C261%2C262%2C263%2C264%2C265%2C476%2C266%26ivf%3Dfalse%26src%3Dsearch%26whid%3D15257554",
+				// "https://www.tokopedia.com/informa/informa-set-8-pcs-hanger-kayu-cokelat-tua?extParam=fcity%3D258%2C259%2C260%2C261%2C262%2C263%2C264%2C265%2C476%2C266%26ivf%3Dfalse%26src%3Dsearch%26whid%3D14326045",
+				// "https://www.tokopedia.com/alvaboard/kardus-alvaboard-xl-heavy-duty-box-besar-ukuran-70x50x40-cm-ab-xl-polos-15ad1?extParam=fcity%3D258%2C259%2C260%2C261%2C262%2C263%2C264%2C265%2C476%2C266%26ivf%3Dtrue%26src%3Dsearch%26whid%3D14634330",
+				// "https://www.tokopedia.com/informa/informa-rak-sepatu-compact-5-tier-shoe-rack-black-42x20x79cm?extParam=fcity%3D258%2C259%2C260%2C261%2C262%2C263%2C264%2C265%2C476%2C266%26ivf%3Dfalse%26src%3Dsearch%26whid%3D14326045",
+			}
+
+			var layoutVars []*model_public.PdpGetlayoutQueryVar
+			for _, url := range urls {
+				layoutVar, err := model_public.NewPdpGetlayoutQueryVar(url)
+				if err != nil {
+					pdc_common.ReportError(err)
+					return
+				}
+
+				layoutVars = append(layoutVars, layoutVar)
+			}
+
+			hasil, err := api.PdpGetlayoutQueryBatch(layoutVars)
+			assert.Nil(t, err)
+			assert.NotEmpty(t, hasil)
+
+			for _, v := range hasil {
+				assert.NotEmpty(t, v)
+			}
+		})
 	})
 
 	t.Run("test dengan url", func(t *testing.T) {

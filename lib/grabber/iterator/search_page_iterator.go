@@ -37,7 +37,7 @@ Parent:
 			}
 
 			products := resp.Data.AceSearchProductV4.Data.Products
-			err = products.IterateChunks(10, func(ps []*model_public.ProductSearch) error {
+			err = products.IterateChunks(3, func(ps []*model_public.ProductSearch) error {
 				select {
 				case <-ctx.Done():
 					return ctx.Err()

@@ -133,8 +133,8 @@ func (products SearchProducts) IterateChunks(num int, handler SearchProductChunk
 
 	for i := 0; i < int(numChunk); i++ {
 
-		start := i * 10
-		end := (i + 1) * 10
+		start := i * num
+		end := (i + 1) * num
 
 		if end > productlen {
 			end = productlen
