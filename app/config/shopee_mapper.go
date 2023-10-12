@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+
 	"gorm.io/gorm"
 )
 
@@ -35,12 +37,18 @@ func (maper *ShopeeMapper) GetTokopediaID(shopeID int64) (*ShopeeMapItem, error)
 	return &itemap, err
 }
 
+var ErrMapNotFound = errors.New("mapping di db tidak ada")
+
 func (maper *ShopeeMapper) GetShopeeID(tokopediaID int) (*ShopeeMapItem, error) {
 	itemap := ShopeeMapItem{}
 
 	err := maper.db.Where(&ShopeeMapItem{
 		TokopediaID: tokopediaID,
 	}).First(&itemap).Error
+
+	// if errors.Is(err, gorm.ErrRecordNotFound) {
+	// 	return &itemap, ErrMapNotFound
+	// }
 
 	return &itemap, err
 }

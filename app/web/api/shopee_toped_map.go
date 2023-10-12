@@ -232,7 +232,7 @@ func (mapi *ShopeeTopedMapApi) TokopediaCollectionCategory(ctx *gin.Context) {
 
 		} else {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
-				log.Println(err)
+				log.Println("error mapping category ", err)
 			}
 
 		}
