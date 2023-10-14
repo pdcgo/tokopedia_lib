@@ -70,7 +70,7 @@ func (g *CategoryCsvGrabber) Run() error {
 		ctx, cancel := context.WithCancel(context.Background())
 		filterItem := filter.NewFilterItem(ctx, filters...)
 		cfg := iterator.IterateConfig{
-			ChuckSize:      10,
+			ChuckSize:      3,
 			ConcurentGuard: make(chan int, 5),
 		}
 		err = iterator.IterateSearchPage(&cfg, g.Api, ctx, searchVar, func(items []*model_public.ProductSearch) error {

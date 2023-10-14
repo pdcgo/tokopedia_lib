@@ -66,7 +66,7 @@ func (g *CategoryGrabber) Run() error {
 	searchVar.CategoryId = catId
 
 	cfg := iterator.IterateConfig{
-		ChuckSize:      10,
+		ChuckSize:      3,
 		ConcurentGuard: g.limitGuard,
 	}
 

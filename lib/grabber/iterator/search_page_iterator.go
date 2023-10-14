@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log"
-	"sync"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -32,7 +31,6 @@ func IterateSearchPage(
 
 Parent:
 	for currentCount < itemCount {
-		var wg sync.WaitGroup
 		select {
 		case <-ctx.Done():
 			break Parent
@@ -53,24 +51,15 @@ Parent:
 					return ctx.Err()
 
 				default:
-					wg.Add(1)
 					ps := items
-					go func() {
-						defer wg.Done()
-						err := handler(ps)
-						if err != nil {
+					err := handler(ps)
+					if err != nil {
+						if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+							break Parent
+						} else {
 							pdc_common.ReportError(err)
 						}
-					}()
-				}
-
-			}
-
-			if err != nil {
-				if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-					break Parent
-				} else {
-					pdc_common.ReportError(err)
+					}
 				}
 			}
 
@@ -86,8 +75,6 @@ Parent:
 			}
 
 		}
-
-		wg.Wait()
 	}
 
 	return nil

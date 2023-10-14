@@ -61,7 +61,7 @@ func TestBatchLayoutIterator(t *testing.T) {
 		err := iterator.GetBatchLayout(api, ctx, urls, func(layout *model_public.PdpGetlayoutQueryResp) error {
 			view := layout.Data.PdpGetLayout.BasicInfo.Stats.CountView
 			t.Log(view)
-			assert.GreaterOrEqual(t, 70, view)
+			assert.GreaterOrEqual(t, view, 70)
 
 			layouts = append(layouts, layout)
 			return nil

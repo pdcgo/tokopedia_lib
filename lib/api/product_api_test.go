@@ -54,7 +54,7 @@ func TestProductApi(t *testing.T) {
 	})
 
 	t.Run("test get product v3", func(t *testing.T) {
-		productId := int64(9909542408)
+		productId := int64(4514276124)
 		variable := model.NewProductV3Var(productId)
 		hasil, err := apiSession.GetProductV3(variable)
 		assert.Nil(t, err)
