@@ -1,6 +1,7 @@
 package api_public_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
@@ -34,4 +35,44 @@ func TestHeaderMainData(t *testing.T) {
 	t.Log(hasil)
 	assert.NotEmpty(t, hasil)
 	assert.Nil(t, err)
+
+	categ := hasil.Data.CategoryAllListLite.Categories[0]
+
+	assert.NotEmpty(t, categ.IconImageUrl, "categ level pertama ada png")
+	assert.NotEmpty(t, categ.IsCrawlable, "categ level pertama ada field is crawlable")
+
+	t.Run("testing get bulk category", func(t *testing.T) {
+		categsData := hasil.Data.CategoryAllListLite
+
+		hasil, err := categsData.GetBulkCats([]int{
+			984,
+			3882,
+			2772,
+		})
+
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil)
+
+		for _, cat := range hasil {
+			data, err := json.Marshal(cat)
+			assert.Nil(t, err)
+			t.Log(string(data))
+		}
+
+		t.Run("test sekali lagi dengan data yang beda", func(t *testing.T) {
+			hasil, err := categsData.GetBulkCats([]int{
+				1877, 1876, 1881,
+			})
+
+			assert.Nil(t, err)
+			assert.NotEmpty(t, hasil)
+
+			for _, cat := range hasil {
+				data, err := json.Marshal(cat)
+				assert.Nil(t, err)
+				t.Log(string(data))
+			}
+		})
+
+	})
 }

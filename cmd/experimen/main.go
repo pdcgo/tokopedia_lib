@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"sync"
 
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
@@ -48,8 +48,17 @@ func main() {
 	// if err := RunGrab(ctx); err != nil {
 	// 	log.Fatal(err)
 	// }
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-	if err := RunReqBrutal(); err != nil {
-		log.Fatal(err)
-	}
+	go func() {
+		defer wg.Done()
+		RunReqBrutal()
+	}()
+	// go func() {
+	// 	defer wg.Done()
+	// 	RunReqBrutal()
+	// }()
+
+	wg.Wait()
 }
