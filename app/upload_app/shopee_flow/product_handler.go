@@ -16,7 +16,7 @@ func (flow *ShopeeToTopedFlow) createProductHandler(akun *repo.AkunItem, spin sh
 	return func(eventcore uploader.EmitFunc, tokpedup *uploader.TokopediaUploader, payload *uploader.PayloadUpload, sub *common_concept.Subscriber) error {
 
 		sub.Cancel()
-		product, _, err := flow.productRepo.Get(mongorepo.MP_SHOPEE, akun.Collection, true)
+		product, err := flow.productRepo.Get(mongorepo.MP_SHOPEE, akun.Collection, true)
 		if err != nil {
 			if strings.Contains(err.Error(), "cannot decode") {
 				return errors.New(product.Name + ", " + err.Error() + ", silahkan grab baru")
