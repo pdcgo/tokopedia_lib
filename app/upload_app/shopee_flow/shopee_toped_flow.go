@@ -193,6 +193,11 @@ func (flow *ShopeeToTopedFlow) Run() error {
 		return err
 	}
 
+	err = flow.productRepo.ResetProcessed()
+	if err != nil {
+		return err
+	}
+
 MainLoop:
 	for {
 		select {
