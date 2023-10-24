@@ -17,7 +17,6 @@ func (flow *ShopeeToTopedFlow) createProductHandler(akun *repo.AkunItem, spin sh
 
 		sub.Cancel()
 		product, err := flow.productRepo.Get(mongorepo.MP_SHOPEE, akun.Collection, true)
-		product.SetFinish(flow.productRepo, mongorepo.BackupNamespace)
 		if err != nil {
 			if strings.Contains(err.Error(), "cannot decode") {
 				return errors.New(product.Name + ", " + err.Error() + ", silahkan grab baru")
