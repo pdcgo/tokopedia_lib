@@ -47,7 +47,17 @@ func (mapi *ShopeeTopedMapApi) UpdateMap(c *gin.Context) {
 	}
 
 	for _, mapitem := range payload {
-		err := mapi.db.Save(mapitem).Error
+		err := mapi.db.Transaction(func(tx *gorm.DB) error {
+			tmap := config.ShopeeMapItem{
+				TokopediaID: mapitem.TokopediaID,
+			}
+			err := mapi.db.Where(&tmap).Delete(&tmap).Error
+			if err != nil {
+				return nil
+			}
+
+			return mapi.db.Save(mapitem).Error
+		})
 		if err != nil {
 			hasil.Msg = err.Error()
 			hasil.Err = "error"
