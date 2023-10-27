@@ -5,6 +5,7 @@ import (
 
 	"github.com/pdcgo/common_conf/pdc_application"
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/go_v2_shopeelib/app/app_config"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	appcfg "github.com/pdcgo/tokopedia_lib/app/config"
@@ -44,6 +45,11 @@ func runUploadShopeeToped(ctx *cli.Context) error {
 		}
 
 		shopeeagg := shopee_repo.NewProductAggregate(mdb.Collection("item"))
+		weightConfig, err := app_config.NewConfig[app_config.WeightPrediction](app.Base, "weight_ratio")
+		if err != nil {
+			pdc_common.ReportError(err)
+			return err
+		}
 
 		flow := shopee_flow.NewShopeeToTopedFlow(
 			app.Base.Path(),
@@ -53,6 +59,7 @@ func runUploadShopeeToped(ctx *cli.Context) error {
 			concurent,
 			publicapi,
 			shopeeagg,
+			weightConfig,
 		)
 
 		flow.Run()

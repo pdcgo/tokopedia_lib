@@ -64,14 +64,11 @@ func (flow *ShopeeToTopedFlow) createVariantHandler(spin shopeeuploader.SpinFunc
 			selections = append(selections, selection)
 		}
 
-		// product variant
-		ratio := flow.ConfigFlow.RatioWeightPredict
-		berat := float64(distance.Price) / distance.Km / ratio
-
 		products := []model.ProductVariant{}
 		for ind, smodel := range source.Models {
 
 			price := int(smodel.GetPrice(flow.ConfigFlow.MarkupConfig.UseDiscount) / 100000)
+			berat := flow.weightconfig.GetWeight(int(price))
 			price = spin.Price(price)
 
 			product := model.ProductVariant{

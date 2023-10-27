@@ -35,8 +35,8 @@ func (flow *ShopeeToTopedFlow) createSpinHandler(akun *repo.AkunItem, spinner sh
 		}
 
 		havevariant := len(source.Models) > 1
-		ratio := flow.ConfigFlow.RatioWeightPredict
-		berat := float64(distance.Price) / distance.Km / ratio
+		price := int(source.GetPrice(flow.ConfigFlow.MarkupConfig.UseDiscount))
+		berat := flow.weightconfig.GetWeight(price)
 
 		fixprice := source.GetPrice(true) // TODO: fixing
 		priceprofit := spinner.Price(int(fixprice))

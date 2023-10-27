@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/go_v2_shopeelib/app/app_config"
 	shopee_upapp "github.com/pdcgo/go_v2_shopeelib/app/upload_app"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/spin"
@@ -52,6 +53,7 @@ type ShopeeToTopedFlow struct {
 	AkunIterator   *repo.AkunUploadIterator
 	CacheApi       *CacheApiDriver
 	etalasemap     *services.EtalaseMapService
+	weightconfig   *app_config.WeightPrediction
 }
 
 func NewShopeeToTopedFlow(
@@ -62,6 +64,7 @@ func NewShopeeToTopedFlow(
 	concurent *shopee_upapp.UploadConcurencyConfig,
 	publicapi *api_public.TokopediaApiPublic,
 	shopeePAgg shopee_repo.ProductAggregate,
+	weightconfig *app_config.WeightPrediction,
 ) *ShopeeToTopedFlow {
 	cctx, cancel := context.WithCancel(ctx)
 
@@ -88,6 +91,7 @@ func NewShopeeToTopedFlow(
 		CacheApi:       NewCacheApiDriver(),
 		CancelCtx:      cancel,
 		etalasemap:     services.NewEtalaseMapService(sqlitedb, shopeePAgg),
+		weightconfig:   weightconfig,
 	}
 }
 
