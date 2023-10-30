@@ -249,6 +249,12 @@ func (d *DriverAccount) CreateApi() (*api.TokopediaApi, func(), error) {
 			return retry.RetryableError(err)
 		}
 
+		// check is seller account
+		data, _ := acapi.ShopInfoByID()
+		if data == nil || len(data.Data.ShopInfoByID.Result) == 0 {
+			return ErrNotSellerAccount
+		}
+
 		return nil
 	})
 

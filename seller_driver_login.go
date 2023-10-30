@@ -10,6 +10,7 @@ import (
 )
 
 var ErrSellerLoginFailed = errors.New("seller login failed")
+var ErrNotSellerAccount = errors.New("not seller account")
 
 func (d *DriverAccount) SellerLogin(dctx *DriverContext) error {
 
@@ -65,6 +66,19 @@ func (d *DriverAccount) SellerLogin(dctx *DriverContext) error {
 			chromedp.Navigate("https://seller.tokopedia.com/"),
 		)
 	}()
+
+	// check not seller
+	go func() {
+		submitSeller := `//*/button[@data-testid="btnSubmitShopDomain"]`
+		chromedp.Run(dctx.Ctx,
+			chromedp.WaitVisible(submitSeller, chromedp.BySearch),
+			chromedp.ActionFunc(func(ctx context.Context) error {
+				errorChan <- ErrNotSellerAccount
+				return nil
+			}),
+		)
+	}()
+
 	select {
 	case <-dctx.Ctx.Done():
 		return context.Canceled

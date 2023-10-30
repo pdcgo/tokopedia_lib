@@ -13,6 +13,7 @@ import (
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/report"
+	"github.com/rs/zerolog"
 	"github.com/urfave/cli/v2"
 )
 
@@ -57,7 +58,10 @@ func Cekbot(driver *report.CekReport) {
 	apiclient, saveSession, err := driver.CreateApi()
 	log.Println("login finish", driver.Username)
 	if err != nil {
-		pdc_common.ReportError(err)
+		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+			return event.Str("username", driver.Username)
+		})
+		Waitallakun.Done()
 		return
 	}
 
