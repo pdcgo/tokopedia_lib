@@ -1,7 +1,9 @@
 package tokopedia_lib_test
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/pdcgo/tokopedia_lib"
 	"github.com/stretchr/testify/assert"
@@ -41,6 +43,29 @@ func TestDriverAccount(t *testing.T) {
 		assert.NotEmpty(t, api)
 		assert.NotEmpty(t, api.AuthenticatedData.UserShopInfo)
 		assert.Nil(t, err)
+	})
+
+}
+
+func TestWithParentContext(t *testing.T) {
+	driver, err := tokopedia_lib.NewDriverAccount("pdcthoni@gmail.com", "SilentIsMyMantra", "IULIWGH6TIK3CZBKHGE27DBRLQ5LR5WQ")
+	assert.Nil(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	driver.ParentCtx = ctx
+
+	driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
+		tc := time.After(time.Minute)
+
+		select {
+		case <-dctx.Ctx.Done():
+			return nil
+		case <-tc:
+			t.Error("context parent tidak berguna")
+			return nil
+		}
+
 	})
 
 }

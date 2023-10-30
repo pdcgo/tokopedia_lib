@@ -35,12 +35,13 @@ type DriverSession interface {
 }
 
 type DriverAccount struct {
-	Username string        `json:"username"`
-	Password string        `json:"password"`
-	Secret   string        `json:"secret"`
-	DevMode  bool          `json:"-"`
-	Proxy    string        `json:"-"`
-	Session  DriverSession `json:"-"`
+	Username  string          `json:"username"`
+	Password  string          `json:"password"`
+	Secret    string          `json:"secret"`
+	DevMode   bool            `json:"-"`
+	Proxy     string          `json:"-"`
+	Session   DriverSession   `json:"-"`
+	ParentCtx context.Context `json:"-"`
 }
 
 type BrowserClosed struct {
@@ -70,6 +71,9 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 	}
 
 	parentCtx := context.Background()
+	if d.ParentCtx != nil {
+		parentCtx = d.ParentCtx
+	}
 
 	ctxall, cancelAloc := chromedp.NewExecAllocator(
 		parentCtx,
