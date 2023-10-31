@@ -56,10 +56,7 @@ func runVerification(akun *tokopedia_lib.Account) error {
 		finish := `//*/button/div/span[contains(text(), "Upload")]`
 		finishTitle := `//*/div[contains(text(), "Fotomu sedang kami proses")]`
 		toast := `//*/div[@data-unify="Toaster"]`
-		chromedp.Run(dctx.Ctx,
-			chromedp.Navigate("https://mitra.tokopedia.com/kyc"),
-			chromedp.WaitReady(button1, chromedp.BySearch),
-		)
+
 		go func() {
 		Parent:
 			for {
@@ -87,10 +84,20 @@ func runVerification(akun *tokopedia_lib.Account) error {
 			}
 		}()
 
-		go chromedp.Run(dctx.Ctx,
-			chromedp.WaitReady(finish, chromedp.BySearch),
-			chromedp.Click(finish, chromedp.BySearch),
-		)
+		go func() {
+			for {
+				select {
+				case <-submitCtx.Done():
+					return
+				default:
+					chromedp.Run(dctx.Ctx,
+						chromedp.WaitReady(finish, chromedp.BySearch),
+						chromedp.Click(finish, chromedp.BySearch),
+					)
+				}
+			}
+		}()
+
 		go chromedp.Run(dctx.Ctx,
 			chromedp.WaitReady(finishTitle, chromedp.BySearch),
 			chromedp.ActionFunc(func(ctx context.Context) error {
@@ -100,8 +107,13 @@ func runVerification(akun *tokopedia_lib.Account) error {
 			}),
 		)
 
-		title := `//*/div[contains(text(), "Foto Bagian Depan KTP")]`
-		go func() {
+		isiktp := func() {
+			chromedp.Run(dctx.Ctx,
+				chromedp.Navigate("https://mitra.tokopedia.com/kyc"),
+				chromedp.WaitReady(button1, chromedp.BySearch),
+			)
+
+			title := `//*/div[contains(text(), "Foto Bagian Depan KTP")]`
 			chromedp.Run(submitCtx,
 				chromedp.WaitReady(button1, chromedp.BySearch),
 				chromedp.Sleep(time.Second*4),
@@ -123,6 +135,42 @@ func runVerification(akun *tokopedia_lib.Account) error {
 					return nil
 				}),
 			)
+
+		}
+
+		go isiktp()
+
+		// jika ktp gagal
+		go func() {
+			tick := time.NewTicker(time.Second * 2)
+			defer tick.Stop()
+
+			titlerr := `//*/h5[@data-unify="Typography"]`
+			cek := "Foto KTP gagal diproses"
+
+			retry := 5
+
+			for {
+				select {
+				case <-submitCtx.Done():
+					return
+				case <-tick.C:
+					title := ""
+					chromedp.Run(submitCtx,
+						chromedp.WaitVisible(titlerr, chromedp.BySearch),
+						chromedp.Text(titlerr, &title, chromedp.BySearch),
+					)
+					log.Println(title)
+					if strings.Contains(title, cek) {
+						go isiktp()
+						retry -= 1
+					}
+
+					if retry <= 0 {
+						return
+					}
+				}
+			}
 
 		}()
 
