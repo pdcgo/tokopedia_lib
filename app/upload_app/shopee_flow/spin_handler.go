@@ -5,7 +5,6 @@ import (
 
 	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/spin"
-	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	"github.com/pdcgo/go_v2_shopeelib/lib/public_api/public_model"
 	shopeeuploader "github.com/pdcgo/go_v2_shopeelib/lib/uploader"
 	"github.com/pdcgo/tokopedia_lib/lib/model"
@@ -17,7 +16,7 @@ func (flow *ShopeeToTopedFlow) createSpinHandler(akun *repo.AkunItem, spinner sh
 	return func(eventcore uploader.EmitFunc, tokpedup *uploader.TokopediaUploader, payload *uploader.PayloadUpload, sub *common_concept.Subscriber) error {
 
 		var source *public_model.PublicProduct
-		var distance *mongorepo.ShopDistance
+		// var distance *mongorepo.ShopDistance
 
 	Parent:
 		for {
@@ -25,11 +24,11 @@ func (flow *ShopeeToTopedFlow) createSpinHandler(akun *repo.AkunItem, spinner sh
 			switch event := ev.(type) {
 			case *public_model.PublicProduct:
 				source = event
-			case *mongorepo.ShopDistance:
-				distance = event
+				// case *mongorepo.ShopDistance:
+				// 	distance = event
 
 			}
-			if source != nil && distance != nil {
+			if source != nil {
 				break Parent
 			}
 		}

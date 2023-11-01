@@ -34,13 +34,13 @@ func (flow *ShopeeToTopedFlow) createProductHandler(akun *repo.AkunItem, spin sh
 		if source == nil {
 			return errors.New(product.Name + " source not found grab cache expired.. silahkan grab baru")
 		}
-		distance := product.Distance
-		if distance == nil {
-			return errors.New(product.Name + " distance not found grab cache expired.. silahkan grab baru")
-		}
+		// distance := product.Distance
+		// if distance == nil {
+		// 	return errors.New(product.Name + " distance not found grab cache expired.. silahkan grab baru")
+		// }
 
 		eventcore(source)
-		eventcore(distance)
+		// eventcore(distance)
 
 		return nil
 	}
