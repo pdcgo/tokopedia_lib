@@ -30,10 +30,7 @@ type PayloadUpload struct {
 	NovariantStockPrice *model.NoVariantStockPrice
 }
 
-type EmitFunc func(event interface{})
-type UploadHandler func(eventcore EmitFunc, tokpedup *TokopediaUploader, payload *PayloadUpload, sub *common_concept.Subscriber) error
-
-func (upload *TokopediaUploader) UploadProduct(payload *PayloadUpload) (*model.ProductAddResp, error) {
+func (payload *PayloadUpload) GetProductAddVar() model.ProductAddVar {
 	paydata := model.ProductAddVar{}
 
 	if payload.HaveVariant {
@@ -50,6 +47,27 @@ func (upload *TokopediaUploader) UploadProduct(payload *PayloadUpload) (*model.P
 		paydata.Input = data
 
 	}
+	return paydata
+}
+
+func NewPayloadUpload() *PayloadUpload {
+	return &PayloadUpload{
+		Input: &model.InputVariable{
+			Condition:     model.NewCondition,
+			Annotations:   []string{},
+			MinOrder:      1,
+			MustInsurance: true,
+			PriceCurrency: "IDR",
+		},
+		NovariantStockPrice: &model.NoVariantStockPrice{},
+	}
+}
+
+type EmitFunc func(event interface{})
+type UploadHandler func(eventcore EmitFunc, tokpedup *TokopediaUploader, payload *PayloadUpload, sub *common_concept.Subscriber) error
+
+func (upload *TokopediaUploader) UploadProduct(payload *PayloadUpload) (*model.ProductAddResp, error) {
+	paydata := payload.GetProductAddVar()
 	// data, _ := json.MarshalIndent(paydata, "", "\t")
 	// log.Println(string(data))
 	return upload.Api.ProductAdd(&paydata)
@@ -60,16 +78,7 @@ func (upload *TokopediaUploader) RunUploader(handlers ...UploadHandler) (*model.
 	event := common_concept.NewCoreEvent()
 	defer event.Close()
 
-	payload := PayloadUpload{
-		Input: &model.InputVariable{
-			Condition:     model.NewCondition,
-			Annotations:   []string{},
-			MinOrder:      1,
-			MustInsurance: true,
-			PriceCurrency: "IDR",
-		},
-		NovariantStockPrice: &model.NoVariantStockPrice{},
-	}
+	payload := NewPayloadUpload()
 	handlerLen := len(handlers)
 	waitchan := make(chan error, handlerLen)
 
@@ -85,7 +94,7 @@ func (upload *TokopediaUploader) RunUploader(handlers ...UploadHandler) (*model.
 		go func() {
 			err := hand(func(eventdata interface{}) {
 				event.Emit(eventdata)
-			}, upload, &payload, sub)
+			}, upload, payload, sub)
 
 			waitchan <- err
 		}()
@@ -103,5 +112,5 @@ func (upload *TokopediaUploader) RunUploader(handlers ...UploadHandler) (*model.
 		}
 	}
 
-	return upload.UploadProduct(&payload)
+	return upload.UploadProduct(payload)
 }
