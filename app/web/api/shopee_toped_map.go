@@ -50,6 +50,7 @@ func (mapi *ShopeeTopedMapApi) UpdateMap(c *gin.Context) {
 		err := mapi.db.Transaction(func(tx *gorm.DB) error {
 			tmap := config.ShopeeMapItem{
 				TokopediaID: mapitem.TokopediaID,
+				ShopeeID:    mapitem.ShopeeID,
 			}
 			err := mapi.db.Where(&tmap).Delete(&tmap).Error
 			if err != nil {

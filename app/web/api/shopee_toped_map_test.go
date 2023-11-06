@@ -111,6 +111,26 @@ func TestTokopediaCollectionList(t *testing.T) {
 
 			})
 
+			t.Run("test update tidak hilang", func(t *testing.T) {
+
+				defer db.Delete(&config.ShopeeMapItem{ShopeeID: 1000})
+
+				res = sendApi(&pdc_api.Api{
+					Method:       http.MethodPut,
+					RelativePath: "/tokopedia/mapper/map",
+					Payload: []config.ShopeeMapItem{
+						{ShopeeID: 1000, TokopediaID: 1000},
+						{ShopeeID: 2000, TokopediaID: 1000},
+					},
+				})
+				assert.Equal(t, res.Code, 200)
+
+				data := []*config.ShopeeMapItem{}
+				err = db.Find(&data, &config.ShopeeMapItem{TokopediaID: 1000}).Error
+				assert.Nil(t, err)
+				assert.Equal(t, 2, len(data))
+			})
+
 		})
 
 		rand.Intn(100)
