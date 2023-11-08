@@ -30,7 +30,7 @@ type PayloadUpload struct {
 	NovariantStockPrice *model.NoVariantStockPrice
 }
 
-func (payload *PayloadUpload) GetProductAddVar() model.ProductAddVar {
+func (payload *PayloadUpload) GetProductAddVar() *model.ProductAddVar {
 	paydata := model.ProductAddVar{}
 
 	if payload.HaveVariant {
@@ -47,7 +47,7 @@ func (payload *PayloadUpload) GetProductAddVar() model.ProductAddVar {
 		paydata.Input = data
 
 	}
-	return paydata
+	return &paydata
 }
 
 func NewPayloadUpload() *PayloadUpload {
@@ -70,7 +70,7 @@ func (upload *TokopediaUploader) UploadProduct(payload *PayloadUpload) (*model.P
 	paydata := payload.GetProductAddVar()
 	// data, _ := json.MarshalIndent(paydata, "", "\t")
 	// log.Println(string(data))
-	return upload.Api.ProductAdd(&paydata)
+	return upload.Api.ProductAdd(paydata)
 
 }
 

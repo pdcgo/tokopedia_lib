@@ -22,11 +22,26 @@ type AnnotationData struct {
 	Typename  string      `json:"__typename"`
 }
 
+type AnnotationDataList []AnnotationData
+
+func (list AnnotationDataList) FindValue(variant string, valueName string) *DataValue {
+	for _, anno := range list {
+		if anno.Variant == variant {
+			for _, val := range anno.Values {
+				if val.Name == valueName {
+					return &val
+				}
+			}
+		}
+	}
+	return nil
+}
+
 type DrogonAnnotationCategoryV2 struct {
-	Header    HeaderErr        `json:"header"`
-	ProductID int64            `json:"productID"`
-	Data      []AnnotationData `json:"data"`
-	Typename  string           `json:"__typename"`
+	Header    HeaderErr          `json:"header"`
+	ProductID int64              `json:"productID"`
+	Data      AnnotationDataList `json:"data"`
+	Typename  string             `json:"__typename"`
 }
 
 type GetDrogonAnnotationVar struct {

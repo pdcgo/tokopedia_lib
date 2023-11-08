@@ -1,6 +1,7 @@
 package model_public
 
 import (
+	"errors"
 	"net/url"
 	"strings"
 )
@@ -39,6 +40,12 @@ func NewPdpGetlayoutQueryVar(uri string) (queryVar *PdpGetlayoutQueryVar, err er
 	query := u.Query()
 
 	splitPath := strings.Split(path, "/")
+
+	if len(splitPath) < 3 {
+		err = errors.New("invalid url")
+		return
+	}
+
 	shopDomain := splitPath[len(splitPath)-2]
 	productKey := splitPath[len(splitPath)-1]
 
