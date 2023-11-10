@@ -63,6 +63,38 @@ type PdpGetlayoutData struct {
 	PdpGetLayout PdpGetLayout `json:"pdpGetLayout"`
 }
 
+type PdpErrorCode int
+
+const (
+	PdpNotFoundCode PdpErrorCode = 2001
+)
+
+type PdpGetlayoutExtensions struct {
+	Code             PdpErrorCode `json:"code"`
+	DeveloperMessage string       `json:"developerMessage"`
+	MoreInfo         string       `json:"moreInfo"`
+	Timestamp        string       `json:"timestamp"`
+}
+
+type PdpGetlayoutErr struct {
+	Message    string                 `json:"message"`
+	Path       []string               `json:"path"`
+	Extensions PdpGetlayoutExtensions `json:"extensions"`
+}
+
 type PdpGetlayoutQueryResp struct {
-	Data PdpGetlayoutData `json:"data"`
+	Data   PdpGetlayoutData  `json:"data"`
+	Errors []PdpGetlayoutErr `json:"errors"`
+}
+
+func (product *PdpGetlayoutQueryResp) IsNotFound() bool {
+	if len(product.Errors) > 0 {
+		for _, err := range product.Errors {
+			if err.Extensions.Code == PdpNotFoundCode {
+				return true
+			}
+		}
+	}
+
+	return false
 }
