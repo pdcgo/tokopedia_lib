@@ -6,9 +6,11 @@ import {
     SaveOutlined,
     UploadOutlined,
 } from "@ant-design/icons"
-import { Button, Card, Checkbox, Input, message } from "antd"
-import { Flex } from "../styled_components"
+import { Button, Card, Checkbox, Input, Select, Space, message } from "antd"
+import { useState } from "react"
+
 import { useRequest } from "../client"
+import { Flex } from "../styled_components"
 
 export type UploadHeaderProps = {
     loadingSave?: boolean
@@ -25,12 +27,15 @@ export type UploadHeaderProps = {
 
     onClickSetActive?: () => void
     onClickSave?: () => void
-    onClickStartUpload?: () => void
+    onClickStartUpload?: (mode: string) => void
     onClickPasteAll?: () => void
     onClickRemoveAll?: () => void
 }
 
 export default function UploadHeader(props: UploadHeaderProps) {
+
+    const [mode, setMode] = useState("shopee")
+
     const { sender: reset } = useRequest("PutTokopediaAkunResetAllCount", {
         onSuccess() {
             message.success({ key: "rss-scss", content: "Reset fulfilled" })
@@ -48,25 +53,17 @@ export default function UploadHeader(props: UploadHeaderProps) {
                     alignItems: "center",
                 }}
             >
-                <Checkbox
-                    checked={props.checkedAll}
-                    indeterminate={props.indeterminate}
-                    onChange={(e) => {
-                        props.onChangeCheckedAll?.(e.target.checked)
-                    }}
-                >
-                    Select All
-                </Checkbox>
+                <Input
+                    allowClear
+                    placeholder="Search Profile..."
+                    style={{ flex: 1 }}
+                    value={props.nameQuery}
+                    onChange={(e) =>
+                        props.onChangeNameQuery?.(e.target.value)
+                    }
+                />
                 <Flex style={{ flex: 1 }}>
-                    <Input
-                        allowClear
-                        placeholder="Search Profile..."
-                        style={{ flex: 1 }}
-                        value={props.nameQuery}
-                        onChange={(e) =>
-                            props.onChangeNameQuery?.(e.target.value)
-                        }
-                    />
+
                     <Button
                         onClick={props.onClickPasteAll}
                         icon={<FilePptOutlined rev="paste" />}
@@ -111,18 +108,47 @@ export default function UploadHeader(props: UploadHeaderProps) {
                     >
                         Save
                     </Button>
-
+                </Flex>
+            </Flex>
+            <Flex
+                style={{
+                    alignItems: "center",
+                    marginTop: 10
+                }}
+            >
+                <Checkbox
+                    checked={props.checkedAll}
+                    indeterminate={props.indeterminate}
+                    onChange={(e) => {
+                        props.onChangeCheckedAll?.(e.target.checked)
+                    }}
+                >
+                    Select All
+                </Checkbox>
+                <Flex style={{ flex: 1, justifyContent: "end" }}>
+                    <Space>
+                        <span>Mode :</span>
+                        <Select
+                            value={mode}
+                            style={{ minWidth: 200 }}
+                            options={[
+                                { value: "shopee", label: "Shopee" },
+                                { value: "tokopedia", label: "Tokopedia" }
+                            ]}
+                            onChange={setMode}
+                        />
+                    </Space>
                     <Button
                         type="primary"
                         icon={<UploadOutlined rev="upload" />}
                         style={{ boxShadow: "none" }}
-                        onClick={props.onClickStartUpload}
+                        onClick={() => props.onClickStartUpload?.(mode)}
                         loading={props.loadingStartUpload}
                     >
                         Start Upload
                     </Button>
                 </Flex>
             </Flex>
-        </Card>
+        </Card >
     )
 }
