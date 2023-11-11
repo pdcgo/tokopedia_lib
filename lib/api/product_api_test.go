@@ -50,6 +50,7 @@ func TestProductApi(t *testing.T) {
 
 		hasil, err := apiSession.ProductList(&query)
 		assert.NotEmpty(t, hasil)
+		assert.NotEmpty(t, hasil.Data.ProductList.Data)
 		assert.Nil(t, err)
 	})
 

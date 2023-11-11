@@ -45,7 +45,7 @@ func (runner *DeleteRunner) RunDeleteViolation(sapi *api.TokopediaApi) error {
 	return err
 }
 
-func (runner *DeleteRunner) RunDeleteAkun(akun *AkunDeleteItem) error {
+func (runner *DeleteRunner) RunDeleteAkun(akun *AkunDeleteItem, reports chan *DeleteReportItem) error {
 	driver, err := tokopedia_lib.NewDriverAccount(akun.Username, akun.Password, akun.Secret)
 
 	if err != nil {
@@ -62,11 +62,12 @@ func (runner *DeleteRunner) RunDeleteAkun(akun *AkunDeleteItem) error {
 	filterhandler := runner.Config.GenerateFilter()
 	count := 0
 
-	queryFilter := []model.Filter{
-		{
+	queryFilter := []model.Filter{}
+	if runner.Config.StatusProduct != "" {
+		queryFilter = append(queryFilter, model.Filter{
 			ID:    "status",
 			Value: []string{string(runner.Config.StatusProduct)},
-		},
+		})
 	}
 
 	// log.Println(queryFilter)
@@ -99,6 +100,13 @@ func (runner *DeleteRunner) RunDeleteAkun(akun *AkunDeleteItem) error {
 		cek, _ := filterhandler(product)
 		if cek {
 			count = delete()
+
+			reports <- &DeleteReportItem{
+				Username: sapi.AuthenticatedData.User.Email,
+				Judul:    product.Name,
+				Url:      product.URL,
+				Status:   product.Status,
+			}
 			log.Println(sapi.AuthenticatedData.User.Email, count, "/", runner.Config.LimitProduct, "deleted ", product.Name)
 		}
 
@@ -116,9 +124,21 @@ func (runner *DeleteRunner) RunDeleteAkun(akun *AkunDeleteItem) error {
 	return err
 }
 
-func (runner *DeleteRunner) Run() {
+func (runner *DeleteRunner) Run(fname string) {
 
 	var wg sync.WaitGroup
+
+	reports := []*DeleteReportItem{}
+	defer func() {
+		SaveReport(fname, reports)
+	}()
+
+	reportchan := NewReport()
+	go func() {
+		for report := range reportchan {
+			reports = append(reports, report)
+		}
+	}()
 
 	for _, ak := range runner.Config.Akuns {
 		runner.limitGuard <- 1
@@ -131,7 +151,7 @@ func (runner *DeleteRunner) Run() {
 				wg.Done()
 			}()
 
-			err := runner.RunDeleteAkun(akun)
+			err := runner.RunDeleteAkun(akun, reportchan)
 			if err != nil {
 				pdc_common.ReportError(err)
 			}

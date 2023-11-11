@@ -2,6 +2,7 @@ package deleter_product
 
 import (
 	"context"
+	"errors"
 	"log"
 	"strconv"
 
@@ -62,7 +63,7 @@ func deleteProducts(sapi *api.TokopediaApi, datas []*model.SellerProductItem) er
 
 	for _, hasil := range hasils.Data.BulkProductEditV3 {
 		if !hasil.Result.IsSuccess {
-			return hasil
+			return errors.New(hasil.Result.Header.Reason)
 		}
 	}
 
@@ -126,6 +127,10 @@ func IterateProduct(sellerapi *api.TokopediaApi, handleItem func(page int, produ
 				return countDelete
 			})
 			if err != nil {
+				delerr := deleteProducts(sellerapi, deletedProducts)
+				if delerr != nil {
+					return err
+				}
 				return err
 			}
 		}

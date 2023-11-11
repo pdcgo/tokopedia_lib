@@ -226,7 +226,7 @@ type SellerProductItem struct {
 	Name               string                `json:"name"`
 	Price              Price                 `json:"price"`
 	Stock              int                   `json:"stock"`
-	Status             string                `json:"status"`
+	Status             ProductStatus         `json:"status"`
 	MinOrder           int                   `json:"minOrder"`
 	MaxOrder           int                   `json:"maxOrder"`
 	Weight             int                   `json:"weight"`
