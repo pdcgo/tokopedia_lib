@@ -12,5 +12,14 @@ type Header struct {
 
 func (head *Header) Error() string {
 	return strings.Join(head.Messages, "|")
+}
 
+func (head *Header) IsProductFull() bool {
+	for _, message := range head.Messages {
+		if strings.Contains(message, "Jumlah produk yang dapat Anda tambahkan dibatasi") {
+			return true
+		}
+	}
+
+	return false
 }

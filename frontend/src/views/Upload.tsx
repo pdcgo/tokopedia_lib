@@ -6,6 +6,7 @@ import { useRequest } from "../client"
 import { useListProfileStore } from "../store/listProfile"
 import { Flex, FlexColumn } from "../styled_components"
 import { scroller } from "../utils/topScroller"
+import { useQuery } from "../client/newapisdk"
 
 const UploadHeader = React.lazy(
     () => import("../component_sections/UploadHeader")
@@ -55,13 +56,8 @@ export default function Upload(props: {
             onError: (e) => message.error(JSON.stringify(e)),
         })
 
-    const { sender: uploadStarter, pending: pendingUploadStarter } = useRequest(
-        "GetTokopediaUploadStart",
-        {
-            onSuccess: () => message.success("Account list upload start :)"),
-            onError: (e) => message.error(JSON.stringify(e)),
-        }
-    )
+    const { send: uploadShopee, pending: pendingUploadShopee } = useQuery("GetTokopediaUploadShopee", {})
+    const { send: uploadTokped, pending: pendingUploadTokped } = useQuery("GetTokopediaUploadTokopedia", {})
 
     const { sender: getUseMapper } = useRequest("GetTokopediaMapperSetting", {
         onSuccess(data) {
@@ -184,11 +180,21 @@ export default function Upload(props: {
         })
     }
 
-    function uploadAccount() {
-        uploadStarter({
-            method: "get",
-            path: "tokopedia/upload/start",
-        })
+    function uploadAccount(mode: string) {
+        switch (mode) {
+            case "tokopedia":
+                uploadTokped({
+                    onSuccess: () => message.success("Account list upload tokopedia :)"),
+                    onError: (e) => message.error(JSON.stringify(e)),
+                })
+                break
+
+            default:
+                uploadShopee({
+                    onSuccess: () => message.success("Account list upload shopee :)"),
+                    onError: (e) => message.error(JSON.stringify(e)),
+                })
+        }
     }
 
     return (
@@ -222,7 +228,7 @@ export default function Upload(props: {
                     }}
                     onClickSave={updateAccount}
                     loadingSave={pendingUpdateAccount}
-                    loadingStartUpload={pendingUploadStarter}
+                    loadingStartUpload={pendingUploadShopee || pendingUploadTokped}
                     onClickStartUpload={uploadAccount}
                     onClickPasteAll={() => {
                         if (clipboard) {
@@ -292,10 +298,9 @@ export default function Upload(props: {
                                             onSuccess(data) {
                                                 setUseMapper(data.use_mapper)
                                                 message.info(
-                                                    `Use category mapper ${
-                                                        data.use_mapper
-                                                            ? "ENABLED"
-                                                            : "DISABLED"
+                                                    `Use category mapper ${data.use_mapper
+                                                        ? "ENABLED"
+                                                        : "DISABLED"
                                                     }`
                                                 )
                                             },
@@ -314,10 +319,9 @@ export default function Upload(props: {
                                         onSuccess(data) {
                                             setUseMapper(data.use_mapper)
                                             message.info(
-                                                `Use category mapper ${
-                                                    data.use_mapper
-                                                        ? "ENABLED"
-                                                        : "DISABLED"
+                                                `Use category mapper ${data.use_mapper
+                                                    ? "ENABLED"
+                                                    : "DISABLED"
                                                 }`
                                             )
                                         },

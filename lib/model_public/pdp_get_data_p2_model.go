@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"strconv"
+	"strings"
 )
 
 type PDPComponentName string
@@ -258,15 +259,68 @@ type NewVariantChild struct {
 	ThematicCampaign ThematicCampaign `json:"thematicCampaign"`
 	Typename         string           `json:"__typename"`
 }
+
+func (v *NewVariantChild) Match(optionName []string) bool {
+	matchlen := 0
+	for ind, opt := range optionName {
+		if ind < len(v.OptionName) {
+			if opt == v.OptionName[ind] {
+				matchlen += 1
+			}
+		}
+	}
+	return matchlen == len(v.OptionName)
+}
+
+type NewVariantChilds []NewVariantChild
+
+func (chlds NewVariantChilds) Match(child NewVariantChild) bool {
+	for _, vchild := range chlds {
+		match := vchild.Match(child.OptionName)
+		if match {
+			return true
+		}
+	}
+	return false
+}
+
 type NewVariantOptionData struct {
-	ErrorCode     int               `json:"errorCode"`
-	ParentID      string            `json:"parentID"`
-	DefaultChild  string            `json:"defaultChild"`
-	SizeChart     string            `json:"sizeChart"`
-	TotalStockFmt string            `json:"totalStockFmt"`
-	Variants      []Variant         `json:"variants"`
-	Children      []NewVariantChild `json:"children"`
-	Typename      string            `json:"__typename"`
+	ErrorCode     int              `json:"errorCode"`
+	ParentID      string           `json:"parentID"`
+	DefaultChild  string           `json:"defaultChild"`
+	SizeChart     string           `json:"sizeChart"`
+	TotalStockFmt string           `json:"totalStockFmt"`
+	Variants      []Variant        `json:"variants"`
+	Children      NewVariantChilds `json:"children"`
+	Typename      string           `json:"__typename"`
+}
+
+func (v *NewVariantOptionData) GetFixChildrens() (results NewVariantChilds) {
+	for _, child := range v.Children {
+		if results.Match(child) {
+			continue
+		}
+		results = append(results, child)
+	}
+
+	return
+}
+
+func (v *NewVariantOptionData) GetCombinations(values []string) []int {
+	results := make([]int, len(values))
+	variantlen := len(v.Variants)
+
+	for ind, value := range values {
+		if ind < variantlen {
+			for optind, opt := range v.Variants[ind].Option {
+				if strings.EqualFold(opt.Value, value) {
+					results[ind] = optind
+				}
+			}
+		}
+	}
+
+	return results
 }
 
 type NewVariantOptionsComponent struct {
@@ -490,6 +544,8 @@ type PdpGetLayout struct {
 	Typename   string            `json:"__typename"`
 }
 
+var ErrComponentNotFound = errors.New("component not found")
+
 func GetComponent[V any](layout *PdpGetLayout) (*V, error) {
 	for _, com := range layout.Components {
 		switch fcom := com.(type) {
@@ -498,7 +554,7 @@ func GetComponent[V any](layout *PdpGetLayout) (*V, error) {
 		}
 	}
 
-	return nil, errors.New("component not found")
+	return nil, ErrComponentNotFound
 }
 
 func (layout *PdpGetLayout) GetProductName() (string, error) {
