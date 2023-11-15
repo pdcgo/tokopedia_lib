@@ -22,7 +22,7 @@ type AnnotationData struct {
 	Typename  string      `json:"__typename"`
 }
 
-type AnnotationDataList []AnnotationData
+type AnnotationDataList []*AnnotationData
 
 func (list AnnotationDataList) FindValue(variant string, valueName string) *DataValue {
 	for _, anno := range list {

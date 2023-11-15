@@ -366,7 +366,7 @@ type ProductAddVar struct {
 type ProductAddV3 struct {
 	Header    *Header `json:"header"`
 	IsSuccess bool    `json:"isSuccess"`
-	ProductId string  `json:"productID"`
+	ProductId int     `json:"productID,string"`
 	TypeName  string  `json:"__typename"`
 }
 
