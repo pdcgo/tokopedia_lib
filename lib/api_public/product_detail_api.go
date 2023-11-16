@@ -1,12 +1,15 @@
 package api_public
 
 import (
+	"errors"
 	"net/url"
 	"strings"
 
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/pdcgo/tokopedia_lib/lib/query"
 )
+
+var ErrInvalidUrl = errors.New("invalid url")
 
 func (api *TokopediaApiPublic) PdpGetlayoutQueryFromUrl(uristr string) (*model_public.PdpGetlayoutQueryResp, error) {
 	uri, err := url.Parse(uristr)
@@ -15,6 +18,10 @@ func (api *TokopediaApiPublic) PdpGetlayoutQueryFromUrl(uristr string) (*model_p
 	}
 
 	paths := strings.Split(uri.Path, "/")
+	if len(paths) < 2 {
+		return nil, ErrInvalidUrl
+	}
+
 	shopdomain := paths[len(paths)-2]
 	pkey := paths[len(paths)-1]
 

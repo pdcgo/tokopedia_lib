@@ -1,7 +1,6 @@
 package api_test
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/pdcgo/tokopedia_lib/lib/model"
@@ -21,34 +20,25 @@ func TestProductApi(t *testing.T) {
 	})
 
 	t.Run("test get product list", func(t *testing.T) {
-		shopId := strconv.Itoa(int(apiSession.AuthenticatedData.UserShopInfo.Info.ShopID))
-		query := model.ProductListVar{
-			ShopID: shopId,
-			Filter: []model.Filter{
-				{
-					ID:    "pageSize",
-					Value: []string{"20"},
-				}, {
-					ID:    "keyword",
-					Value: []string{""},
-				}, {
-					ID:    "status",
-					Value: []string{},
-				},
-				{
-					ID:    "page",
-					Value: []string{"1"},
-				},
+		shopId := apiSession.AuthenticatedData.UserShopInfo.Info.ShopID
+		filter := []model.Filter{
+			{
+				ID:    "pageSize",
+				Value: []string{"20"},
+			}, {
+				ID:    "keyword",
+				Value: []string{""},
+			}, {
+				ID:    "status",
+				Value: []string{},
 			},
-			Sort: model.Sort{
-				ID:    "DEFAULT",
-				Value: "DESC",
+			{
+				ID:    "page",
+				Value: []string{"1"},
 			},
-			ExtraInfo:   []string{"view", "topads", "rbac", "price-suggestion"},
-			WarehouseID: "",
 		}
-
-		hasil, err := apiSession.ProductList(&query)
+		query := model.NewProductListVar(shopId, filter)
+		hasil, err := apiSession.ProductList(query)
 		assert.NotEmpty(t, hasil)
 		assert.NotEmpty(t, hasil.Data.ProductList.Data)
 		assert.Nil(t, err)

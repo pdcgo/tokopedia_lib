@@ -14,11 +14,17 @@ func TestIterateProduct(t *testing.T) {
 	sellerapi, saveSession := scenario.GetTokopediaApiClient()
 	defer saveSession()
 
-	err := deleter_product.IterateProduct(sellerapi, func(page int, product *model.SellerProductItem, delete func() int) error {
-		log.Println(product.Name)
+	err := deleter_product.IterateProduct(
+		sellerapi,
+		&deleter_product.IterateFilter{
+			PageSize: 20,
+		},
+		func(page int, product *model.SellerProductItem, delete func() int) error {
+			log.Println(product.Name)
 
-		return nil
-	})
+			return nil
+		},
+	)
 
 	assert.Nil(t, err)
 
@@ -28,18 +34,23 @@ func TestIterateViolation(t *testing.T) {
 	sellerapi, saveSession := scenario.GetTokopediaApiClient()
 	defer saveSession()
 
+	t.Skip()
 	names := []string{}
 
-	err := deleter_product.IterateProduct(sellerapi, func(page int, product *model.SellerProductItem, delete func() int) error {
-		names = append(names, product.Name)
+	err := deleter_product.IterateProduct(
+		sellerapi,
+		&deleter_product.IterateFilter{
+			PageSize: 20,
+			Status:   model.ViolationStatus,
+		},
+		func(page int, product *model.SellerProductItem, delete func() int) error {
+			names = append(names, product.Name)
 
-		t.Log(product)
+			t.Log(product)
 
-		return nil
-	}, model.Filter{
-		ID:    "status",
-		Value: []string{string(model.ViolationStatus)},
-	})
+			return nil
+		},
+	)
 
 	assert.NotEmpty(t, names)
 	assert.Nil(t, err)

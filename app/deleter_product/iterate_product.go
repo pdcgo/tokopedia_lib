@@ -1,118 +1,96 @@
 package deleter_product
 
 import (
-	"context"
 	"errors"
 	"log"
+	"math"
 	"strconv"
+	"time"
 
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/model"
 )
 
-type ErrorHandler struct {
-	err chan error
-	ctx context.Context
+type IterateFilter struct {
+	CategoryID string
+	Page       int
+	PageSize   int
+	Status     model.ProductStatus
 }
 
-func NewErrorHandler(ctx context.Context) *ErrorHandler {
-	return &ErrorHandler{
-		err: make(chan error, 1),
-		ctx: ctx,
+func (f *IterateFilter) GetFilters() []model.Filter {
+	pagestr := strconv.Itoa(f.Page)
+	pagesizestr := strconv.Itoa(f.PageSize)
+	queryFilter := []model.Filter{
+		{
+			ID:    "pageSize",
+			Value: []string{pagesizestr},
+		}, {
+			ID:    "keyword",
+			Value: []string{""},
+		},
+		{
+			ID:    "page",
+			Value: []string{pagestr},
+		},
 	}
+
+	if f.Status != "" {
+		queryFilter = append(queryFilter, model.Filter{
+			ID:    "status",
+			Value: []string{string(f.Status)},
+		})
+	}
+
+	if f.CategoryID != "" {
+		queryFilter = append(queryFilter, model.Filter{
+			ID:    "category",
+			Value: []string{f.CategoryID},
+		})
+	}
+
+	return queryFilter
 }
 
-func (erh *ErrorHandler) Error() error {
-	return <-erh.err
-}
+func IterateProduct(
+	sellerapi *api.TokopediaApi,
+	filter *IterateFilter,
+	handleItem func(page int, product *model.SellerProductItem, delete func() int) error,
+) error {
 
-func (erh *ErrorHandler) SetError(err error) {
-	if err == nil {
-		return
-	}
-
-	select {
-	case erh.err <- err:
-		return
-	case <-erh.ctx.Done():
-		return
-	}
-}
-
-func deleteProducts(sapi *api.TokopediaApi, datas []*model.SellerProductItem) error {
-	deletes := make([]*model.BulkProductEditV3Input, len(datas))
-
-	for ind, data := range datas {
-		deletes[ind] = &model.BulkProductEditV3Input{
-			ProductID: data.ID,
-			Status:    model.DeletedStatus,
-			Shop: model.BulkProductEditShop{
-				ID: data.Shop.ID,
-			},
-		}
-	}
-
-	payload := model.BulkProductEditV3Var{
-		Input: deletes,
-	}
-
-	hasils, err := sapi.BulkProductEditV3(&payload)
+	shopId := sellerapi.AuthenticatedData.UserShopInfo.Info.ShopID
+	meta, err := sellerapi.ProductListMeta()
 	if err != nil {
 		return err
 	}
 
-	for _, hasil := range hasils.Data.BulkProductEditV3 {
-		if !hasil.Result.IsSuccess {
-			return errors.New(hasil.Result.Header.Reason)
-		}
+	username := sellerapi.AuthenticatedData.User.Email
+	tab := meta.Data.ProductListMeta.Data.Tab.GetTab(filter.Status)
+
+	if tab == nil {
+		log.Println(username, "produk status tab tidak ditemukan")
+		return nil
 	}
 
-	return nil
-}
+	if tab.Value == 0 {
+		log.Println(username, "delete selesai ...")
+		return nil
+	}
 
-func IterateProduct(sellerapi *api.TokopediaApi, handleItem func(page int, product *model.SellerProductItem, delete func() int) error, filters ...model.Filter) error {
-	// errorHelp := NewErrorHandler(ctx)
-
-	sID := sellerapi.AuthenticatedData.UserShopInfo.Info.ShopID
-	shopId := strconv.Itoa(int(sID))
-
-	page := 0
 	countDelete := 0
-	for {
-		page += 1
+	filpage := float64(tab.Value) / float64(filter.PageSize)
+	filpage = math.Ceil(filpage)
+	fixpage := int(filpage)
+
+	for page := fixpage; page > 0; page-- {
+		filter.Page = page
 		deletedProducts := []*model.SellerProductItem{}
 
-		log.Println(sellerapi.AuthenticatedData.User.Email, "request product page", page)
-		pagestr := strconv.Itoa(page)
+		log.Println(username, "request product page", page)
+		filters := filter.GetFilters()
 
-		queryFilter := []model.Filter{
-			{
-				ID:    "pageSize",
-				Value: []string{"20"},
-			}, {
-				ID:    "keyword",
-				Value: []string{""},
-			},
-			{
-				ID:    "page",
-				Value: []string{pagestr},
-			},
-		}
-
-		queryFilter = append(queryFilter, filters...)
-
-		query := model.ProductListVar{
-			ShopID: shopId,
-			Filter: queryFilter,
-			Sort: model.Sort{
-				ID:    "DEFAULT",
-				Value: "DESC",
-			},
-			ExtraInfo:   []string{"view", "topads", "rbac", "price-suggestion"},
-			WarehouseID: "",
-		}
-
-		hasilList, err := sellerapi.ProductList(&query)
+		query := model.NewProductListVar(shopId, filters)
+		hasilList, err := sellerapi.ProductList(query)
 		if err != nil {
 			return err
 		}
@@ -120,25 +98,31 @@ func IterateProduct(sellerapi *api.TokopediaApi, handleItem func(page int, produ
 		if len(hasilList.Data.ProductList.Data) == 0 {
 			break
 		}
+
 		for _, item := range hasilList.Data.ProductList.Data {
 			err := handleItem(page, item, func() int {
 				countDelete += 1
 				deletedProducts = append(deletedProducts, item)
 				return countDelete
 			})
+
+			if errors.Is(err, ErrDeleteLimitExcedeed) {
+				err := DeleteProducts(sellerapi, deletedProducts)
+				return err
+			}
+
 			if err != nil {
-				delerr := deleteProducts(sellerapi, deletedProducts)
-				if delerr != nil {
-					return err
-				}
 				return err
 			}
 		}
 
-		err = deleteProducts(sellerapi, deletedProducts)
+		err = DeleteProducts(sellerapi, deletedProducts)
 		if err != nil {
 			return err
 		}
+
+		log.Println(username, "sleep for 3 seconds")
+		time.Sleep(time.Second * 3)
 	}
 
 	return nil

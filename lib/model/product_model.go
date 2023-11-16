@@ -343,14 +343,25 @@ type BulkProductEditV3Input struct {
 	Status    ProductStatus       `json:"status"`
 }
 
-///////////////////////////////////////////////////////
-
 type ProductListVar struct {
 	ShopID      string   `json:"shopID"`
 	Filter      []Filter `json:"filter"`
 	Sort        Sort     `json:"sort"`
 	ExtraInfo   []string `json:"extraInfo"`
 	WarehouseID string   `json:"warehouseID"`
+}
+
+func NewProductListVar(shopid int64, filter []Filter) *ProductListVar {
+	return &ProductListVar{
+		ShopID: strconv.Itoa(int(shopid)),
+		Filter: filter,
+		Sort: Sort{
+			ID:    "DEFAULT",
+			Value: "DESC",
+		},
+		ExtraInfo:   []string{"view", "topads", "rbac", "price-suggestion"},
+		WarehouseID: "",
+	}
 }
 
 type ProductListResp struct {
