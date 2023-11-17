@@ -70,7 +70,7 @@ func NewShopeeToTopedFlow(
 
 	configFlow := shopee_upapp.InitUploadFlowConfig(&legacy_source.BaseConfig{
 		BaseData: rootBase,
-	}, db, concurent)
+	}, concurent)
 
 	productRepo := mongorepo.NewProductRepo(db)
 
