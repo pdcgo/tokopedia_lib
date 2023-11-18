@@ -7,6 +7,8 @@ import { useListProfileStore } from "../store/listProfile"
 import { Flex, FlexColumn } from "../styled_components"
 import { scroller } from "../utils/topScroller"
 import { useQuery } from "../client/newapisdk"
+import { useMutation } from "../client/sdk_mutation"
+import { ManualQuery } from "../component_sections/UploadHeader"
 
 const UploadHeader = React.lazy(
     () => import("../component_sections/UploadHeader")
@@ -58,20 +60,14 @@ export default function Upload(props: {
 
     const { send: uploadShopee, pending: pendingUploadShopee } = useQuery("GetTokopediaUploadShopee", {})
     const { send: uploadTokped, pending: pendingUploadTokped } = useQuery("GetTokopediaUploadTokopedia", {})
+    const { send: uploadTokpedManual, pending: pendingUploadTokpedManual } = useQuery("GetUploadV6ManualToTokopedia", {})
+    const { mutate: setUseMapperApi } = useMutation("PutTokopediaMapperSetting", {})
 
     const { sender: getUseMapper } = useRequest("GetTokopediaMapperSetting", {
         onSuccess(data) {
             setUseMapper(data.use_mapper)
         },
     })
-    const { sender: setUseMapperApi } = useRequest(
-        "PutTokopediaMapperSetting",
-        {
-            onSuccess(data) {
-                setUseMapper(data.use_mapper)
-            },
-        }
-    )
 
     const { sender: deleterAccount } = useRequest("PostTokopediaAkunDelete", {
         onError(err) {
@@ -180,11 +176,25 @@ export default function Upload(props: {
         })
     }
 
-    function uploadAccount(mode: string) {
-        switch (mode) {
+    function uploadAccount(query: ManualQuery) {
+        switch (query.mode) {
             case "tokopedia":
                 uploadTokped({
                     onSuccess: () => message.success("Account list upload tokopedia :)"),
+                    onError: (e) => message.error(JSON.stringify(e)),
+                })
+                break
+
+            case "tokopedia_manual":
+                uploadTokpedManual({
+                    query: {
+                        base: "./",
+                        use_mapper: useMapper,
+                        reset: query.reset,
+                        one_to_multi: query.one_to_multi,
+                        limit: query.limit,
+                    },
+                    onSuccess: () => message.success("Account list upload tokopedia manual :)"),
                     onError: (e) => message.error(JSON.stringify(e)),
                 })
                 break
@@ -228,7 +238,7 @@ export default function Upload(props: {
                     }}
                     onClickSave={updateAccount}
                     loadingSave={pendingUpdateAccount}
-                    loadingStartUpload={pendingUploadShopee || pendingUploadTokped}
+                    loadingStartUpload={pendingUploadShopee || pendingUploadTokped || pendingUploadTokpedManual}
                     onClickStartUpload={uploadAccount}
                     onClickPasteAll={() => {
                         if (clipboard) {
@@ -287,46 +297,17 @@ export default function Upload(props: {
                         <Checkbox
                             checked={useMapper}
                             onChange={(e) => {
-                                if (e.target.checked) {
-                                    setUseMapperApi(
-                                        {
-                                            method: "put",
-                                            path: "tokopedia/mapper/setting",
-                                            payload: { use_mapper: true },
-                                        },
-                                        {
-                                            onSuccess(data) {
-                                                setUseMapper(data.use_mapper)
-                                                message.info(
-                                                    `Use category mapper ${data.use_mapper
-                                                        ? "ENABLED"
-                                                        : "DISABLED"
-                                                    }`
-                                                )
-                                            },
-                                        }
-                                    )
-                                    return
-                                }
-
-                                setUseMapperApi(
-                                    {
-                                        method: "put",
-                                        path: "tokopedia/mapper/setting",
-                                        payload: { use_mapper: false },
+                                setUseMapperApi({
+                                    onSuccess(data) {
+                                        setUseMapper(data.use_mapper)
+                                        message.info(
+                                            `Use category mapper ${data.use_mapper
+                                                ? "ENABLED"
+                                                : "DISABLED"
+                                            }`
+                                        )
                                     },
-                                    {
-                                        onSuccess(data) {
-                                            setUseMapper(data.use_mapper)
-                                            message.info(
-                                                `Use category mapper ${data.use_mapper
-                                                    ? "ENABLED"
-                                                    : "DISABLED"
-                                                }`
-                                            )
-                                        },
-                                    }
-                                )
+                                }, { use_mapper: e.target.checked })
                             }}
                         >
                             Use Automatic Category Mapping

@@ -175,7 +175,7 @@ func (flow *ShopeeToTopedFlow) GenerateSpinHandler(akun *repo.AkunItem) shopeeup
 		Hastag:    akun.Hastag,
 		Namespace: akun.Collection,
 		Markup:    akun.Markup,
-		Polatitle: akun.TitlePattern,
+		Polatitle: akun.Spin,
 	}
 	spinhandler := spin.NewSpinHandler(
 		&akunlegacy,
