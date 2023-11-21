@@ -6,11 +6,19 @@ import {
     SaveOutlined,
     UploadOutlined,
 } from "@ant-design/icons"
-import { Button, Card, Checkbox, Input, Select, Space, message } from "antd"
-import { useState } from "react"
+import { Button, Card, Checkbox, Input, InputNumber, Select, Space, message } from "antd"
 
 import { useRequest } from "../client"
 import { Flex } from "../styled_components"
+
+export type Mode = "shopee" | "tokopedia" | "tokopedia_manual"
+
+export interface ManualQuery {
+    mode: Mode
+    reset: boolean
+    one_to_multi: boolean
+    limit: number
+}
 
 export type UploadHeaderProps = {
     loadingSave?: boolean
@@ -25,16 +33,19 @@ export type UploadHeaderProps = {
     nameQuery?: string
     onChangeNameQuery?: (name: string) => void
 
+    upquery: ManualQuery
+    onUploadQueryChange?: (query: ManualQuery) => void
+
     onClickSetActive?: () => void
     onClickSave?: () => void
-    onClickStartUpload?: (mode: string) => void
+    onClickStartUpload?: () => void
     onClickPasteAll?: () => void
     onClickRemoveAll?: () => void
 }
 
 export default function UploadHeader(props: UploadHeaderProps) {
-
-    const [mode, setMode] = useState("shopee")
+    const { upquery, onUploadQueryChange } = props;
+    const isManual = upquery.mode === "tokopedia_manual"
 
     const { sender: reset } = useRequest("PutTokopediaAkunResetAllCount", {
         onSuccess() {
@@ -127,22 +138,40 @@ export default function UploadHeader(props: UploadHeaderProps) {
                 </Checkbox>
                 <Flex style={{ flex: 1, justifyContent: "end" }}>
                     <Space>
+                        <Checkbox
+                            disabled={!isManual}
+                            style={{ fontWeight: 300 }}
+                            onChange={(e) => onUploadQueryChange?.({ ...upquery, reset: e.target.checked })}
+                        >Reset Mapper</Checkbox>
+                        <Checkbox
+                            disabled={!isManual}
+                            style={{ fontWeight: 300 }}
+                            onChange={(e) => onUploadQueryChange?.({ ...upquery, one_to_multi: e.target.checked })}
+                        >One to Multi</Checkbox>
+                        <span>Limit :</span>
+                        <InputNumber
+                            value={upquery.limit}
+                            disabled={!isManual}
+                            style={{ width: 150 }}
+                            onChange={(v) => onUploadQueryChange?.({ ...upquery, limit: v || 1 })}
+                        />
                         <span>Mode :</span>
                         <Select
-                            value={mode}
+                            value={upquery.mode}
                             style={{ minWidth: 200 }}
                             options={[
                                 { value: "shopee", label: "Shopee" },
-                                { value: "tokopedia", label: "Tokopedia" }
+                                { value: "tokopedia", label: "Tokopedia" },
+                                { value: "tokopedia_manual", label: "Tokopedia Manual" }
                             ]}
-                            onChange={setMode}
+                            onChange={(mode) => onUploadQueryChange?.({ ...upquery, mode })}
                         />
                     </Space>
                     <Button
                         type="primary"
                         icon={<UploadOutlined rev="upload" />}
                         style={{ boxShadow: "none" }}
-                        onClick={() => props.onClickStartUpload?.(mode)}
+                        onClick={() => props.onClickStartUpload?.()}
                         loading={props.loadingStartUpload}
                     >
                         Start Upload

@@ -4,6 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"gorm.io/gorm"
 )
 
@@ -39,6 +41,25 @@ func (akun *AkunItem) SetFinish(tx *gorm.DB) error {
 	akun.AkunUploadStatus.CountUpload = 0
 
 	return tx.Save(akun).Error
+}
+
+func (akun *AkunItem) CreateApi() (tokapi *api.TokopediaApi, saveSession func(), err error) {
+	saveSession = func() {}
+	driver, err := tokopedia_lib.NewDriverAccount(
+		akun.Username,
+		akun.Password,
+		akun.Secret,
+	)
+	if err != nil {
+		return
+	}
+
+	tokapi, saveSession, err = driver.CreateApi()
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 type AkunRepo struct {
