@@ -1,1 +1,0 @@
-import{j as l,b as r,F as a}from"./nox_QyQrhXh7t.js";import{T as t}from"./nox_hXXg7Qh7r.js";function o(e){return l(a,{style:{rowGap:"5px",...e.style},children:[r(t.Text,{children:e.label}),e.children]})}export{o as L};
