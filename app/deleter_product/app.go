@@ -65,6 +65,10 @@ func (runner *DeleteRunner) RunDeleteAkun(akun *AkunDeleteItem, reports chan *De
 		PageSize:   50,
 		Status:     runner.Config.StatusProduct,
 	}, func(page int, product *model.SellerProductItem, delete func() int) error {
+		if product.Status == model.DeletedStatus {
+			return nil
+		}
+
 		cek, _ := filterhandler(product)
 		if cek {
 			count = delete()
