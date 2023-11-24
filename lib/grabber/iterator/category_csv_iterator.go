@@ -12,6 +12,32 @@ import (
 
 type CategoryCsvHandler func(item *csv.CategoryCsv) error
 
+func IsEmptyCsv(base *legacy_source.BaseConfig) (empty bool, deprecated bool, err error) {
+	empty = true
+	categories, err := csv.LoadCategoryCsv(base)
+	if err != nil {
+
+		if errors.Is(err, csv.ErrDeprecatedCategoryCsv) {
+			deprecated = true
+			err = nil
+			return
+		}
+
+		return
+	}
+
+	for _, item := range categories {
+		if item.Status == csv.STATUS_GRAB_CATEGORY_GRABBED {
+			continue
+		}
+
+		empty = false
+		break
+	}
+
+	return
+}
+
 func IterateCategoryCsv(base *legacy_source.BaseConfig, handler CategoryCsvHandler) error {
 	categories, err := csv.LoadCategoryCsv(base)
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/model"
+	"github.com/rs/zerolog"
 )
 
 type DeleteRunner struct {
@@ -33,6 +34,9 @@ func (runner *DeleteRunner) RunDeleteAkun(akun *AkunDeleteItem, reports chan *De
 
 	sapi, saveSession, err := driver.CreateApi()
 	if err != nil {
+		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+			return event.Str("err_from", "create api")
+		})
 		return err
 	}
 
@@ -91,6 +95,12 @@ func (runner *DeleteRunner) RunDeleteAkun(akun *AkunDeleteItem, reports chan *De
 	if errors.Is(err, ErrDeleteLimitExcedeed) {
 		log.Println(username, "delete selesai ...")
 		return nil
+	}
+
+	if err != nil {
+		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+			return event.Str("err_from", "iterate product")
+		})
 	}
 
 	return err
