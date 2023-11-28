@@ -42,7 +42,7 @@ func NewPdpGetlayoutQueryVar(uri string) (queryVar *PdpGetlayoutQueryVar, err er
 	splitPath := strings.Split(path, "/")
 
 	if len(splitPath) < 3 {
-		err = errors.New("invalid url")
+		err = errors.New("invalid url " + uri)
 		return
 	}
 
