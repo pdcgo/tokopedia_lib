@@ -15,8 +15,19 @@ export interface GrabShopeeQueryCli {
 	base: string
 }
 
+export interface GrabShopeeResponse {
+	use_csv: boolean
+	empty_csv: boolean
+}
+
 export interface GrabTokopediaQueryCli {
 	base: string
+}
+
+export interface GrabTokopediaResponse {
+	deprecated: boolean
+	use_csv: boolean
+	empty_csv: boolean
 }
 
 export interface DataSpinQuery {
@@ -953,6 +964,18 @@ export interface TokopediaAttributeResponse {
 	attributes: Array<AnnotationData | undefined>
 }
 
+export interface TokopediaCheckOrderQueryCli {
+	base: string
+	fname: string
+	output: string
+}
+
+export interface CheckOrderAkunItem {
+	password: string
+	secret: string
+	username: string
+}
+
 export interface ManualShopeeUploadQueryCli {
 	base: string
 	reset: boolean
@@ -1327,7 +1350,10 @@ export const clients = {
 				base: ``
 			} as GrabShopeeQueryCli ,
 		body: {},
-		response: {} as any
+		response: {
+			use_csv: false,
+			empty_csv: false
+		}
 	},
 	GetLauncherV1RunGrabTokopedia: {
 		url: "launcher/v1/run_grab_tokopedia" as const,
@@ -1336,7 +1362,11 @@ export const clients = {
 				base: ``
 			} as GrabTokopediaQueryCli ,
 		body: {},
-		response: {} as any
+		response: {
+			deprecated: false,
+			use_csv: false,
+			empty_csv: false
+		}
 	},
 	GetLegacyApiDataspin: {
 		url: "legacy/api/dataspin" as const,
@@ -3760,6 +3790,23 @@ export const clients = {
 				} as AnnotationData | undefined
 			] as Array<AnnotationData | undefined>
 		}
+	},
+	PutTokopediaCekorderRun: {
+		url: "tokopedia/cekorder/run" as const,
+		method: "PUT" as const,
+		query: {
+				base: ``,
+				fname: ``,
+				output: ``
+			} as TokopediaCheckOrderQueryCli ,
+		body: [
+			{
+					password: ``,
+					secret: ``,
+					username: ``
+				} as CheckOrderAkunItem | undefined
+		] as Array<CheckOrderAkunItem | undefined>,
+		response: {} as any
 	},
 	GetUploadV6ManualToShopee: {
 		url: "upload/v6/manual_to_shopee" as const,
