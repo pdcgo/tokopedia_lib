@@ -1,88 +1,44 @@
 package api
 
-import "strconv"
+import (
+	"errors"
+	"strconv"
 
-type ShopInfoByIDRes struct {
-	Data struct {
-		ShopInfoByID struct {
-			Result []struct {
-				FavoriteData struct {
-					TotalFavorite int    `json:"totalFavorite"`
-					Typename      string `json:"__typename"`
-				} `json:"favoriteData"`
-				GoldOS struct {
-					IsGold           int    `json:"isGold"`
-					IsOfficial       int    `json:"isOfficial"`
-					Badge            string `json:"badge"`
-					ShopTier         int    `json:"shopTier"`
-					ShopTierWording  string `json:"shopTierWording"`
-					ShopGrade        int    `json:"shopGrade"`
-					ShopGradeWording string `json:"shopGradeWording"`
-					Typename         string `json:"__typename"`
-				} `json:"goldOS"`
-				Location   string `json:"location"`
-				ShopAssets struct {
-					Avatar       string `json:"avatar"`
-					Cover        string `json:"cover"`
-					DefaultCover []struct {
-						ID       string `json:"id"`
-						Path     string `json:"path"`
-						Typename string `json:"__typename"`
-					} `json:"defaultCover"`
-					Typename string `json:"__typename"`
-				} `json:"shopAssets"`
-				IsAllowManage int `json:"isAllowManage"`
-				IsOwner       int `json:"isOwner"`
-				ShopCore      struct {
-					Name        string `json:"name"`
-					ShopID      string `json:"shopID"`
-					Domain      string `json:"domain"`
-					Description string `json:"description"`
-					TagLine     string `json:"tagLine"`
-					Typename    string `json:"__typename"`
-				} `json:"shopCore"`
-				ShopHomeType string `json:"shopHomeType"`
-				ClosedInfo   struct {
-					ClosedNote string `json:"closedNote"`
-					Until      string `json:"until"`
-					Detail     struct {
-						StartDate string `json:"startDate"`
-						EndDate   string `json:"endDate"`
-						OpenDate  string `json:"openDate"`
-						Status    int    `json:"status"`
-						Typename  string `json:"__typename"`
-					} `json:"detail"`
-					Typename string `json:"__typename"`
-				} `json:"closedInfo"`
-				StatusInfo struct {
-					ShopStatus int    `json:"shopStatus"`
-					StatusName string `json:"statusName"`
-					Typename   string `json:"__typename"`
-				} `json:"statusInfo"`
-				Os struct {
-					IsOfficial int    `json:"isOfficial"`
-					Expired    string `json:"expired"`
-					Typename   string `json:"__typename"`
-				} `json:"os"`
-				Typename string `json:"__typename"`
-			} `json:"result"`
-			Typename string `json:"__typename"`
-		} `json:"shopInfoByID"`
-	} `json:"data"`
-}
+	"github.com/pdcgo/tokopedia_lib/lib/model"
+)
 
 type ShopInfoByIDVar struct {
 	ShopIDs []int64  `json:"shopIDs"`
 	Fields  []string `json:"fields"`
 }
 
-func (api *TokopediaApi) ShopInfoByID() (*ShopInfoByIDRes, error) {
+func NewShopInfoByIDVar(shopid int64) *ShopInfoByIDVar {
+	return &ShopInfoByIDVar{
+		ShopIDs: []int64{shopid},
+		Fields: []string{
+			"assets",
+			"core",
+			"favorite",
+			"location",
+			"other-goldos",
+			"other-shiploc",
+			"status",
+			"allow_manage",
+			"is_owner",
+			"closed_info",
+			"status",
+			"assets",
+		},
+	}
+}
+
+var ErrIsNotAuthorized = errors.New("shop is not authorized")
+
+func (api *TokopediaApi) ShopInfoByID() (*model.ShopInfoByIDRes, error) {
+	variable := NewShopInfoByIDVar(api.AuthenticatedData.UserShopInfo.Info.ShopID)
 	query := GraphqlPayload{
 		OperationName: "ShopInfoByIDQuery",
-		Variables: ShopInfoByIDVar{
-			ShopIDs: []int64{api.AuthenticatedData.UserShopInfo.Info.ShopID},
-			Fields:  []string{"assets", "core", "favorite", "location", "other-goldos", "other-shiploc", "status", "allow_manage", "is_owner", "closed_info", "status", "assets"},
-		},
+		Variables:     variable,
 		Query: `
 		query ShopInfoByIDQuery($shopIDs: [Int!]!, $fields: [String!]!) {
 			shopInfoByID(input: {shopIDs: $shopIDs, fields: $fields}) {
@@ -154,10 +110,18 @@ func (api *TokopediaApi) ShopInfoByID() (*ShopInfoByIDRes, error) {
 
 	req := api.NewGraphqlReq(&query)
 
-	var hasil *ShopInfoByIDRes
+	var hasil *model.ShopInfoByIDRes
 	err := api.SendRequest(req, &hasil)
 
-	return hasil, err
+	if err != nil {
+		return hasil, err
+	}
+
+	if hasil.Errors.IsNotAuthorized() {
+		return hasil, ErrIsNotAuthorized
+	}
+
+	return hasil, hasil.Errors
 }
 
 type GoldGetPMOSStatusRes struct {
