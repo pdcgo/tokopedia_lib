@@ -121,7 +121,11 @@ func (api *TokopediaApi) ShopInfoByID() (*model.ShopInfoByIDRes, error) {
 		return hasil, ErrIsNotAuthorized
 	}
 
-	return hasil, hasil.Errors
+	if len(hasil.Errors) > 0 {
+		return hasil, hasil.Errors
+	}
+
+	return hasil, nil
 }
 
 type GoldGetPMOSStatusRes struct {
