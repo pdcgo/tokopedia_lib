@@ -1,0 +1,47 @@
+{
+    "products": [
+        {
+            "combination": [
+                0
+            ],
+            "pictures": [],
+            "price": 5000,
+            "sku": "",
+            "status": "ACTIVE",
+            "stock": 1,
+            "weight": 1,
+            "weightUnit": "GR"
+        },
+        {
+            "combination": [
+                1
+            ],
+            "pictures": [],
+            "price": 5000,
+            "sku": "",
+            "status": "ACTIVE",
+            "stock": 1,
+            "weight": 1,
+            "weightUnit": "GR"
+        }
+    ],
+    "selections": [
+        {
+            "options": [
+                {
+                    "hexCode": "#000000",
+                    "unitValueID": "2",
+                    "value": "Hitam"
+                },
+                {
+                    "hexCode": "#ffffff",
+                    "unitValueID": "1",
+                    "value": "Putih"
+                }
+            ],
+            "unitID": "",
+            "variantID": "1"
+        }
+    ],
+    "sizeChart": []
+}

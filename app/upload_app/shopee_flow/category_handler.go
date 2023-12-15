@@ -2,7 +2,6 @@ package shopee_flow
 
 import (
 	"errors"
-	"strconv"
 
 	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/common_conf/pdc_common"
@@ -39,7 +38,7 @@ func (flow *ShopeeToTopedFlow) createCategoryHandler() uploader.UploadHandler {
 			}
 		}
 
-		var fixid string = "0"
+		var fixid int
 
 		if configMap.UseMapper {
 			categories := source.Categories
@@ -53,7 +52,7 @@ func (flow *ShopeeToTopedFlow) createCategoryHandler() uploader.UploadHandler {
 				CatID: mapitem.TokopediaID,
 			})
 
-			fixid = strconv.Itoa(mapitem.TokopediaID)
+			fixid = mapitem.TokopediaID
 		} else {
 			title := source.Name
 			catrmd, err := flow.TopedPublicApi.JarvisRecommendation(title)
@@ -72,7 +71,7 @@ func (flow *ShopeeToTopedFlow) createCategoryHandler() uploader.UploadHandler {
 				CatID: catID,
 			})
 
-			fixid = strconv.Itoa(catID)
+			fixid = catID
 		}
 
 		payload.Lock()

@@ -60,6 +60,7 @@ func NewPayloadUpload() *PayloadUpload {
 			PriceCurrency: "IDR",
 		},
 		NovariantStockPrice: &model.NoVariantStockPrice{},
+		Variant:             &model.Variant{},
 	}
 }
 

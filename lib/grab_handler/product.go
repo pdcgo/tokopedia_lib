@@ -70,11 +70,7 @@ func CreateCacheProduct(
 		return mongorepo.CacheProduct{}, err
 	}
 
-	catid, err := strconv.ParseInt(pdpLayout.BasicInfo.Category.ID, 10, 64)
-	if err != nil {
-		return mongorepo.CacheProduct{}, err
-	}
-
+	catid := int(pdpLayout.BasicInfo.Category.ID)
 	name, err := pdpLayout.GetProductName()
 	if err != nil {
 		return mongorepo.CacheProduct{}, err
@@ -136,7 +132,7 @@ func CreateCacheProduct(
 		Sold:                int32(sold),
 		ShopLocation:        shopLocation,
 		Catid:               int32(catid),
-		CategoryId:          catid,
+		CategoryId:          int64(catid),
 		CatName:             catname,
 		Stock:               int32(stock),
 		Desc:                desc,

@@ -470,7 +470,7 @@ type CategoryDetail []struct {
 }
 
 type Category struct {
-	ID            string          `json:"id"`
+	ID            int             `json:"id,string"`
 	Name          string          `json:"name"`
 	Title         string          `json:"title"`
 	Detail        *CategoryDetail `json:"detail"`

@@ -45,7 +45,7 @@ type DrogonAnnotationCategoryV2 struct {
 }
 
 type GetDrogonAnnotationVar struct {
-	CategoryID       string `json:"categoryID"`
+	CategoryID       int    `json:"categoryID,string"`
 	ExcludeSensitive string `json:"excludeSensitive"`
 	ProductID        string `json:"productID"`
 	VendorName       string `json:"vendorName"`
