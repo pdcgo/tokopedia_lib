@@ -170,8 +170,43 @@ type ProductSelection struct {
 	Options   []SelectionsOptions `json:"options"`
 }
 
+type ProductVariants []ProductVariant
+
+func (prods ProductVariants) MinPrice() int {
+	var min int
+	for ind, prod := range prods {
+		if ind == 0 || prod.Price < min {
+			min = prod.Price
+		}
+	}
+
+	return min
+}
+
+func (prods ProductVariants) MaxPrice() int {
+	var max int
+	for ind, prod := range prods {
+		if ind == 0 || prod.Price > max {
+			max = prod.Price
+		}
+	}
+
+	return max
+}
+
+func (prods ProductVariants) MinWeight() int {
+	var min int
+	for ind, prod := range prods {
+		if ind == 0 || prod.Weight < min {
+			min = prod.Weight
+		}
+	}
+
+	return min
+}
+
 type Variant struct {
-	Products   []ProductVariant   `json:"products"`
+	Products   ProductVariants    `json:"products"`
 	Selections []ProductSelection `json:"selections"`
 	Sizecharts []interface{}      `json:"sizecharts"`
 	Typename   string             `json:"__typename,omitempty"`

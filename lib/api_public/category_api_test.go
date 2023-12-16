@@ -23,8 +23,9 @@ func TestJarvisRecommendation(t *testing.T) {
 
 	hasil, err := api.JarvisRecommendation("New Arrival Gamis Polos Simpel | Size S M L XL XXL | Dress Polos Gamis Jumbo BIg Size")
 	t.Log(hasil)
-	assert.NotEmpty(t, hasil)
 	assert.Nil(t, err)
+	assert.NotEmpty(t, hasil)
+	assert.NotEmpty(t, hasil.Data.GetJarvisRecommendation.Categories)
 }
 
 func TestHeaderMainData(t *testing.T) {
