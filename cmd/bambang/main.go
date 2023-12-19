@@ -58,6 +58,9 @@ func runVerification(akun *tokopedia_lib.Account) error {
 		toast := `//*/div[@data-unify="Toaster"]`
 
 		go func() {
+			driver.RLock()
+			defer driver.RUnlock()
+
 		Parent:
 			for {
 				select {
@@ -85,6 +88,9 @@ func runVerification(akun *tokopedia_lib.Account) error {
 		}()
 
 		go func() {
+			driver.RLock()
+			defer driver.RUnlock()
+
 			for {
 				select {
 				case <-submitCtx.Done():
@@ -108,6 +114,9 @@ func runVerification(akun *tokopedia_lib.Account) error {
 		)
 
 		isiktp := func() {
+			driver.RLock()
+			defer driver.RUnlock()
+
 			chromedp.Run(dctx.Ctx,
 				chromedp.Navigate("https://mitra.tokopedia.com/kyc"),
 				chromedp.WaitReady(button1, chromedp.BySearch),
@@ -142,6 +151,9 @@ func runVerification(akun *tokopedia_lib.Account) error {
 
 		// jika ktp gagal
 		go func() {
+			driver.RLock()
+			defer driver.RUnlock()
+
 			tick := time.NewTicker(time.Second * 2)
 			defer tick.Stop()
 

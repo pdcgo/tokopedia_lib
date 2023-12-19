@@ -35,6 +35,7 @@ type DriverSession interface {
 }
 
 type DriverAccount struct {
+	sync.RWMutex
 	Username  string          `json:"username"`
 	Password  string          `json:"password"`
 	Secret    string          `json:"secret"`
@@ -47,6 +48,45 @@ type DriverAccount struct {
 type BrowserClosed struct {
 	sync.Mutex
 	Data bool
+}
+
+func (d *DriverAccount) waitAcceptCookies(ctx context.Context) {
+	popuponetrust := `//*/div[@class="ot-sdk-container"]`
+	acceptonetrust := `//*/button[@id="onetrust-accept-btn-handler"]`
+
+	wait := func() error {
+		err := chromedp.Run(ctx,
+			chromedp.WaitVisible(popuponetrust, chromedp.BySearch),
+			chromedp.WaitVisible(acceptonetrust, chromedp.BySearch),
+			chromedp.Sleep(time.Second),
+			chromedp.Click(acceptonetrust, chromedp.BySearch),
+			chromedp.Sleep(time.Second),
+		)
+
+		return err
+	}
+
+	go func() {
+		// accept pertama
+		d.Lock()
+		func() {
+			defer d.Unlock()
+			wait()
+		}()
+
+		// accept lagi jika ada
+	Parent:
+		for {
+			select {
+			case <-ctx.Done():
+				break Parent
+
+			default:
+				wait()
+				time.Sleep(time.Second)
+			}
+		}
+	}()
 }
 
 func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
@@ -88,6 +128,7 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 	}
 
 	d.Session.SetCookieToDriver(dctx.Ctx)
+	d.waitAcceptCookies(dctx.Ctx)
 
 	return &dctx, func() {
 
@@ -130,6 +171,8 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	pathlogout := `//*/h4[contains(text(), "Keluar Akun")]`
 
 	go func() {
+		driver.RLock()
+		defer driver.RUnlock()
 
 		chromedp.Run(ctx,
 			chromedp.WaitVisible(tabakun, chromedp.BySearch),
@@ -140,6 +183,9 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	}()
 
 	go func() {
+		driver.RLock()
+		defer driver.RUnlock()
+
 		banner := `//*/img[@class="success fade"]`
 		chromedp.Run(ctx,
 
@@ -153,6 +199,9 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	}()
 
 	go func() {
+		driver.RLock()
+		defer driver.RUnlock()
+
 		pathemail := `//*/input[@name="login"]`
 		selanjutnya := `//*/button[@id="button-submit"]`
 		pathpass := `//*/input[@id="login-widget-password"]`
@@ -175,6 +224,9 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	}()
 
 	go func() {
+		driver.RLock()
+		defer driver.RUnlock()
+
 		pathotp := `//*/input[@autocomplete="one-time-code"]`
 
 		chromedp.Run(ctx,
