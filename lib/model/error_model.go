@@ -37,3 +37,13 @@ func (head *Header) IsBanned() bool {
 
 	return false
 }
+
+func (head *Header) GetBannedWord() string {
+	for _, message := range head.Messages {
+		if strings.Contains(message, "Nama Produk memuat kata") {
+			return message
+		}
+	}
+
+	return ""
+}
