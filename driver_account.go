@@ -54,8 +54,8 @@ func (d *DriverAccount) waitAcceptCookies(ctx context.Context) {
 	popuponetrust := `//*/div[@class="ot-sdk-container"]`
 	acceptonetrust := `//*/button[@id="onetrust-accept-btn-handler"]`
 
-	wait := func() error {
-		err := chromedp.Run(ctx,
+	wait := func(wctx context.Context) error {
+		err := chromedp.Run(wctx,
 			chromedp.WaitVisible(popuponetrust, chromedp.BySearch),
 			chromedp.WaitVisible(acceptonetrust, chromedp.BySearch),
 			chromedp.Sleep(time.Second),
@@ -71,7 +71,11 @@ func (d *DriverAccount) waitAcceptCookies(ctx context.Context) {
 		d.Lock()
 		func() {
 			defer d.Unlock()
-			wait()
+
+			wctx, cancel := context.WithTimeout(ctx, time.Second*20)
+			defer cancel()
+
+			wait(wctx)
 		}()
 
 		// accept lagi jika ada
@@ -82,7 +86,7 @@ func (d *DriverAccount) waitAcceptCookies(ctx context.Context) {
 				break Parent
 
 			default:
-				wait()
+				wait(ctx)
 				time.Sleep(time.Second)
 			}
 		}
