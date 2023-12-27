@@ -229,9 +229,21 @@ func (s *OrderItem) GetTanggalPemesanan(format string) (string, error) {
 
 func (s *OrderItem) GetDiprosesSebelum(year int, format string) (string, error) {
 	if s.DeadlineText != "" {
+		ordtime, err := time.Parse("02 Jan 2006, 15:04 WIB", s.OrderDate)
+		if err != nil {
+			return "", err
+		}
+
 		dtime, err := time.Parse("2 Jan; 15:04", s.DeadlineText)
 		if err != nil {
 			return "", err
+		}
+
+		// handle tahun baru
+		_, dmonth, _ := dtime.Date()
+		_, ordmonth, _ := ordtime.Date()
+		if ordmonth > dmonth {
+			year += 1
 		}
 
 		dtime = dtime.AddDate(year, 0, 0)

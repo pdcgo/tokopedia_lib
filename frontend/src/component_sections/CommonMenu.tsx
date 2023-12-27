@@ -35,6 +35,7 @@ export default function CommonMenu() {
     const { sender: checkbot } = useRequest("PutTokopediaCekbotRun")
     const { sender: verifKtp } = useRequest("PutTokopediaCheckVerifRun")
     const { mutate: checkorder } = useMutation("PutTokopediaCekorderRun")
+    const { mutate: checkorderconf } = useMutation("PutTokopediaCekorderSaveConfig")
 
     const [accountString, setAccountString] = useState("")
     const textarea = React.createRef<TextAreaRef>()
@@ -150,9 +151,16 @@ export default function CommonMenu() {
                 </Suspense>
                 <Suspense fallback={<></>}>
                     <CheckOrderAsk
-                        onFinish={(name) => {
+                        onFinish={(name, config) => {
                             setShowAskOrder(false)
-                            checkOrderAction(name)
+                            checkorderconf({
+                                onSuccess() {
+                                    checkOrderAction(name)
+                                },
+                                onError(e){
+                                    message.error(`Error: ${e.message}`)
+                                },
+                            }, config)
                         }}
                         open={showAskOrder}
                         onCancel={() => setShowAskOrder(false)}

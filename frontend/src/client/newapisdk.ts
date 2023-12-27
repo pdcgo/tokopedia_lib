@@ -964,6 +964,14 @@ export interface TokopediaAttributeResponse {
 	attributes: Array<AnnotationData | undefined>
 }
 
+export interface CheckOrderConfig {
+	useDateRange: boolean
+	startDate: string
+	endDate: string
+	useStatus: boolean
+	statusKeys: Array<string>
+}
+
 export interface TokopediaCheckOrderQueryCli {
 	base: string
 	fname: string
@@ -3790,6 +3798,21 @@ export const clients = {
 				} as AnnotationData | undefined
 			] as Array<AnnotationData | undefined>
 		}
+	},
+	PutTokopediaCekorderSaveConfig: {
+		url: "tokopedia/cekorder/save_config" as const,
+		method: "PUT" as const,
+		query: undefined,
+		body: {
+				useDateRange: false,
+				startDate: ``,
+				endDate: ``,
+				useStatus: false,
+				statusKeys: [
+				``
+				] as Array<string>
+			} as CheckOrderConfig ,
+		response: {} as any
 	},
 	PutTokopediaCekorderRun: {
 		url: "tokopedia/cekorder/run" as const,

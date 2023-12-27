@@ -1,0 +1,116 @@
+[
+    {
+        "key": "new_order",
+        "text": "Pesanan Baru",
+        "idList": [
+            220
+        ],
+        "child_status": []
+    },
+    {
+        "key": "confirm_shipping",
+        "text": "Siap Dikirim",
+        "idList": [
+            400
+        ],
+        "child_status": []
+    },
+    {
+        "key": "in_shipping",
+        "text": "Dalam Pengiriman",
+        "idList": [
+            450,
+            500,
+            501,
+            520,
+            530,
+            550,
+            600,
+            601
+        ],
+        "childStatus": [
+            {
+                "key": "waiting_pickup",
+                "childIdList": [
+                    450
+                ],
+                "text": "Menunggu Pick-Up",
+                "amount": 0
+            },
+            {
+                "key": "shipped",
+                "childIdList": [
+                    500
+                ],
+                "text": "Sedang Dikirim"
+            },
+            {
+                "key": "waiting_awb_status",
+                "childIdList": [
+                    501
+                ],
+                "text": "Menunggu Status Resi"
+            },
+            {
+                "key": "awb_invalid",
+                "childIdList": [
+                    520
+                ],
+                "text": "Resi Tidak Valid"
+            },
+            {
+                "key": "awb_changed",
+                "childIdList": [
+                    530
+                ],
+                "text": "Resi Diubah"
+            },
+            {
+                "key": "order_returned",
+                "childIdList": [
+                    550
+                ],
+                "text": "Pesanan Dikembalikan"
+            },
+            {
+                "key": "delivered",
+                "childIdList": [
+                    600
+                ],
+                "text": "Pesanan Tiba"
+            },
+            {
+                "key": "complaint",
+                "childIdList": [
+                    601
+                ],
+                "text": "Pesanan Dikomplain"
+            }
+        ]
+    },
+    {
+        "key": "done",
+        "text": "Pesanan Selesai",
+        "idList": [
+            690,
+            691,
+            695,
+            698,
+            699,
+            700,
+            701
+        ],
+        "child_status": []
+    },
+    {
+        "key": "order_canceled",
+        "text": "Pesanan Dibatalkan",
+        "idList": [
+            0,
+            4,
+            10,
+            11
+        ],
+        "child_status": []
+    }
+]
