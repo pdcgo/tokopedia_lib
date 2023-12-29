@@ -78,8 +78,7 @@ Parent:
 			continue
 		}
 
-		dataline := make([]string, 17)
-
+		dataline := make([]string, 18)
 		fixline := strings.ReplaceAll(line, "\r", "")
 
 		for ind, value := range strings.Split(fixline, ",") {
