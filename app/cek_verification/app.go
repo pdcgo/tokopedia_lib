@@ -2,6 +2,7 @@ package cek_verification
 
 import (
 	"log"
+	"strings"
 	"time"
 
 	"github.com/chromedp/chromedp"
@@ -18,8 +19,12 @@ func CheckVerif(driver *report.CekVerifReport) error {
 		timeout := time.After(time.Second * 30)
 		success := make(chan int, 1)
 		gagal := make(chan string, 1)
+		process := make(chan string, 1)
 
 		go func() {
+			driver.RLock()
+			defer driver.RUnlock()
+
 			pathverif := `//*/div[contains(text(), "Terverifikasi")]`
 			chromedp.Run(dctx.Ctx,
 				chromedp.Navigate("https://mitra.tokopedia.com/user/akun-saya"),
@@ -40,17 +45,38 @@ func CheckVerif(driver *report.CekVerifReport) error {
 			gagal <- hasil
 		}()
 
+		go func() {
+			var hasil string
+			contenttext := `//*/div[@class="content"]/p[@data-unify="Typography"]`
+			chromedp.Run(dctx.Ctx,
+				chromedp.WaitVisible(contenttext, chromedp.BySearch),
+				chromedp.Text(contenttext, &hasil, chromedp.NodeVisible),
+			)
+
+			if strings.Contains(hasil, "dalam proses verifikasi") {
+				process <- hasil
+			}
+		}()
+
 		select {
 		case <-timeout:
 			driver.Status = "unknown"
-			log.Println(driver.Username, " unknown")
+			log.Println(driver.Username, "unknown")
+
 		case <-success:
 			driver.Status = "success"
-			log.Println(driver.Username, " success")
+			log.Println(driver.Username, "success")
+
+		case pesanprocess := <-process:
+			driver.Status = "process"
+			driver.Pesan = pesanprocess
+			log.Println(driver.Username, "process")
+
 		case pesangagal := <-gagal:
 			driver.Status = "gagal"
 			driver.Pesan = pesangagal
-			log.Println(driver.Username, " gagal ", pesangagal)
+			log.Println(driver.Username, "gagal ", pesangagal)
+			time.Sleep(time.Second * 10)
 		}
 
 		return nil
