@@ -62,9 +62,6 @@ func (d *DriverAccount) SellerLogin(dctx *DriverContext) error {
 			errorChan <- err
 		}
 
-		d.Lock()
-		defer d.Unlock()
-
 		chromedp.Run(dctx.Ctx,
 			chromedp.Navigate("https://seller.tokopedia.com/"),
 		)
