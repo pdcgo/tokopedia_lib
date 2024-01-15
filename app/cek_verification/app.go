@@ -1,13 +1,16 @@
 package cek_verification
 
 import (
+	"context"
 	"log"
 	"strings"
 	"time"
 
+	"github.com/chromedp/cdproto/browser"
 	"github.com/chromedp/chromedp"
 	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/report"
+	"github.com/sethvargo/go-retry"
 	"github.com/urfave/cli/v2"
 )
 
@@ -20,18 +23,28 @@ func CheckVerif(driver *report.CekVerifReport) error {
 		success := make(chan int, 1)
 		gagal := make(chan string, 1)
 		process := make(chan string, 1)
+		errorcek := make(chan error, 1)
 
 		go func() {
 			driver.RLock()
 			defer driver.RUnlock()
 
+			b := retry.NewFibonacci(time.Second)
 			pathverif := `//*/div[contains(text(), "Terverifikasi")]`
-			chromedp.Run(dctx.Ctx,
-				chromedp.Navigate("https://mitra.tokopedia.com/user/akun-saya"),
-				chromedp.WaitVisible(pathverif, chromedp.BySearch),
-			)
 
-			success <- 1
+			err := retry.Do(dctx.Ctx, retry.WithMaxRetries(3, b), func(ctx context.Context) error {
+				return chromedp.Run(dctx.Ctx,
+					browser.SetDownloadBehavior(browser.SetDownloadBehaviorBehaviorAllowAndName),
+					chromedp.Navigate("https://mitra.tokopedia.com/user/akun-saya"),
+					chromedp.WaitVisible(pathverif, chromedp.BySearch),
+				)
+			})
+
+			if err != nil {
+				errorcek <- err
+			} else {
+				success <- 1
+			}
 		}()
 
 		go func() {
@@ -77,6 +90,11 @@ func CheckVerif(driver *report.CekVerifReport) error {
 			driver.Pesan = pesangagal
 			log.Println(driver.Username, "gagal ", pesangagal)
 			time.Sleep(time.Second * 10)
+
+		case err := <-errorcek:
+			driver.Status = "error"
+			driver.Pesan = err.Error()
+			log.Println(driver.Username, "error", err)
 		}
 
 		return nil
