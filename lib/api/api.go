@@ -82,6 +82,26 @@ func (api *TokopediaApi) SendRequestTest(req *http.Request, hasil any) ([]byte, 
 	return body, api.Session.Update(res.Cookies())
 }
 
+type CustomParse func(body []byte) error
+
+func (api *TokopediaApi) SendRequestCustomParse(req *http.Request, parsers ...CustomParse) error {
+	res, err := ClientApi.Do(req)
+	if err != nil {
+		return err
+	}
+
+	body, _ := io.ReadAll(res.Body)
+	// log.Println(string(body))
+	for _, parser := range parsers {
+		err := parser(body)
+		if err != nil {
+			return err
+		}
+	}
+
+	return api.Session.Update(res.Cookies())
+}
+
 func NewTokopediaApi(session Session) *TokopediaApi {
 	encoder := schema.NewEncoder()
 

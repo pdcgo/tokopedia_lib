@@ -2,6 +2,7 @@ package cek_verification
 
 import (
 	"context"
+	"errors"
 	"log"
 	"strings"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/chromedp/cdproto/browser"
 	"github.com/chromedp/chromedp"
 	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/report"
 	"github.com/sethvargo/go-retry"
 	"github.com/urfave/cli/v2"
@@ -95,6 +97,45 @@ func CheckVerif(driver *report.CekVerifReport) error {
 			driver.Status = "error"
 			driver.Pesan = err.Error()
 			log.Println(driver.Username, "error", err)
+		}
+
+		return nil
+	})
+}
+
+var KycStatus = map[int]string{
+	-1: "gagal",
+	0:  "process",
+	1:  "success",
+}
+
+func CheckVerifV2(driver *report.CekVerifReport) error {
+
+	sellerApi := api.NewTokopediaApi(driver.Session)
+	b := retry.NewFibonacci(time.Second)
+
+	return retry.Do(context.Background(), retry.WithMaxRetries(3, b), func(ctx context.Context) error {
+
+		kyc, err := sellerApi.GetInfoKyc()
+		if err != nil {
+			if errors.Is(err, api.ErrKycInfoNotFound) {
+				driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
+					return driver.SellerLogin(dctx)
+				})
+				return retry.RetryableError(err)
+			}
+			return err
+		}
+
+		driver.Status = KycStatus[kyc.Status]
+		if driver.Status == "" {
+			driver.Status = "unknown"
+		}
+
+		if len(kyc.Reason) > 0 {
+			driver.Pesan = kyc.Reason[0]
+		} else {
+			driver.Pesan = kyc.StatusName
 		}
 
 		return nil

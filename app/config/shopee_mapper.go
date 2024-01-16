@@ -46,9 +46,9 @@ func (maper *ShopeeMapper) GetShopeeID(tokopediaID int) (*ShopeeMapItem, error) 
 		TokopediaID: tokopediaID,
 	}).First(&itemap).Error
 
-	// if errors.Is(err, gorm.ErrRecordNotFound) {
-	// 	return &itemap, ErrMapNotFound
-	// }
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &itemap, ErrMapNotFound
+	}
 
 	return &itemap, err
 }
