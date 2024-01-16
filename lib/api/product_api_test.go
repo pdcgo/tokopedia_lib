@@ -59,7 +59,7 @@ func TestProductApi(t *testing.T) {
 		hasil, err := apiSession.GetProductAddRule()
 		assert.Nil(t, err)
 		assert.NotEmpty(t, hasil)
-		assert.Equal(t, hasil.Data.ProductAddRule.Data.Eligible.Limit, 200)
+		assert.Equal(t, hasil.Data.ProductAddRule.Data.Eligible.Limit, 2000)
 	})
 }
 
