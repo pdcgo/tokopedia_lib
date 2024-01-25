@@ -18,13 +18,17 @@ type JarvisRecommendationVar struct {
 	ProductName string `json:"productName"`
 }
 
+type GetJarvisRecommendation struct {
+	Categories []Categories `json:"categories"`
+	Typename   string       `json:"__typename"`
+}
+
+type JarvisRecommendationData struct {
+	GetJarvisRecommendation `json:"getJarvisRecommendation"`
+}
+
 type JarvisRecommendationResp struct {
-	Data struct {
-		GetJarvisRecommendation struct {
-			Categories []Categories `json:"categories"`
-			Typename   string       `json:"__typename"`
-		} `json:"getJarvisRecommendation"`
-	} `json:"data"`
+	Data JarvisRecommendationData `json:"data"`
 }
 
 type CategoryAllListLiteData struct {
