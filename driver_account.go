@@ -39,6 +39,7 @@ type DriverAccount struct {
 	Username  string          `json:"username"`
 	Password  string          `json:"password"`
 	Secret    string          `json:"secret"`
+	PIN       string          `json:"pin"`
 	DevMode   bool            `json:"-"`
 	Proxy     string          `json:"-"`
 	Session   DriverSession   `json:"-"`
@@ -165,6 +166,10 @@ func (d *DriverAccount) SaveSession(dctx *DriverContext) error {
 		}),
 	)
 
+}
+
+func (driver *DriverAccount) SetPIN(pin string) {
+	driver.PIN = pin
 }
 
 func (driver *DriverAccount) MitraLogin(ctx context.Context) error {

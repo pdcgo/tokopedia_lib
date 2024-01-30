@@ -7,20 +7,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAccountApi(t *testing.T) {
+func TestGetBalance(t *testing.T) {
 	api, saveSession := scenario.GetTokopediaApiClient()
 	defer saveSession()
 
-	hasil, err := api.AccountInfo()
+	hasil, err := api.GetBalance()
 	assert.NotEmpty(t, hasil)
 	assert.Nil(t, err)
 }
 
-func TestUserDataQuery(t *testing.T) {
+func TestWithdrawBalance(t *testing.T) {
 	api, saveSession := scenario.GetTokopediaApiClient()
 	defer saveSession()
 
-	hasil, err := api.UserDataQuery()
+	hasil, err := api.WithDrawBalance()
+	assert.NotEmpty(t, hasil)
+	assert.Nil(t, err)
+}
+
+func TestSaldoQuery(t *testing.T) {
+	api, saveSession := scenario.GetTokopediaApiClient()
+	defer saveSession()
+
+	hasil, err := api.SaldoQuery(false)
 	assert.NotEmpty(t, hasil)
 	assert.Nil(t, err)
 }

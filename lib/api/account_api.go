@@ -188,3 +188,49 @@ func (api *TokopediaApi) AccountInfo() (*AccountRes, error) {
 	return &hasil, nil
 
 }
+
+type User struct {
+	ID              string `json:"id"`
+	IsLoggedIn      bool   `json:"isLoggedIn"`
+	ProfilePicture  string `json:"profilePicture"`
+	Name            string `json:"name"`
+	Email           string `json:"email"`
+	PhoneVerified   bool   `json:"phone_verified"`
+	Gender          string `json:"gender"`
+	Bday            string `json:"bday"`
+	Completion      int    `json:"completion"`
+	CreatedPassword bool   `json:"createdPassword"`
+	RegisterDate    string `json:"registerDate"`
+	Phone           string `json:"phone"`
+	PhoneMasked     string `json:"phoneMasked"`
+	Age             string `json:"age"`
+	Typename        string `json:"__typename"`
+}
+
+type UserDataQueryResp struct {
+	Data struct {
+		User *User `json:"user"`
+		Shop struct {
+			Domain   string `json:"domain"`
+			Typename string `json:"__typename"`
+		} `json:"shop"`
+	} `json:"data"`
+}
+
+func (api *TokopediaApi) UserDataQuery() (*UserDataQueryResp, error) {
+	query := GraphqlPayload{
+		OperationName: "user_data_query",
+		Variables:     struct{}{},
+		Query:         "query user_data_query {\n  user {\n    id\n    isLoggedIn\n    profilePicture\n    name\n    email\n    phone_verified\n    gender\n    bday\n    completion\n    createdPassword\n    registerDate\n    phone\n    phoneMasked\n    age\n    __typename\n  }\n  shop {\n    domain\n    __typename\n  }\n}\n",
+	}
+
+	req := api.NewGraphqlReq(&query)
+
+	var hasil UserDataQueryResp
+	err := api.SendRequest(req, &hasil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &hasil, nil
+}
