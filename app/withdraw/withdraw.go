@@ -3,7 +3,6 @@ package withdraw
 import (
 	"context"
 	"errors"
-	"log"
 	"strconv"
 	"time"
 
@@ -91,21 +90,14 @@ func (w *Withdraw) RunWithDriver() error {
 	}
 
 	b := retry.NewFibonacci(time.Second)
-	err := retry.Do(context.Background(), b, func(ctx context.Context) error {
+	err := retry.Do(context.Background(), retry.WithMaxRetries(3, b), func(ctx context.Context) error {
 		err := withdraw()
 		if err != nil {
 			if err == ErrSaldoKosong {
-				log.Printf("[ STATUS ] : SALDO %s Kosong", w.Username)
-				return nil
-			}
-
-			if err == ErrWithdraw {
-				log.Printf("[ STATUS ] : %s Withdraw Failed", w.Username)
+				return err
 			}
 
 			return retry.RetryableError(err)
-		} else {
-			log.Printf("[ STATUS ] : %s Withdraw Success", w.Username)
 		}
 
 		return nil
@@ -122,12 +114,11 @@ func (w *Withdraw) Withdraw(dCtx *tokopedia_lib.DriverContext) error {
 
 	chromedp.Run(
 		dCtx.Ctx,
-		chromedp.ActionFunc(func(cxt context.Context) error {
-			_, err := page.AddScriptToEvaluateOnNewDocument("Object.defineProperty(navigator, 'webdriver', { get: () => false, });").Do(cxt)
-			if err != nil {
-				return err
-			}
-			return nil
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			_, err := page.AddScriptToEvaluateOnNewDocument(`const newProto = navigator.__proto__;
+			delete newProto.webdriver;
+			navigator.__proto__ = newProto;`).Do(ctx)
+			return err
 		}),
 		chromedp.Navigate("https://seller.tokopedia.com/"),
 	)
@@ -158,8 +149,11 @@ func (w *Withdraw) Withdraw(dCtx *tokopedia_lib.DriverContext) error {
 		}
 
 		withdrawUri := "https://www.tokopedia.com/payment/deposit?nref=dside"
+		creditsUri := "https://ta.tokopedia.com/v2/manage/credits"
 		chromedp.Run(
 			dCtx.Ctx,
+			chromedp.Sleep(time.Second),
+			chromedp.Navigate(creditsUri),
 			chromedp.Sleep(time.Second),
 			chromedp.Navigate(withdrawUri),
 		)
@@ -174,25 +168,65 @@ func (w *Withdraw) Withdraw(dCtx *tokopedia_lib.DriverContext) error {
 			}
 		}()
 
-		tarikSaldoBtn := "//*/span[contains(text(), 'Tarik Saldo')]"
-		penghasilanBtn := "#unf-tabitem-coachmark1-1"
-		withdrawAllBtn := "//*/div/span[@data-testid='wd-withdraw-all']"
-		pinInput := "//*/input[@aria-label='pin input']"
-		backToSaldoBtn := "//*/button[@data-testid='wd-btn-back-to-deposit']"
-		err := chromedp.Run(
-			ctx,
-			chromedp.WaitVisible(penghasilanBtn, chromedp.ByID),
-			chromedp.Click(penghasilanBtn, chromedp.ByID),
-			chromedp.WaitVisible(withdrawAllBtn, chromedp.BySearch),
-			chromedp.Click(withdrawAllBtn, chromedp.BySearch),
-			chromedp.Sleep(time.Second),
-			chromedp.WaitEnabled(tarikSaldoBtn+"/../..", chromedp.BySearch),
-			chromedp.Click(tarikSaldoBtn+"/../..", chromedp.BySearch),
-			chromedp.WaitVisible(pinInput, chromedp.BySearch),
-			chromedp.Sleep(time.Second),
-			chromedp.SendKeys(pinInput, w.PIN, chromedp.BySearch),
-			chromedp.WaitEnabled(backToSaldoBtn, chromedp.BySearch),
-		)
+		go func() {
+			for {
+				chromedp.Run(
+					ctx,
+					chromedp.WaitEnabled(".unf-coachmark__next-button", chromedp.ByQuery),
+					chromedp.Click(".unf-coachmark__next-button", chromedp.ByQuery),
+				)
+			}
+		}()
+
+		wdSteps := func() error {
+			ctx, cancel := context.WithTimeout(dCtx.Ctx, time.Minute)
+			defer cancel()
+
+			tarikSaldoBtn := "//*/span[contains(text(), 'Tarik Saldo')]"
+			penghasilanBtn := "#unf-tabitem-coachmark1-1"
+			withdrawAllBtn := "//*/div/span[@data-testid='wd-withdraw-all']"
+			chromedp.Run(
+				ctx,
+				chromedp.WaitVisible(penghasilanBtn, chromedp.ByID),
+				chromedp.Click(penghasilanBtn, chromedp.ByID),
+				chromedp.WaitVisible(withdrawAllBtn, chromedp.BySearch),
+				chromedp.Click(withdrawAllBtn, chromedp.BySearch),
+				chromedp.Sleep(time.Second),
+				chromedp.Click(withdrawAllBtn, chromedp.BySearch),
+				chromedp.Sleep(time.Second),
+				chromedp.WaitEnabled(tarikSaldoBtn+"/../..", chromedp.BySearch),
+				chromedp.Click(tarikSaldoBtn+"/../..", chromedp.BySearch),
+			)
+
+			ctx, cancel = context.WithTimeout(dCtx.Ctx, time.Second*20)
+			defer cancel()
+
+			pinInput := "//*/input[@aria-label='pin input']"
+			backToSaldoBtn := "//*/button[@data-testid='wd-btn-back-to-deposit']"
+			return chromedp.Run(
+				ctx,
+				chromedp.WaitVisible(pinInput, chromedp.BySearch),
+				chromedp.Sleep(time.Second),
+				chromedp.SendKeys(pinInput, w.PIN, chromedp.BySearch),
+				chromedp.WaitEnabled(backToSaldoBtn, chromedp.BySearch),
+			)
+		}
+
+		err := wdSteps()
+		if err != nil {
+			chromedp.Run(
+				dCtx.Ctx,
+				chromedp.WaitVisible("#unf-tabitem-coachmark1-0", chromedp.ByID),
+				chromedp.Click("#unf-tabitem-coachmark1-0", chromedp.ByID),
+				chromedp.Sleep(time.Second),
+				chromedp.Click("#unf-tabitem-coachmark1-0", chromedp.ByID),
+				chromedp.Sleep(time.Second),
+			)
+			err := wdSteps()
+			errorChan <- err
+			return
+		}
+
 		errorChan <- err
 	}()
 

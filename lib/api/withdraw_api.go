@@ -1,6 +1,8 @@
 package api
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	crand "crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -8,6 +10,9 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
+	"fmt"
+	"io"
+	"log"
 	"math"
 	"math/rand"
 	"strconv"
@@ -302,30 +307,35 @@ func RandomAccountsAuthorization(len int) string {
 	return t
 }
 
-func Base64ToRsaPublicKey(pub string) (*rsa.PublicKey, error) {
+func GetPublicKey(pub string) (*rsa.PublicKey, error) {
 	block, _ := pem.Decode([]byte(pub))
 	b := block.Bytes
 	ifc, err := x509.ParsePKIXPublicKey(b)
 	if err != nil {
 		return nil, err
 	}
-	key, ok := ifc.(*rsa.PublicKey)
-	if !ok {
-		return nil, err
+	switch pub := ifc.(type) {
+	case *rsa.PublicKey:
+		return pub, nil
+	default:
+		break
 	}
-	return key, err
+	return nil, errors.New("public key type incorrect")
 }
 
 func EncryptPIN(msg string, key string) (string, error) {
-	pub, err := Base64ToRsaPublicKey(key)
+	pinSalt := "b9f14c8ed04a41c7a5361b648a088b69"
+	saltedPin := fmt.Sprintf("%s%s", msg, pinSalt)
+
+	log.Println(saltedPin)
+
+	pub, err := GetPublicKey(key)
 	if err != nil {
 		return "", err
 	}
 
-	// encodePIN := base64.RawURLEncoding.EncodeToString([]byte(msg))
-
 	hash := sha256.New()
-	ciphertext, err := rsa.EncryptOAEP(hash, crand.Reader, pub, []byte(msg), nil)
+	ciphertext, err := rsa.EncryptOAEP(hash, crand.Reader, pub, []byte(saltedPin), nil)
 	if err != nil {
 		return "", err
 	}
@@ -452,4 +462,51 @@ func (api *TokopediaApi) OTPModeListQuery(msisdn, bankAccId string) (*OTPModeLis
 	payload := NewOTPModelListQueryVariable(msisdn, bankAccId)
 
 	return api.otpModeListQuery(payload)
+}
+
+func Encrypt(pubKey *rsa.PublicKey, message []byte) ([]byte, string, error) {
+	// Create random key
+	key := "b9f14c8ed04a41c7a5361b648a088b69"
+
+	// Encrypt payload with random key
+	encrypted, err := encrypt(message, []byte(key))
+	if err != nil {
+		return nil, "", errors.New("failed to encrypt payload")
+	}
+
+	// Decrypt random key that have been used for payload encryption
+	hash := sha256.New()
+	encKey, err := rsa.EncryptOAEP(hash, crand.Reader, pubKey, []byte(key), nil)
+	if err != nil {
+		return nil, "", errors.New("failed to encrypt encryption key")
+	}
+
+	// Encode encrypted key to base 64
+	encodedKey := base64.StdEncoding.EncodeToString(encKey)
+
+	// Return encrypted payload and key
+	return encrypted, encodedKey, nil
+}
+
+func encrypt(message, key []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, 12)
+	if _, err := io.ReadFull(crand.Reader, nonce); err != nil {
+		return nil, err
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	ciphertext := aesGCM.Seal(nil, nonce, message, nil)
+	ciphertext = append(ciphertext, nonce...)
+	encoded := base64.StdEncoding.EncodeToString(ciphertext)
+
+	return []byte(encoded), nil
 }

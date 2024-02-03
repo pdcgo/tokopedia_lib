@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
-	"github.com/pdcgo/tokopedia_lib/scenario"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,9 +28,31 @@ func TestEncryptPIN(t *testing.T) {
 	log.Println(pinEncrypt)
 }
 
+func TestEncrypt(t *testing.T) {
+	key, err := base64.StdEncoding.DecodeString("LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF3S1JNeFFmZGtWT25lQnUvWUExeAowTUJER1hJcEZpZU1LaDlFcnA3RWc4Ny9RL3F4TlZYVk9rVUJ4WGF5SWd0K0lpbXc0L3ZObE52T2M3Uit2M1BaClRnK1h0WVNGM2NLdjJxK1pYYkVQVDNJdzEzS3ZjVjdHc0x1dDhtVXZKcEZ3WFNjUjZXY2lraFBVQ3h6UlcrZzEKSVI4Q0l6VlkvaHE2ekVvS3NRdkpGeFlwNmpxbWs3enB2cFNjZmc0MzJpNVlTSXpaK1Z0Yi9hQ3BDbmE0bU9DcQpoU0VVZGp0VVVTQUNaTDVRa0JyT1dXRSt3czRnY0ZjcFFDU0x6bFpIUXdvK3kzTUpIVmpaMlhPaGFuOFFLQ2pzCi9FVTc3UGIwQjVlcnpFaGRvWnFUbU96d05aTU10OW00REUrTDZsangxdnp1MnZEOVk4aTE4Q2l1dndQU1FyM3EKUVFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t")
+	assert.Nil(t, err)
+
+	pubKey, err := api.GetPublicKey(string(key))
+	assert.Nil(t, err)
+
+	encrypted, encodedKey, err := api.Encrypt(pubKey, []byte("778899"))
+	assert.Nil(t, err)
+	log.Println(encodedKey)
+	log.Println(encrypted)
+}
+
 func TestWithdraw(t *testing.T) {
-	sellerApi, saveSession := scenario.GetTokopediaApiClient()
+	driver, err := tokopedia_lib.NewDriverAccount("SuratiKioss@outlook.com", "@Srengat123", "KAVUFOBZGCIFKFEO35EJ35U2KSYZYKTL")
+	assert.Nil(t, err)
+	driver.SetPIN("778899")
+
+	sellerApi, saveSession, err := driver.CreateApi()
+	assert.Nil(t, err)
 	defer saveSession()
+
+	biometric, err := sellerApi.BiometricBeginRegister()
+	assert.Nil(t, err)
+	assert.NotNil(t, biometric)
 
 	hasil, err := sellerApi.UserDataQuery()
 	assert.NotEmpty(t, hasil)
@@ -79,7 +101,7 @@ func TestWithdraw(t *testing.T) {
 	})
 
 	t.Run("test otp validate withdraw", func(t *testing.T) {
-		payload, err := api.NewOtpValidateVariable(msisdn, strconv.Itoa(bank.BankAccountID), "778899", generateKey)
+		payload, err := api.NewOtpValidateVariable(msisdn, strconv.Itoa(bank.BankAccountID), driver.PIN, generateKey)
 		assert.Nil(t, err)
 
 		hasil, err := sellerApi.WithdrawOtpValidate(payload)
