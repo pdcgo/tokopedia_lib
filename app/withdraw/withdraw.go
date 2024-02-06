@@ -2,43 +2,68 @@ package withdraw
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
-	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/sethvargo/go-retry"
 )
 
+var ErrSaldoKosong = errors.New("saldo kosong")
+var ErrWithdraw = errors.New("withdraw error")
+var ErrHashedPin = errors.New("error hashing pin")
+
 type Withdraw struct {
-	*tokopedia_lib.DriverAccount
+	Driver *tokopedia_lib.DriverAccount
+
+	Api         *api.TokopediaApi
+	User        *api.UserDataQueryResp
+	Balance     *api.WithdrawBalanceResp
+	Bank        *api.GetBankWDV2
+	GenerateKey *api.WindrawnGenerateKeyResp
 }
 
-func NewWithdraw(driver *tokopedia_lib.DriverAccount) *Withdraw {
-	return &Withdraw{
-		DriverAccount: driver,
+func NewWithdraw(driver *tokopedia_lib.DriverAccount) (*Withdraw, error) {
+	w := &Withdraw{
+		Driver: driver,
 	}
+
+	err := w.InitDataWithdraw()
+	if err != nil {
+		return nil, err
+	}
+
+	return w, nil
 }
 
-func (w *Withdraw) RunWithApi() error {
-	tApi, saveSession, err := w.CreateApi()
+func (w *Withdraw) InitDataWithdraw() error {
+	tApi, saveSession, err := w.Driver.CreateApi()
 	if err != nil {
 		return err
 	}
 	defer saveSession()
+	w.Api = tApi
 
 	user, err := tApi.UserDataQuery()
 	if err != nil {
 		return err
 	}
+	w.User = user
 
-	balance, err := tApi.GetBalance()
+	balance, err := tApi.WithDrawBalance()
 	if err != nil {
 		return err
+	}
+	w.Balance = balance
+	if balance.Data.MidasGetAllDepositAmount.SellerAll == 0 {
+		return ErrSaldoKosong
 	}
 
 	banks, err := tApi.BankListQuery(false)
@@ -47,50 +72,58 @@ func (w *Withdraw) RunWithApi() error {
 	}
 
 	bank := banks.Data.GetBankListWDV2.Data.GetDefaultBank()
-
-	_, err = tApi.WithdrawOtpRequest(user.Data.User.Phone)
-	if err != nil {
-		return err
-	}
-
-	generateKey, err := tApi.WindrawnGenerateKey()
-	if err != nil {
-		return err
-	}
-
-	otpValidateVariable, err := api.NewOtpValidateVariable(user.Data.User.Phone, strconv.Itoa(bank.BankAccountID), w.PIN, generateKey.Data.GenerateKey)
-	if err != nil {
-		return err
-	}
-	otpValidate, err := tApi.WithdrawOtpValidate(otpValidateVariable)
-	if err != nil {
-		return err
-	}
-
-	withdrawvariable := api.NewWithdrawVariable(user.Data.User, bank, otpValidate.Data.OTPValidate, strconv.Itoa(balance.Data.Balance.SellerAll))
-	withdrawSaldo, err := tApi.WithdrawSaldoMutation(withdrawvariable)
-	if err != nil {
-		return err
-	}
-
-	if withdrawSaldo.Data.RichieSubmitWithdrawal.Status != "success" {
-		return errors.New(withdrawSaldo.Data.RichieSubmitWithdrawal.MessageError)
-	}
+	w.Bank = bank
 
 	return nil
 }
 
-func (w *Withdraw) RunWithDriver() error {
+func (w *Withdraw) GetGenerateKey() (*api.WindrawnGenerateKeyResp, error) {
+	_, err := w.Api.WithdrawOtpRequest(w.User.Data.User.Phone)
+	if err != nil {
+		return nil, err
+	}
+
+	generateKey, err := w.Api.WindrawnGenerateKey()
+	if err != nil {
+		return nil, err
+	}
+
+	w.GenerateKey = generateKey
+
+	return generateKey, nil
+}
+
+func (w *Withdraw) StartWithdraw(pinHashed string) error {
+	otpValidateVariable := api.NewOtpValidateVariable(
+		w.User.Data.User.Phone,
+		strconv.Itoa(w.Bank.BankAccountID),
+		pinHashed, w.GenerateKey.Data.GenerateKey)
+
+	otpValidate, err := w.Api.WithdrawOtpValidate(otpValidateVariable)
+	if err != nil {
+		return err
+	}
+
+	withdrawvariable := api.NewWithdrawVariable(
+		w.User.Data.User,
+		w.Bank, otpValidate.Data.OTPValidate,
+		strconv.Itoa(w.Balance.Data.MidasGetAllDepositAmount.SellerAll))
+	_, err = w.Api.WithdrawSaldoMutation(withdrawvariable)
+
+	return err
+}
+
+func (w *Withdraw) Run() error {
 
 	withdraw := func() error {
-		err := w.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
+		err := w.Driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
 			return w.Withdraw(dctx)
 		})
 		return err
 	}
 
 	b := retry.NewFibonacci(time.Second)
-	err := retry.Do(context.Background(), retry.WithMaxRetries(3, b), func(ctx context.Context) error {
+	err := retry.Do(context.Background(), retry.WithMaxRetries(2, b), func(ctx context.Context) error {
 		err := withdraw()
 		if err != nil {
 			if err == ErrSaldoKosong {
@@ -106,172 +139,109 @@ func (w *Withdraw) RunWithDriver() error {
 	return err
 }
 
-var ErrSaldoKosong = errors.New("saldo kosong")
-var ErrWithdraw = errors.New("withdraw error")
+func (wd *Withdraw) SetupWindowProperty(ctx context.Context) {
+	script := `Object.defineProperties(window, {
+		textEncoder: {
+			get: () => new TextEncoder(),
+		},
+		publicKeyEncoder: {
+			get: () =>  function(e) {
+				for (var t = window.atob(e), n = t.length, r = new ArrayBuffer(n), i = new Uint8Array(r), o = 0, a = n; o < a; o += 1)
+					i[o] = t.charCodeAt(o);
+				return r
+				},
+		},
+		encryptToString: {
+			get: () => function(e) {
+				for (var t = "", n = new Uint8Array(e), r = 0; r < n.byteLength; r += 1)
+					t += String.fromCharCode(n[r]);
+				return window.btoa(t)
+			}, 
+		},
+		otpAlgorithm: {
+			get: () => Object.assign({}, {"name": "RSA-OAEP", "hash": "SHA-256"}),
+		}
+	});`
+
+	chromedp.Run(
+		ctx,
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			_, err := page.AddScriptToEvaluateOnNewDocument(script).Do(ctx)
+			return err
+		}),
+	)
+}
+
+func (w *Withdraw) script(key string) string {
+	script := fmt.Sprintf(`(async () => {let cryptoKey = await  window.crypto.subtle.importKey("spki", window.publicKeyEncoder("%s"), Object.assign({}, {"name": "RSA-OAEP", "hash": "SHA-256"}), false, ["encrypt"]); let otpAlgorithm = window.otpAlgorithm; let pwdEncrypted = await window.crypto.subtle.encrypt(otpAlgorithm, cryptoKey, window.textEncoder.encode("%s")); return window.encryptToString(pwdEncrypted)})();`, key, w.hashedPin())
+
+	return script
+}
+
+func (w *Withdraw) hashedPin() string {
+	salt := "b9f14c8ed04a41c7a5361b648a088b69"
+	saltedPin := fmt.Sprintf("%s%s", w.Driver.PIN, salt)
+
+	hash := sha256.New()
+	hash.Write([]byte(saltedPin))
+
+	res := hash.Sum(nil)
+	return fmt.Sprintf("%x", res)
+}
 
 func (w *Withdraw) Withdraw(dCtx *tokopedia_lib.DriverContext) error {
-	errorChan := make(chan error, 1)
+	w.SetupWindowProperty(dCtx.Ctx)
 
 	chromedp.Run(
 		dCtx.Ctx,
 		chromedp.ActionFunc(func(ctx context.Context) error {
-			_, err := page.AddScriptToEvaluateOnNewDocument(`const newProto = navigator.__proto__;
-			delete newProto.webdriver;
-			navigator.__proto__ = newProto;`).Do(ctx)
+			_, err := page.AddScriptToEvaluateOnNewDocument(`const newProto = navigator.__proto__; delete newProto.webdriver; navigator.__proto__ = newProto;`).Do(ctx)
 			return err
 		}),
-		chromedp.Navigate("https://seller.tokopedia.com/"),
+		chromedp.Navigate("https://seller.tokopedia.com/home"),
 	)
 
-	loginCtx, cancelLoginCtx := context.WithCancel(dCtx.Ctx)
+	titleSeller := `//*/div[@data-testid="btnSellerAccount"]`
+	chromedp.Run(
+		dCtx.Ctx,
+		chromedp.WaitVisible(titleSeller, chromedp.BySearch),
+	)
 
-	go func() {
-		defer cancelLoginCtx()
-
-		titleSeller := `//*/div[@data-testid="btnSellerAccount"]`
-		chromedp.Run(
-			dCtx.Ctx,
-			chromedp.WaitVisible(titleSeller, chromedp.BySearch),
-		)
-
-		ctx, cancel := context.WithTimeout(dCtx.Ctx, time.Minute)
-		defer cancel()
-
-		saldo := ""
-		chromedp.Run(
-			ctx,
-			chromedp.WaitEnabled("//*/span[@data-testid='txtSellerSidebarValueSaldo']"),
-			chromedp.TextContent("//*/span[@data-testid='txtSellerSidebarValueSaldo']", &saldo, chromedp.BySearch),
-		)
-		if saldo == "Rp0" {
-			errorChan <- ErrSaldoKosong
-			return
-		}
-
-		withdrawUri := "https://www.tokopedia.com/payment/deposit?nref=dside"
-		creditsUri := "https://ta.tokopedia.com/v2/manage/credits"
-		chromedp.Run(
-			dCtx.Ctx,
-			chromedp.Sleep(time.Second),
-			chromedp.Navigate(creditsUri),
-			chromedp.Sleep(time.Second),
-			chromedp.Navigate(withdrawUri),
-		)
-
-		go func() {
-			for {
-				chromedp.Run(
-					ctx,
-					chromedp.WaitEnabled("//*/button/span[contains(text(), 'Tarik Saldo')]/..", chromedp.BySearch),
-					chromedp.Click("//*/button/span[contains(text(), 'Tarik Saldo')]/..", chromedp.BySearch),
-				)
-			}
-		}()
-
-		go func() {
-			for {
-				chromedp.Run(
-					ctx,
-					chromedp.WaitEnabled(".unf-coachmark__next-button", chromedp.ByQuery),
-					chromedp.Click(".unf-coachmark__next-button", chromedp.ByQuery),
-				)
-			}
-		}()
-
-		wdSteps := func() error {
-			ctx, cancel := context.WithTimeout(dCtx.Ctx, time.Minute)
-			defer cancel()
-
-			tarikSaldoBtn := "//*/span[contains(text(), 'Tarik Saldo')]"
-			penghasilanBtn := "#unf-tabitem-coachmark1-1"
-			withdrawAllBtn := "//*/div/span[@data-testid='wd-withdraw-all']"
-			chromedp.Run(
-				ctx,
-				chromedp.WaitVisible(penghasilanBtn, chromedp.ByID),
-				chromedp.Click(penghasilanBtn, chromedp.ByID),
-				chromedp.WaitVisible(withdrawAllBtn, chromedp.BySearch),
-				chromedp.Click(withdrawAllBtn, chromedp.BySearch),
-				chromedp.Sleep(time.Second),
-				chromedp.Click(withdrawAllBtn, chromedp.BySearch),
-				chromedp.Sleep(time.Second),
-				chromedp.WaitEnabled(tarikSaldoBtn+"/../..", chromedp.BySearch),
-				chromedp.Click(tarikSaldoBtn+"/../..", chromedp.BySearch),
-			)
-
-			ctx, cancel = context.WithTimeout(dCtx.Ctx, time.Second*20)
-			defer cancel()
-
-			pinInput := "//*/input[@aria-label='pin input']"
-			backToSaldoBtn := "//*/button[@data-testid='wd-btn-back-to-deposit']"
-			return chromedp.Run(
-				ctx,
-				chromedp.WaitVisible(pinInput, chromedp.BySearch),
-				chromedp.Sleep(time.Second),
-				chromedp.SendKeys(pinInput, w.PIN, chromedp.BySearch),
-				chromedp.WaitEnabled(backToSaldoBtn, chromedp.BySearch),
-			)
-		}
-
-		err := wdSteps()
-		if err != nil {
-			chromedp.Run(
-				dCtx.Ctx,
-				chromedp.WaitVisible("#unf-tabitem-coachmark1-0", chromedp.ByID),
-				chromedp.Click("#unf-tabitem-coachmark1-0", chromedp.ByID),
-				chromedp.Sleep(time.Second),
-				chromedp.Click("#unf-tabitem-coachmark1-0", chromedp.ByID),
-				chromedp.Sleep(time.Second),
-			)
-			err := wdSteps()
-			errorChan <- err
-			return
-		}
-
-		errorChan <- err
-	}()
-
-	go func() {
-		masukTitle := `//*/h3[contains(text(), "Masuk")]`
-		chromedp.Run(
-			loginCtx,
-			chromedp.WaitReady(masukTitle, chromedp.BySearch),
-		)
-		err := w.MitraLogin(loginCtx)
-		if err != nil {
-			errorChan <- err
-		}
-
-		chromedp.Run(dCtx.Ctx,
-			chromedp.Navigate("https://seller.tokopedia.com/"),
-			chromedp.ActionFunc(func(ctx context.Context) error {
-				cookies, err := network.GetCookies().Do(ctx)
-				if err != nil {
-					errorChan <- err
-					return err
-				}
-
-				var userAgent string
-				err = chromedp.Evaluate("navigator.userAgent", &userAgent).Do(ctx)
-				if err != nil {
-					errorChan <- err
-					return err
-				}
-
-				err = w.Session.SaveFromDriver(cookies, userAgent)
-				if err != nil {
-					errorChan <- err
-				}
-				dCtx.Logined = true
-				cancelLoginCtx()
-				return nil
-			}),
-		)
-	}()
-
-	select {
-	case <-dCtx.Ctx.Done():
-		return context.Canceled
-	case err := <-errorChan:
+	generateKey, err := w.GetGenerateKey()
+	if err != nil {
 		return err
 	}
+
+	rsaContent, err := generateKey.GetRSAPublicKeyContent()
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(dCtx.Ctx, time.Second*30)
+	defer cancel()
+
+	var pinhashed string
+	script := w.script(rsaContent)
+	err = chromedp.Run(
+		ctx,
+		chromedp.Sleep(time.Second),
+		chromedp.Evaluate(script, &pinhashed,
+			func(p *runtime.EvaluateParams) *runtime.EvaluateParams {
+				return p.WithAwaitPromise(true)
+			},
+		),
+	)
+	if err != nil {
+		return err
+	}
+	if pinhashed == "" {
+		return ErrHashedPin
+	}
+
+	err = w.StartWithdraw(pinhashed)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

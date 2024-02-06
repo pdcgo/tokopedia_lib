@@ -9,15 +9,13 @@ import (
 	"time"
 
 	"github.com/pdcgo/go-mitmproxy/proxy"
-	"github.com/pdcgo/go_v2_shopeelib/lib/shopee_dp"
-	"github.com/pdcgo/go_v2_shopeelib/lib/shopee_dp/addon"
 	"github.com/pdcgo/tokopedia_lib/lib/tokpedproxy"
 )
 
 type ProxyKey string
 
 const (
-	WithdrawProxyKey ProxyKey = "main_proxy"
+	WithdrawProxyKey ProxyKey = "withdraw_proxy"
 )
 
 type addonCreator func() proxy.Addon
@@ -27,29 +25,25 @@ type ProxyConf struct {
 	Addons []addonCreator
 }
 
-func NewChatFrontendCacher(path string) proxy.Addon {
-	return addon.NewFrontendCacher([]string{"https://deo.shopeemobile.com"}, addon.NewCacheStore())
-}
-
 var proxyConfig map[ProxyKey]*ProxyConf = map[ProxyKey]*ProxyConf{
 
 	WithdrawProxyKey: {
 		Addr: "127.0.0.1:8081",
 		Addons: []addonCreator{
-			tokpedproxy.NewDisableWebdriver,
+			tokpedproxy.NewEnableEvaluate,
 		},
 	},
 }
 
 type ProxyItem struct {
-	Instance  *shopee_dp.InspectProxy
+	Instance  *tokpedproxy.InspectProxy
 	CancelCtx context.CancelFunc
 }
 
 var proxyList map[ProxyKey]*ProxyItem = map[ProxyKey]*ProxyItem{}
 var maplock sync.Mutex
 
-func GetProxy(key ProxyKey) (*shopee_dp.InspectProxy, context.CancelFunc) {
+func GetProxy(key ProxyKey) (*tokpedproxy.InspectProxy, context.CancelFunc) {
 	maplock.Lock()
 	defer maplock.Unlock()
 
@@ -67,7 +61,7 @@ func GetProxy(key ProxyKey) (*shopee_dp.InspectProxy, context.CancelFunc) {
 		}
 
 		ctx, cancel := context.WithCancel(context.TODO())
-		proxInstance := shopee_dp.NewInspectProxy(config.Addr, ctx, []proxy.Addon{})
+		proxInstance := tokpedproxy.NewInspectProxy(config.Addr, ctx, []proxy.Addon{})
 
 		for _, handler := range config.Addons {
 			proxInstance.Addons = append(proxInstance.Addons, handler())

@@ -1,8 +1,6 @@
 package api
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	crand "crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -11,11 +9,11 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"math"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -118,6 +116,13 @@ func (api *TokopediaApi) WithdrawSaldoMutation(variable *WithdrawVariable) (*Wit
 
 	var hasil WithdrawSaldoMutationResp
 	err := api.SendRequest(req, &hasil)
+	if err != nil {
+		return nil, err
+	}
+
+	if hasil.Data.RichieSubmitWithdrawal.Status != "success" {
+		return nil, errors.New(hasil.Data.RichieSubmitWithdrawal.MessageError)
+	}
 
 	return &hasil, err
 
@@ -190,27 +195,17 @@ type OtpValidateVariable struct {
 	Mode       string `json:"mode"`
 }
 
-func NewOtpValidateVariable(msisdn, bankAccountId, pin string, generateKey *GenerateKey) (*OtpValidateVariable, error) {
-	key, err := generateKey.GetRsaPublicKey()
-	if err != nil {
-		return nil, err
-	}
-
-	pinEncrypted, err := EncryptPIN(pin, key)
-	if err != nil {
-		return nil, err
-	}
-
+func NewOtpValidateVariable(msisdn, bankAccountId, pin string, generateKey *GenerateKey) *OtpValidateVariable {
 	variable := &OtpValidateVariable{
 		Msisdn:     msisdn,
 		BankAccID:  bankAccountId,
 		UsePINHash: true,
-		PIN:        pinEncrypted,
+		PIN:        pin,
 		PINHash:    generateKey.H,
 		Mode:       "PIN",
 		OtpType:    "120",
 	}
-	return variable, nil
+	return variable
 }
 
 type OtpValidate struct {
@@ -273,6 +268,18 @@ type WindrawnGenerateKeyResp struct {
 	} `json:"data"`
 }
 
+func (w *WindrawnGenerateKeyResp) GetRSAPublicKeyContent() (string, error) {
+	publicKey, err := w.Data.GenerateKey.GetRsaPublicKey()
+	if err != nil {
+		return "", err
+	}
+
+	resSplits := strings.Split(publicKey, "\n")
+	content := strings.Join(resSplits[1:len(resSplits)-1], "")
+
+	return content, nil
+}
+
 func (api *TokopediaApi) WindrawnGenerateKey() (*WindrawnGenerateKeyResp, error) {
 	payload := &WithdrawGenerateKeyVariable{
 		Module: "pinv2",
@@ -291,58 +298,6 @@ func (api *TokopediaApi) WindrawnGenerateKey() (*WindrawnGenerateKeyResp, error)
 	err := api.SendRequest(req, &hasil)
 
 	return &hasil, err
-}
-
-func RandomAccountsAuthorization(len int) string {
-	t := ""
-	n := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-
-	for r := 0; r < len; r++ {
-		rand := rand.Float64() * float64(len)
-		floor := int(math.Floor(rand))
-
-		t += string(n[floor])
-	}
-
-	return t
-}
-
-func GetPublicKey(pub string) (*rsa.PublicKey, error) {
-	block, _ := pem.Decode([]byte(pub))
-	b := block.Bytes
-	ifc, err := x509.ParsePKIXPublicKey(b)
-	if err != nil {
-		return nil, err
-	}
-	switch pub := ifc.(type) {
-	case *rsa.PublicKey:
-		return pub, nil
-	default:
-		break
-	}
-	return nil, errors.New("public key type incorrect")
-}
-
-func EncryptPIN(msg string, key string) (string, error) {
-	pinSalt := "b9f14c8ed04a41c7a5361b648a088b69"
-	saltedPin := fmt.Sprintf("%s%s", msg, pinSalt)
-
-	log.Println(saltedPin)
-
-	pub, err := GetPublicKey(key)
-	if err != nil {
-		return "", err
-	}
-
-	hash := sha256.New()
-	ciphertext, err := rsa.EncryptOAEP(hash, crand.Reader, pub, []byte(saltedPin), nil)
-	if err != nil {
-		return "", err
-	}
-
-	encryptedPin := base64.StdEncoding.EncodeToString(ciphertext)
-
-	return encryptedPin, nil
 }
 
 type PinV2CheckVariable struct {
@@ -464,49 +419,57 @@ func (api *TokopediaApi) OTPModeListQuery(msisdn, bankAccId string) (*OTPModeLis
 	return api.otpModeListQuery(payload)
 }
 
-func Encrypt(pubKey *rsa.PublicKey, message []byte) ([]byte, string, error) {
-	// Create random key
-	key := "b9f14c8ed04a41c7a5361b648a088b69"
+func RandomAccountsAuthorization(len int) string {
+	t := ""
+	n := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
-	// Encrypt payload with random key
-	encrypted, err := encrypt(message, []byte(key))
-	if err != nil {
-		return nil, "", errors.New("failed to encrypt payload")
+	for r := 0; r < len; r++ {
+		rand := rand.Float64() * float64(len)
+		floor := int(math.Floor(rand))
+
+		t += string(n[floor])
 	}
 
-	// Decrypt random key that have been used for payload encryption
-	hash := sha256.New()
-	encKey, err := rsa.EncryptOAEP(hash, crand.Reader, pubKey, []byte(key), nil)
-	if err != nil {
-		return nil, "", errors.New("failed to encrypt encryption key")
-	}
-
-	// Encode encrypted key to base 64
-	encodedKey := base64.StdEncoding.EncodeToString(encKey)
-
-	// Return encrypted payload and key
-	return encrypted, encodedKey, nil
+	return t
 }
 
-func encrypt(message, key []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
+func GetPublicKey(pub string) (*rsa.PublicKey, error) {
+	block, _ := pem.Decode([]byte(pub))
+	b := block.Bytes
+	ifc, err := x509.ParsePKIXPublicKey(b)
 	if err != nil {
 		return nil, err
 	}
-
-	nonce := make([]byte, 12)
-	if _, err := io.ReadFull(crand.Reader, nonce); err != nil {
-		return nil, err
+	switch pub := ifc.(type) {
+	case *rsa.PublicKey:
+		return pub, nil
+	default:
+		break
 	}
+	return nil, errors.New("public key type incorrect")
+}
 
-	aesGCM, err := cipher.NewGCM(block)
+// TODO: This is still wrong.
+//
+// The result if used in OTPValidate is wrong.
+func EncryptPIN(msg string, key string) (string, error) {
+	pinSalt := "b9f14c8ed04a41c7a5361b648a088b69"
+	saltedPin := fmt.Sprintf("%s%s", msg, pinSalt)
+
+	log.Println(saltedPin)
+
+	pub, err := GetPublicKey(key)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	ciphertext := aesGCM.Seal(nil, nonce, message, nil)
-	ciphertext = append(ciphertext, nonce...)
-	encoded := base64.StdEncoding.EncodeToString(ciphertext)
+	hash := sha256.New()
+	ciphertext, err := rsa.EncryptOAEP(hash, crand.Reader, pub, []byte(saltedPin), nil)
+	if err != nil {
+		return "", err
+	}
 
-	return []byte(encoded), nil
+	encryptedPin := base64.StdEncoding.EncodeToString(ciphertext)
+
+	return encryptedPin, nil
 }

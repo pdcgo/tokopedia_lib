@@ -78,7 +78,7 @@ func main() {
 		return
 	}
 
-	results := make(chan *WithdrawResult, 1)
+	results := make(chan *WithdrawResult, 3)
 
 	go func() {
 		defer close(results)
@@ -100,8 +100,18 @@ func main() {
 				Status: SUCCESS,
 			}
 
-			withdraw := withdraw.NewWithdraw(driver)
-			err = withdraw.RunWithDriver()
+			wd, err := withdraw.NewWithdraw(driver)
+			if err != nil {
+				if errors.Is(err, withdraw.ErrSaldoKosong) {
+					result.Status = FAILDED
+					result.Keterangan = err.Error()
+					results <- result
+					continue
+				}
+				pdc_common.ReportError(err)
+				return
+			}
+			err = wd.Run()
 			if err != nil {
 				result.Status = FAILDED
 				result.Keterangan = err.Error()
