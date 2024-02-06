@@ -72,7 +72,7 @@ func (d *DriverAccount) waitAcceptCookies(ctx context.Context) {
 		func() {
 			defer d.Unlock()
 
-			wctx, cancel := context.WithTimeout(ctx, time.Second*20)
+			wctx, cancel := context.WithTimeout(ctx, time.Second*10)
 			defer cancel()
 
 			wait(wctx)

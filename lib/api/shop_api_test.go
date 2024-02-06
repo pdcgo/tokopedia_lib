@@ -31,4 +31,11 @@ func TestShopApi(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
+	t.Run("test set shop active", func(t *testing.T) {
+		res, err := api.SetShopActive()
+		assert.Nil(t, err)
+		assert.NotEmpty(t, res)
+		assert.Equal(t, res.Data.UpdateShopActive.Message, "Success")
+	})
+
 }
