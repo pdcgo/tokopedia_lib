@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -44,11 +45,13 @@ func NewWithdraw(driver *tokopedia_lib.DriverAccount) (*Withdraw, error) {
 }
 
 func (w *Withdraw) InitDataWithdraw() error {
-	tApi, saveSession, err := w.Driver.CreateApi()
+	tApi, _, err := w.Driver.CreateApi()
 	if err != nil {
 		return err
 	}
-	defer saveSession()
+	defer func() {
+		w.Driver.Session.SaveSession()
+	}()
 	w.Api = tApi
 
 	user, err := tApi.UserDataQuery()
@@ -116,7 +119,7 @@ func (w *Withdraw) StartWithdraw(pinHashed string) error {
 func (w *Withdraw) Run() error {
 
 	withdraw := func() error {
-		err := w.Driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
+		err := w.Driver.Run(true, func(dctx *tokopedia_lib.DriverContext) error {
 			return w.Withdraw(dctx)
 		})
 		return err
@@ -237,6 +240,8 @@ func (w *Withdraw) Withdraw(dCtx *tokopedia_lib.DriverContext) error {
 	if pinhashed == "" {
 		return ErrHashedPin
 	}
+
+	log.Println(pinhashed)
 
 	err = w.StartWithdraw(pinhashed)
 	if err != nil {

@@ -6,35 +6,40 @@ import (
 	"errors"
 	"log"
 	"os"
+	"slices"
 	"strings"
-	"sync/atomic"
+	"time"
 
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib"
-	"github.com/pdcgo/tokopedia_lib/app/app_config"
 	"github.com/pdcgo/tokopedia_lib/app/withdraw"
+	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/helper"
 )
 
-type WD_Status string
+type WDStatus string
 
 const (
-	SUCCESS WD_Status = "SUKSES"
-	FAILDED WD_Status = "GAGAL"
+	SUCCESS WDStatus = "SUKSES"
+	FAILDED WDStatus = "GAGAL"
 )
 
-type WithdrawResult struct {
-	Email      string    `csv:"email"`
-	Status     WD_Status `csv:"status"`
-	Keterangan string    `csv:"keterangan"`
+type WithdrawReport struct {
+	Email      string   `csv:"email"`
+	Transaksi  string   `csv:"transaksi"`
+	Invoice    string   `csv:"invoice"`
+	Jumlah     string   `csv:"jumlah"`
+	SisaSaldo  string   `csv:"sisa_saldo"`
+	Status     WDStatus `csv:"status"`
+	Keterangan string   `csv:"keterangan"`
 }
 
-func (wd *WithdrawResult) Headers() []string {
-	return []string{"email", "status", "keterangan"}
+func (wd *WithdrawReport) Headers() []string {
+	return []string{"email", "transaksi", "invoice", "jumlah", "sisa_saldo", "status", "keterangan"}
 }
 
-func (wd *WithdrawResult) Values() []string {
-	return []string{wd.Email, string(wd.Status), wd.Keterangan}
+func (wd *WithdrawReport) Values() []string {
+	return []string{wd.Email, wd.Transaksi, wd.Invoice, wd.Jumlah, wd.SisaSaldo, string(wd.Status), wd.Keterangan}
 }
 
 var akunfilename = "akun.txt"
@@ -60,7 +65,7 @@ func init() {
 	_, err := os.Stat(wdReport)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			wd := &WithdrawResult{}
+			wd := &WithdrawReport{}
 
 			os.Create(wdReport)
 			SaveCsvData(wdReport, wd.Headers())
@@ -69,8 +74,7 @@ func init() {
 }
 
 func main() {
-	prox, cancel := app_config.GetProxy(app_config.WithdrawProxyKey)
-	defer cancel()
+	log.Println("[ WD BOT ]: Mulai withdrawl")
 
 	akuns, err := helper.FileLoadLineString(akunfilename)
 	if err != nil {
@@ -78,61 +82,155 @@ func main() {
 		return
 	}
 
-	results := make(chan *WithdrawResult, 3)
+	results := make(chan []*WithdrawReport, 3)
 
 	go func() {
 		defer close(results)
 
 		for _, akun := range akuns {
 			data := strings.Split(akun, "|")
-			secret := strings.ReplaceAll(data[2], " ", "")
 
+			log.Printf("[ WD BOT ]: %s  mulai withdraw", data[0])
+
+			secret := strings.ReplaceAll(data[2], " ", "")
 			driver, err := tokopedia_lib.NewDriverAccount(data[0], data[1], secret)
 			if err != nil {
 				pdc_common.ReportError(err)
 				return
 			}
 			driver.SetPIN(data[3])
-			driver.Proxy = prox.Addr
 
-			result := &WithdrawResult{
-				Email:  driver.Username,
-				Status: SUCCESS,
-			}
-
-			wd, err := withdraw.NewWithdraw(driver)
+			tApi, _, err := driver.CreateApi()
 			if err != nil {
-				if errors.Is(err, withdraw.ErrSaldoKosong) {
-					result.Status = FAILDED
-					result.Keterangan = err.Error()
-					results <- result
-					continue
-				}
 				pdc_common.ReportError(err)
 				return
 			}
-			err = wd.Run()
+			defer func() {
+				driver.Session.SaveSession()
+			}()
+
+			reports, err := GetTransaction(driver, tApi)
 			if err != nil {
-				result.Status = FAILDED
-				result.Keterangan = err.Error()
-				if errors.Is(err, context.Canceled) {
-					result.Keterangan = "coba manual"
+				pdc_common.ReportError(err)
+				return
+			}
+
+			result, err := RunWithdraw(driver)
+			if err != nil {
+				pdc_common.ReportError(err)
+				return
+			}
+
+			log.Printf("[ STATUS ] : %s %s", result.Email, result.Status)
+
+			if result.Status == FAILDED {
+				if result.Keterangan == withdraw.ErrSaldoKosong.Error() {
+					reports := []*WithdrawReport{result}
+					results <- reports
+					continue
 				}
 			}
 
-			results <- result
+			for _, report := range reports {
+				report.Status = result.Status
+			}
+
+			reports = append(reports, result)
+			results <- reports
 		}
 	}()
 
-	counter := int32(0)
 	for result := range results {
-		count := atomic.AddInt32(&counter, 1)
-		if result.Status == SUCCESS {
-			log.Printf("[ STATUS ] : %d Akun %s %s", count, result.Email, result.Status)
-		} else {
-			log.Printf("[ STATUS ] : %d Akun %s %s %s", count, result.Email, result.Status, result.Keterangan)
+		for _, report := range result {
+			SaveCsvData(wdReport, report.Values())
 		}
 
-		SaveCsvData(wdReport, result.Values())
 	}
+}
+
+func GetTransaction(driver *tokopedia_lib.DriverAccount, tApi *api.TokopediaApi) ([]*WithdrawReport, error) {
+	reports := []*WithdrawReport{}
+
+	now := time.Now().UTC()
+	lastMonth := now.AddDate(0, 0, -31)
+
+	haveNextPage := true
+Parent:
+	for haveNextPage {
+		variable := api.NewDepositHistoryVariable()
+		variable.MaxRows = 100
+		variable.DateFrom = lastMonth.Format(api.YYYYMMDD)
+		depositHistories, err := tApi.MidasGetDepositHistory(variable)
+		if err != nil {
+			return reports, err
+		}
+
+		depositContent := depositHistories.GetContent()
+		var unWithdrawTransaction []*api.DepositContent
+		for ind, history := range depositContent {
+			if history.Type == 7001 || history.Class == "Withdrawal" {
+				if ind == 0 {
+					break Parent
+				}
+
+				unWithdrawTransaction = append(unWithdrawTransaction, depositContent[:ind]...)
+				break
+			}
+		}
+
+		if unWithdrawTransaction == nil {
+			unWithdrawTransaction = depositContent
+		}
+
+		for _, transaction := range unWithdrawTransaction {
+			inv := strings.Split(transaction.Note, "-")
+
+			report := &WithdrawReport{
+				Email:     driver.Username,
+				Transaksi: transaction.TypeDescription,
+				Invoice:   inv[len(inv)-1],
+				Jumlah:    transaction.AmountFmt,
+				SisaSaldo: transaction.SaldoFmt,
+			}
+
+			reports = append(reports, report)
+		}
+
+		haveNextPage = depositHistories.Data.MidasGetDepositHistory.HaveNextPage
+	}
+
+	slices.Reverse(reports)
+	return reports, nil
+}
+
+func RunWithdraw(driver *tokopedia_lib.DriverAccount) (*WithdrawReport, error) {
+	result := &WithdrawReport{
+		Email:     driver.Username,
+		Transaksi: "Penarikan Saldo Penghasilan",
+		Jumlah:    "Rp0",
+		SisaSaldo: "Rp0",
+		Status:    SUCCESS,
+	}
+
+	wd, err := withdraw.NewWithdraw(driver)
+	if err != nil {
+		if errors.Is(err, withdraw.ErrSaldoKosong) {
+			result.Status = FAILDED
+			result.Keterangan = err.Error()
+			return result, nil
+		}
+		return nil, err
+	}
+	result.Jumlah = wd.Balance.Data.MidasGetAllDepositAmount.SellerAllFmt
+
+	err = wd.Run()
+	if err != nil {
+		result.Status = FAILDED
+		result.Keterangan = err.Error()
+		if errors.Is(err, context.Canceled) {
+			result.Keterangan = "coba manual"
+		}
+	}
+
+	return result, nil
 }

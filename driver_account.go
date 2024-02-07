@@ -106,6 +106,10 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 		// chromedp.Flag("profile-directory", "Default"),
 	}
 
+	if headless {
+		opt = append(opt, chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"))
+	}
+
 	if d.DevMode {
 		opt = append(opt,
 			chromedp.Flag("auto-open-devtools-for-tabs", true),
