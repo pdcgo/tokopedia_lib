@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -31,8 +30,9 @@ type Withdraw struct {
 	GenerateKey *api.WindrawnGenerateKeyResp
 }
 
-func NewWithdraw(driver *tokopedia_lib.DriverAccount) (*Withdraw, error) {
+func NewWithdraw(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) (*Withdraw, error) {
 	w := &Withdraw{
+		Api:    api,
 		Driver: driver,
 	}
 
@@ -45,22 +45,13 @@ func NewWithdraw(driver *tokopedia_lib.DriverAccount) (*Withdraw, error) {
 }
 
 func (w *Withdraw) InitDataWithdraw() error {
-	tApi, _, err := w.Driver.CreateApi()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		w.Driver.Session.SaveSession()
-	}()
-	w.Api = tApi
-
-	user, err := tApi.UserDataQuery()
+	user, err := w.Api.UserDataQuery()
 	if err != nil {
 		return err
 	}
 	w.User = user
 
-	balance, err := tApi.WithDrawBalance()
+	balance, err := w.Api.WithDrawBalance()
 	if err != nil {
 		return err
 	}
@@ -69,7 +60,7 @@ func (w *Withdraw) InitDataWithdraw() error {
 		return ErrSaldoKosong
 	}
 
-	banks, err := tApi.BankListQuery(false)
+	banks, err := w.Api.BankListQuery(false)
 	if err != nil {
 		return err
 	}
@@ -101,7 +92,6 @@ func (w *Withdraw) StartWithdraw(pinHashed string) error {
 		w.User.Data.User.Phone,
 		strconv.Itoa(w.Bank.BankAccountID),
 		pinHashed, w.GenerateKey.Data.GenerateKey)
-
 	otpValidate, err := w.Api.WithdrawOtpValidate(otpValidateVariable)
 	if err != nil {
 		return err
@@ -117,7 +107,6 @@ func (w *Withdraw) StartWithdraw(pinHashed string) error {
 }
 
 func (w *Withdraw) Run() error {
-
 	withdraw := func() error {
 		err := w.Driver.Run(true, func(dctx *tokopedia_lib.DriverContext) error {
 			return w.Withdraw(dctx)
@@ -240,8 +229,6 @@ func (w *Withdraw) Withdraw(dCtx *tokopedia_lib.DriverContext) error {
 	if pinhashed == "" {
 		return ErrHashedPin
 	}
-
-	log.Println(pinhashed)
 
 	err = w.StartWithdraw(pinhashed)
 	if err != nil {
