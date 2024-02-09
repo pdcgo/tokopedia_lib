@@ -108,9 +108,10 @@ func (w *Withdraw) StartWithdraw(pinHashed string) error {
 
 func (w *Withdraw) Run() error {
 	withdraw := func() error {
-		err := w.Driver.Run(true, func(dctx *tokopedia_lib.DriverContext) error {
+		err := w.Driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
 			return w.Withdraw(dctx)
 		})
+
 		return err
 	}
 
@@ -118,10 +119,6 @@ func (w *Withdraw) Run() error {
 	err := retry.Do(context.Background(), retry.WithMaxRetries(2, b), func(ctx context.Context) error {
 		err := withdraw()
 		if err != nil {
-			if err == ErrSaldoKosong {
-				return err
-			}
-
 			return retry.RetryableError(err)
 		}
 
