@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 )
@@ -38,15 +39,15 @@ func RunWithdraw(payload []*tokopedia_lib.DriverAccount) error {
 	for _, driver := range payload {
 		tApi, _, err := driver.CreateApi()
 		if err != nil {
-			return err
+			pdc_common.ReportError(err)
+			continue
 		}
-		defer func() {
-			driver.Session.SaveSession()
-		}()
+
+		defer driver.Session.SaveSession()
 
 		err = run(driver, tApi)
 		if err != nil {
-			return err
+			pdc_common.ReportError(err)
 		}
 	}
 
