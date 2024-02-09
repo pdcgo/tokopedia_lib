@@ -1,7 +1,6 @@
 package withdraw
 
 import (
-	"slices"
 	"strings"
 	"time"
 
@@ -61,6 +60,5 @@ Parent:
 		haveNextPage = depositHistories.Data.MidasGetDepositHistory.HaveNextPage
 	}
 
-	slices.Reverse(reports)
 	return reports, nil
 }
