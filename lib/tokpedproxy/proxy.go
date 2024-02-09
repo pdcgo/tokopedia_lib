@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/lqqyt2423/go-mitmproxy/proxy"
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/go-mitmproxy/proxy"
 	logrus "github.com/sirupsen/logrus"
 )
 
@@ -27,7 +27,7 @@ func (i *InspectProxy) RunProxy() {
 		StreamLargeBodies: 1024 * 1024 * 5,
 	}
 
-	p, err := proxy.NewProxy(opts)
+	p, err := proxy.NewProxy(false, opts)
 
 	if err != nil {
 		log.Fatal(err)
@@ -56,12 +56,7 @@ func (i *InspectProxy) RunProxy() {
 
 }
 
-func NewInspectProxy(listen string, ctx context.Context) *InspectProxy {
-
-	addons := []proxy.Addon{
-		NewTamperingTracking(),
-	}
-
+func NewInspectProxy(listen string, ctx context.Context, addons []proxy.Addon) *InspectProxy {
 	return &InspectProxy{
 		Ctx:    ctx,
 		Addr:   listen,

@@ -39,6 +39,7 @@ type DriverAccount struct {
 	Username  string          `json:"username"`
 	Password  string          `json:"password"`
 	Secret    string          `json:"secret"`
+	PIN       string          `json:"pin"`
 	DevMode   bool            `json:"-"`
 	Proxy     string          `json:"-"`
 	Session   DriverSession   `json:"-"`
@@ -105,6 +106,10 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 		// chromedp.Flag("profile-directory", "Default"),
 	}
 
+	if headless {
+		opt = append(opt, chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"))
+	}
+
 	if d.DevMode {
 		opt = append(opt,
 			chromedp.Flag("auto-open-devtools-for-tabs", true),
@@ -165,6 +170,10 @@ func (d *DriverAccount) SaveSession(dctx *DriverContext) error {
 		}),
 	)
 
+}
+
+func (driver *DriverAccount) SetPIN(pin string) {
+	driver.PIN = pin
 }
 
 func (driver *DriverAccount) MitraLogin(ctx context.Context) error {

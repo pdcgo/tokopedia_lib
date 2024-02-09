@@ -8,6 +8,7 @@ require (
 	github.com/gocarina/gocsv v0.0.0-20230513223533-9ddd7fd60602
 	github.com/google/uuid v1.4.0
 	github.com/pdcgo/common_conf v1.1.12
+	github.com/pdcgo/go-mitmproxy v1.0.5
 	github.com/pdcgo/go_v2_shopeelib v1.1.52
 	github.com/pdcgo/v2_gots_sdk v1.2.19
 	github.com/sethvargo/go-retry v0.2.4
@@ -65,7 +66,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pdcgo/analytic v1.0.4 // indirect
-	github.com/pdcgo/go-mitmproxy v1.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -117,7 +117,6 @@ require (
 	github.com/gobwas/ws v1.3.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gorilla/schema v1.2.0
