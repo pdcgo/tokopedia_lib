@@ -106,7 +106,7 @@ func TestWithdraw(t *testing.T) {
 
 	t.Run("test otp validate withdraw", func(t *testing.T) {
 		t.Skip("TODO: Difficult to finding encryption pin.")
-		payload := api.NewOtpValidateVariable(msisdn, strconv.Itoa(bank.BankAccountID), driver.PIN, generateKey)
+		payload := api.NewOtpValidateVariable(msisdn, strconv.Itoa(bank.BankAccountID), driver.PIN, generateKey.H)
 		assert.Nil(t, err)
 
 		hasil, err := sellerApi.WithdrawOtpValidate(payload)
@@ -121,7 +121,7 @@ func TestWithdraw(t *testing.T) {
 		if otpValidate.ValidateToken == "" {
 			otpValidate.ValidateToken = "d6b35dc5792a4d72bf6e12eec2c58ca3"
 		}
-		payload := api.NewWithdrawVariable(hasil.Data.User, bank, otpValidate, strconv.Itoa(balance.Data.MidasGetAllDepositAmount.BuyerAll))
+		payload := api.NewWithdrawVariable(bank, otpValidate, strconv.Itoa(balance.Data.MidasGetAllDepositAmount.BuyerAll))
 
 		hasil, err := sellerApi.WithdrawSaldoMutation(payload)
 		assert.Nil(t, err)

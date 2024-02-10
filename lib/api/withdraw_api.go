@@ -41,14 +41,12 @@ type WithdrawVariable struct {
 	IsAdmin       bool   `json:"isAdmin"`
 }
 
-func NewWithdrawVariable(user *User, bank *GetBankWDV2, otpValidate *OtpValidate, amount string) *WithdrawVariable {
+func NewWithdrawVariable(bank *GetBankWDV2, otpValidate *OtpValidate, amount string) *WithdrawVariable {
 	variable := &WithdrawVariable{
 		Action:        "1",
 		Type:          1,
 		ValidateToken: otpValidate.ValidateToken,
 		DeviceType:    "desktop",
-		UserID:        user.ID,
-		Email:         user.Email,
 		Amount:        amount,
 		AccountID:     strconv.Itoa(bank.BankAccountID),
 		AccountName:   bank.AccountName,
@@ -101,6 +99,9 @@ type WithdrawSaldoMutationResp struct {
 }
 
 func (api *TokopediaApi) WithdrawSaldoMutation(variable *WithdrawVariable) (*WithdrawSaldoMutationResp, error) {
+	variable.UserID = api.AuthenticatedData.User.ID
+	variable.Email = api.AuthenticatedData.User.Email
+
 	query := GraphqlPayload{
 		OperationName: "withdrawSaldoMutation",
 		Variables:     variable,
@@ -195,13 +196,13 @@ type OtpValidateVariable struct {
 	Mode       string `json:"mode"`
 }
 
-func NewOtpValidateVariable(msisdn, bankAccountId, pin string, generateKey *GenerateKey) *OtpValidateVariable {
+func NewOtpValidateVariable(msisdn, bankAccountId, pin string, h string) *OtpValidateVariable {
 	variable := &OtpValidateVariable{
 		Msisdn:     msisdn,
 		BankAccID:  bankAccountId,
 		UsePINHash: true,
 		PIN:        pin,
-		PINHash:    generateKey.H,
+		PINHash:    h,
 		Mode:       "PIN",
 		OtpType:    "120",
 	}
