@@ -22,12 +22,7 @@ func SaveReport(reports []*withdraw.WithdrawReport) error {
 	}
 	defer file.Close()
 
-	content := []*withdraw.WithdrawReport{}
-	gocsv.UnmarshalFile(file, content)
-
-	content = append(content, reports...)
-
-	err = gocsv.MarshalFile(content, file)
+	err = gocsv.MarshalFile(reports, file)
 
 	return err
 
@@ -58,13 +53,16 @@ func main() {
 		drivers = append(drivers, driver)
 	}
 
-	reports, err := withdraw.RunWithdraw(drivers)
+	results, err := withdraw.RunWithdraw(drivers)
 	if err != nil {
 		pdc_common.ReportError(err)
 		return
 	}
 
-	for report := range reports {
-		SaveReport(report)
+	reports := []*withdraw.WithdrawReport{}
+	for result := range results {
+		reports = append(reports, result)
 	}
+
+	SaveReport(reports)
 }

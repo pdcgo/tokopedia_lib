@@ -45,13 +45,12 @@ Parent:
 			inv := strings.Split(transaction.Note, "-")
 
 			report := &WithdrawReport{
-				Email:     tApi.AuthenticatedData.User.Email,
-				ShopName:  tApi.AuthenticatedData.UserShopInfo.Info.ShopName,
-				Deskripsi: transaction.TypeDescription,
-				Type:      transaction.Type,
-				Invoice:   inv[len(inv)-1],
-				Jumlah:    transaction.AmountFmt,
-				SisaSaldo: transaction.SaldoFmt,
+				Email:      tApi.AuthenticatedData.User.Email,
+				ShopName:   tApi.AuthenticatedData.UserShopInfo.Info.ShopName,
+				Keterangan: transaction.TypeDescription,
+				Invoice:    inv[len(inv)-1],
+				Jumlah:     transaction.AmountFmt,
+				SisaSaldo:  transaction.SaldoFmt,
 			}
 
 			reports = append(reports, report)
