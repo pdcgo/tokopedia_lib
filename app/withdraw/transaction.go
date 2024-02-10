@@ -4,11 +4,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 )
 
-func GetUnwithdrawTransaction(driver *tokopedia_lib.DriverAccount, tApi *api.TokopediaApi) ([]*WithdrawReport, error) {
+func GetUnwithdrawTransaction(tApi *api.TokopediaApi) ([]*WithdrawReport, error) {
 	reports := []*WithdrawReport{}
 
 	now := time.Now().UTC()
@@ -46,9 +45,10 @@ Parent:
 			inv := strings.Split(transaction.Note, "-")
 
 			report := &WithdrawReport{
-				Email:     driver.Username,
+				Email:     tApi.AuthenticatedData.User.Email,
 				ShopName:  tApi.AuthenticatedData.UserShopInfo.Info.ShopName,
-				Transaksi: transaction.TypeDescription,
+				Deskripsi: transaction.TypeDescription,
+				Type:      transaction.Type,
 				Invoice:   inv[len(inv)-1],
 				Jumlah:    transaction.AmountFmt,
 				SisaSaldo: transaction.SaldoFmt,

@@ -13,7 +13,7 @@ func TestWithdraw(t *testing.T) {
 	assert.Nil(t, err)
 	driver.SetPIN("778899")
 
-	err = withdraw.RunWithdraw([]*tokopedia_lib.DriverAccount{driver})
+	_, err = withdraw.RunWithdraw([]*tokopedia_lib.DriverAccount{driver})
 	if err != nil {
 		assert.ErrorIs(t, err, withdraw.ErrSaldoKosong)
 		return

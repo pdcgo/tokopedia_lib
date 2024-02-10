@@ -1,12 +1,11 @@
 package main
 
 import (
-	"encoding/csv"
-	"errors"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/gocarina/gocsv"
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/app/withdraw"
@@ -16,32 +15,22 @@ import (
 var akunfilename = "akun.txt"
 var wdReport = "wd_report.csv"
 
-func SaveCsvData(path string, data []string) error {
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func SaveReport(reports []*withdraw.WithdrawReport) error {
+	file, err := os.OpenFile(wdReport, os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
+	content := []*withdraw.WithdrawReport{}
+	gocsv.UnmarshalFile(file, content)
 
-	if err := writer.Write(data); err != nil {
-		return err
-	}
-	return nil
-}
+	content = append(content, reports...)
 
-func init() {
-	_, err := os.Stat(wdReport)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			wd := &withdraw.WithdrawReport{}
+	err = gocsv.MarshalFile(content, file)
 
-			os.Create(wdReport)
-			SaveCsvData(wdReport, wd.Headers())
-		}
-	}
+	return err
+
 }
 
 func main() {
@@ -69,19 +58,13 @@ func main() {
 		drivers = append(drivers, driver)
 	}
 
-	err = withdraw.RunWithdrawWithReport(drivers, func(reports []*withdraw.WithdrawReport) error {
-		log.Printf("[ STATUS ]: %s %s", reports[0].Email, reports[0].Status)
-		for _, report := range reports {
-			err := SaveCsvData(wdReport, report.Values())
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	reports, err := withdraw.RunWithdraw(drivers)
 	if err != nil {
 		pdc_common.ReportError(err)
 		return
 	}
 
+	for report := range reports {
+		SaveReport(report)
+	}
 }
