@@ -15,20 +15,16 @@ const (
 )
 
 type WithdrawReport struct {
-	Email        string   `csv:"email"`
-	ShopName     string   `csv:"shop_name"`
-	Type         int      `csv:"type"`
-	Deskripsi    string   `csv:"deskripsi"`
-	Invoice      string   `csv:"invoice"`
-	Jumlah       string   `csv:"jumlah"`
-	SisaSaldo    string   `csv:"sisa_saldo"`
-	Status       WDStatus `csv:"status"`
-	Keterangan   string   `csv:"keterangan"`
-	ErrorMessage string   `csv:"error_message"`
+	Email      string `csv:"email"`
+	ShopName   string `csv:"shop_name"`
+	Keterangan string `csv:"keterangan"`
+	Invoice    string `csv:"invoice"`
+	Jumlah     string `csv:"jumlah"`
+	SisaSaldo  string `csv:"sisa_saldo"`
 }
 
-func RunWithdraw(payload []*tokopedia_lib.DriverAccount) (chan []*WithdrawReport, error) {
-	reports := make(chan []*WithdrawReport)
+func RunWithdraw(payload []*tokopedia_lib.DriverAccount) (chan *WithdrawReport, error) {
+	reports := make(chan *WithdrawReport)
 
 	go func() {
 		defer close(reports)
@@ -52,10 +48,8 @@ func RunWithdraw(payload []*tokopedia_lib.DriverAccount) (chan []*WithdrawReport
 			item := &WithdrawReport{
 				Email:      driver.Username,
 				ShopName:   tApi.AuthenticatedData.UserShopInfo.Info.ShopName,
-				Type:       7001,
 				Jumlah:     "Rp0",
 				SisaSaldo:  "Rp0",
-				Status:     SUCCESS,
 				Keterangan: "Withdrawal",
 			}
 
@@ -64,8 +58,6 @@ func RunWithdraw(payload []*tokopedia_lib.DriverAccount) (chan []*WithdrawReport
 			err = driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
 				err := withdraw.Run(dctx, driver.PIN, item)
 				if err != nil {
-					item.Status = FAILDED
-					item.Keterangan = err.Error()
 					if errors.Is(err, ErrSaldoKosong) {
 						return nil
 					}
@@ -77,7 +69,9 @@ func RunWithdraw(payload []*tokopedia_lib.DriverAccount) (chan []*WithdrawReport
 			}
 
 			items = append(items, item)
-			reports <- items
+			for _, it := range items {
+				reports <- it
+			}
 		}
 	}()
 
