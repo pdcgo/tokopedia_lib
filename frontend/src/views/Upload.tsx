@@ -22,7 +22,6 @@ export default function Upload(props: {
         profiles,
         markups,
         spins,
-        collections,
         clipboard,
         pendingInit,
         error,
@@ -35,7 +34,6 @@ export default function Upload(props: {
         store.list,
         store.markups,
         store.spins,
-        store.collections,
         store.clipboard,
         store.pendingInit,
         store.error,
@@ -54,6 +52,7 @@ export default function Upload(props: {
         one_to_multi: false,
         limit: 0,
     })
+    const [collections, setCollection] = useState<Selection[]>([])
     const [manualCollections, setManualCollection] = useState<Selection[]>([])
     const [useMapper, setUseMapper] = useState(false)
     const [showBottomPagination, setShowBottomPagination] = useState(false)
@@ -68,7 +67,9 @@ export default function Upload(props: {
     const { send: uploadShopee, pending: pendingUploadShopee } = useQuery("GetTokopediaUploadShopee", {})
     const { send: uploadTokped, pending: pendingUploadTokped } = useQuery("GetTokopediaUploadTokopedia", {})
     const { send: uploadTokpedManual, pending: pendingUploadTokpedManual } = useQuery("GetUploadV6ManualToTokopedia", {})
+    const { send: uploadJakmall, pending: pendingUploadJakmall } = useQuery("GetUploadV6JakmallToTokopedia", {})
     const { mutate: setUseMapperApi } = useMutation("PutTokopediaMapperSetting", {})
+    const { send: getCollectionList } = useQuery("GetLegacyV1ProductNamespaceAll")
     const { send: getManualCollectionList } = useQuery("GetPdcsourceCollectionList")
 
     const { sender: getUseMapper } = useRequest("GetTokopediaMapperSetting", {
@@ -115,6 +116,26 @@ export default function Upload(props: {
             getUseMapper({ method: "get", path: "tokopedia/mapper/setting" })
         }
     }, [query.limit, query.name, query.page, props.activePage])
+
+    useEffect(() => {
+        getCollectionList({
+            query: {
+                is_public: false,
+                kota: "",
+                namespace: "",
+                pmax: 0,
+                pmin: 0,
+                marketplace: upquery.mode,
+                use_empty_city: false,
+            },
+            onSuccess(res) {
+                setCollection(res.map((val) => ({
+                    label: val.name,
+                    value: val.name
+                })))
+            },
+        })
+    }, [upquery.mode])
 
     useEffect(() => {
 
@@ -225,6 +246,17 @@ export default function Upload(props: {
                 })
                 break
 
+            case "jakmall":
+                uploadJakmall({
+                    query: {
+                        base: "./",
+                        use_mapper: useMapper,
+                    },
+                    onSuccess: () => message.success("Account list upload jakmall :)"),
+                    onError: (e) => message.error(JSON.stringify(e)),
+                })
+                break
+
             default:
                 uploadShopee({
                     onSuccess: () => message.success("Account list upload shopee :)"),
@@ -264,7 +296,12 @@ export default function Upload(props: {
                     }}
                     onClickSave={updateAccount}
                     loadingSave={pendingUpdateAccount}
-                    loadingStartUpload={pendingUploadShopee || pendingUploadTokped || pendingUploadTokpedManual}
+                    loadingStartUpload={
+                        pendingUploadShopee ||
+                        pendingUploadTokped ||
+                        pendingUploadTokpedManual ||
+                        pendingUploadJakmall
+                    }
                     onClickStartUpload={uploadAccount}
                     onClickPasteAll={() => {
                         if (clipboard) {

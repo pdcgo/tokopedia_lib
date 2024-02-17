@@ -24,7 +24,6 @@ export type ListProfileState = {
     list: Array<ListProfile>
     spins: Array<Selection>
     markups: Array<Selection>
-    collections: Array<Selection>
     error: null | string
 }
 
@@ -41,13 +40,11 @@ export const useListProfileStore = create<ListProfileState & ListProfileActions>
         const { sender: getAccountList } = useRequestRaw("GetTokopediaAkunList")
         const { sender: getMarkupList } = useRequestRaw("GetLegacyApiListMarkup")
         const { sender: getSpinList } = useRequestRaw("GetLegacyApiSettingSpin")
-        const { sender: getcollectionList } = useRequestRaw("GetLegacyV1ProductNamespaceAll")
 
         return {
             list: [],
             clipboard: null,
             pendingInit: false,
-            collections: [],
             markups: [],
             error: null,
             totalData: 0,
@@ -66,13 +63,6 @@ export const useListProfileStore = create<ListProfileState & ListProfileActions>
                     onSuccess(data) {
                         const markups: Selection[] = data.data.map(m => ({ label: m, value: m }))
                         set(state => ({ ...state, markups }))
-                    },
-                })
-
-                getcollectionList({ method: "get", path: "legacy/v1/product/namespace_all" }, {
-                    onSuccess(data) {
-                        const collections: Selection[] = data.map(d => ({ label: d.name, value: d.name }))
-                        set(state => ({ ...state, collections }))
                     },
                 })
 

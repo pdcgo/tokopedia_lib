@@ -11,7 +11,7 @@ import { Button, Card, Checkbox, Input, InputNumber, Select, Space, message } fr
 import { useRequest } from "../client"
 import { Flex } from "../styled_components"
 
-export type Mode = "shopee" | "tokopedia" | "tokopedia_manual"
+export type Mode = "shopee" | "tokopedia" | "tokopedia_manual" | "jakmall"
 
 export interface ManualQuery {
     mode: Mode
@@ -162,7 +162,8 @@ export default function UploadHeader(props: UploadHeaderProps) {
                             options={[
                                 { value: "shopee", label: "Shopee" },
                                 { value: "tokopedia", label: "Tokopedia" },
-                                { value: "tokopedia_manual", label: "Tokopedia Manual" }
+                                { value: "tokopedia_manual", label: "Tokopedia Manual" },
+                                { value: "jakmall", label: "Jakmall" },
                             ]}
                             onChange={(mode) => onUploadQueryChange?.({ ...upquery, mode })}
                         />

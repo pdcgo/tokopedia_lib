@@ -170,7 +170,7 @@ type ProductSelection struct {
 	Options   []SelectionsOptions `json:"options"`
 }
 
-type ProductVariants []ProductVariant
+type ProductVariants []*ProductVariant
 
 func (prods ProductVariants) MinPrice() int {
 	var min int
@@ -206,10 +206,10 @@ func (prods ProductVariants) MinWeight() int {
 }
 
 type Variant struct {
-	Products   ProductVariants    `json:"products"`
-	Selections []ProductSelection `json:"selections"`
-	Sizecharts []interface{}      `json:"sizecharts"`
-	Typename   string             `json:"__typename,omitempty"`
+	Products   ProductVariants     `json:"products"`
+	Selections []*ProductSelection `json:"selections"`
+	Sizecharts []interface{}       `json:"sizecharts"`
+	Typename   string              `json:"__typename,omitempty"`
 }
 
 type InputVariant struct {
