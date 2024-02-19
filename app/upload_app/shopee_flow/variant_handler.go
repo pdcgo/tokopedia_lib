@@ -37,7 +37,7 @@ func (flow *ShopeeToTopedFlow) createVariantHandler(spin shopeeuploader.SpinFunc
 			return nil
 		}
 		// variant list
-		selections := []*model.ProductSelection{}
+		selections := []model.ProductSelection{}
 		for tierind, tier := range source.TierVariations {
 			options := make([]model.SelectionsOptions, len(tier.Options))
 
@@ -58,7 +58,7 @@ func (flow *ShopeeToTopedFlow) createVariantHandler(spin shopeeuploader.SpinFunc
 				Options:   options,
 			}
 
-			selections = append(selections, &selection)
+			selections = append(selections, selection)
 		}
 
 		products := []*model.ProductVariant{}
