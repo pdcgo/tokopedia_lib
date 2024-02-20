@@ -43,8 +43,8 @@ func TestChatApi(t *testing.T) {
 	t.Run("test get chat attachments api", func(t *testing.T) {
 
 		hasil, err := tapi.GetChatAttachments(api.ChatAttachmentVar{
-			MessageID:     2560136298,
-			AttachmentIDs: "2758317382",
+			MessageID:     2611347306,
+			AttachmentIDs: "2864041111",
 		})
 		assert.Nil(t, err)
 		assert.NotEmpty(t, hasil)
@@ -54,7 +54,7 @@ func TestChatApi(t *testing.T) {
 
 	t.Run("test chat pin api", func(t *testing.T) {
 
-		hasil, err := tapi.ChatPin(2560136298)
+		hasil, err := tapi.ChatPin(2580798022)
 		assert.Nil(t, err)
 		assert.NotEmpty(t, hasil)
 		assert.True(t, hasil.Data.ChatPin.Success)
@@ -62,7 +62,7 @@ func TestChatApi(t *testing.T) {
 
 	t.Run("test chat unpin api", func(t *testing.T) {
 
-		hasil, err := tapi.ChatUnpin(2560136298)
+		hasil, err := tapi.ChatUnpin(2580798022)
 		assert.Nil(t, err)
 		assert.NotEmpty(t, hasil)
 		assert.True(t, hasil.Data.ChatUnpin.Success)
@@ -79,5 +79,13 @@ func TestChatApi(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotEmpty(t, hasil)
 		assert.NotEmpty(t, hasil.Data.ChatSearch.Contact.Data)
+	})
+
+	t.Run("test get chat existing api", func(t *testing.T) {
+
+		hasil, err := tapi.GetChatExisting(374475, 0)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil)
+		assert.Equal(t, hasil.Data.ChatExistingChat.MessageID, int64(2727033871))
 	})
 }

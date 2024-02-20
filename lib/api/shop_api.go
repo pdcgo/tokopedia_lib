@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/pdcgo/tokopedia_lib/lib/model"

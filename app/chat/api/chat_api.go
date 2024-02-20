@@ -10,6 +10,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/chat/service"
 	tokpedapi "github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type ChatApi struct {
@@ -270,7 +271,7 @@ func (api *ChatApi) send(ctx *gin.Context) {
 
 func (api *ChatApi) Register(group *v2_gots_sdk.SdkGroup) {
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "users",
 		Query:        ChatQuery{},
@@ -278,7 +279,7 @@ func (api *ChatApi) Register(group *v2_gots_sdk.SdkGroup) {
 		Response:     tokpedapi.ChatListRes{},
 	}, api.users)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "messages",
 		Query:        ChatQuery{},
@@ -286,14 +287,14 @@ func (api *ChatApi) Register(group *v2_gots_sdk.SdkGroup) {
 		Response:     tokpedapi.ChatRoomRes{},
 	}, api.messages)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "read",
 		Query:        ChatReadQuery{},
 		Response:     BaseResponse{},
 	}, api.read)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "attachment",
 		Query:        ChatQuery{},
@@ -301,7 +302,7 @@ func (api *ChatApi) Register(group *v2_gots_sdk.SdkGroup) {
 		Response:     tokpedapi.ChatAttachmentRes{},
 	}, api.attachment)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "pin",
 		Query:        ChatPinQuery{},
@@ -309,7 +310,7 @@ func (api *ChatApi) Register(group *v2_gots_sdk.SdkGroup) {
 		Response:     tokpedapi.ChatPinRes{},
 	}, api.pin)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "unpin",
 		Query:        ChatPinQuery{},
@@ -317,7 +318,7 @@ func (api *ChatApi) Register(group *v2_gots_sdk.SdkGroup) {
 		Response:     tokpedapi.ChatUnpinRes{},
 	}, api.pin)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "users/search",
 		Query:        ChatQuery{},
@@ -325,7 +326,7 @@ func (api *ChatApi) Register(group *v2_gots_sdk.SdkGroup) {
 		Response:     tokpedapi.ChatSearchRes{},
 	}, api.userSearch)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "send",
 		Query:        ChatQuery{},

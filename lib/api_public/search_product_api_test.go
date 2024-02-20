@@ -42,11 +42,11 @@ func TestProductApi(t *testing.T) {
 		t.Run("test iterate chunk items", func(t *testing.T) {
 
 			count := 0
-			err := hasil.Data.AceSearchProductV4.Data.Products.IterateChunks(10, func(ps []*model_public.ProductSearch) error {
+			chunks := hasil.Data.AceSearchProductV4.Data.Products.Chunks(10)
+			for _, ps := range chunks {
 				count++
 				assert.Equal(t, len(ps), 10)
-				return nil
-			})
+			}
 
 			assert.Nil(t, err)
 			assert.Equal(t, count, 10)

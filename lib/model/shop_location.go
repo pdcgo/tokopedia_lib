@@ -20,7 +20,7 @@ type PartnerID struct {
 	Typename string `json:"__typename"`
 }
 
-type Ticker struct {
+type ShopTicker struct {
 	TextInactive       string `json:"text_inactive"`
 	TextCourierSetting string `json:"text_courier_setting"`
 	LinkCourierSetting string `json:"link_courier_setting"`
@@ -28,25 +28,25 @@ type Ticker struct {
 }
 
 type ShopLocationWarehouse struct {
-	WarehouseID         int       `json:"warehouse_id"`
-	WarehouseName       string    `json:"warehouse_name"`
-	WarehouseType       int       `json:"warehouse_type"`
-	ShopID              ShopID    `json:"shop_id"`
-	PartnerID           PartnerID `json:"partner_id"`
-	AddressDetail       string    `json:"address_detail"`
-	PostalCode          int       `json:"postal_code,string"`
-	Latlon              string    `json:"latlon"`
-	DistrictID          int       `json:"district_id"`
-	DistrictName        string    `json:"district_name"`
-	CityID              int       `json:"city_id"`
-	CityName            string    `json:"city_name"`
-	ProvinceID          int       `json:"province_id"`
-	ProvinceName        string    `json:"province_name"`
-	Country             string    `json:"country"`
-	Status              int       `json:"status"`
-	IsCoveredByCouriers bool      `json:"is_covered_by_couriers"`
-	Ticker              Ticker    `json:"ticker"`
-	Typename            string    `json:"__typename"`
+	WarehouseID         int        `json:"warehouse_id"`
+	WarehouseName       string     `json:"warehouse_name"`
+	WarehouseType       int        `json:"warehouse_type"`
+	ShopID              ShopID     `json:"shop_id"`
+	PartnerID           PartnerID  `json:"partner_id"`
+	AddressDetail       string     `json:"address_detail"`
+	PostalCode          int        `json:"postal_code,string"`
+	Latlon              string     `json:"latlon"`
+	DistrictID          int        `json:"district_id"`
+	DistrictName        string     `json:"district_name"`
+	CityID              int        `json:"city_id"`
+	CityName            string     `json:"city_name"`
+	ProvinceID          int        `json:"province_id"`
+	ProvinceName        string     `json:"province_name"`
+	Country             string     `json:"country"`
+	Status              int        `json:"status"`
+	IsCoveredByCouriers bool       `json:"is_covered_by_couriers"`
+	Ticker              ShopTicker `json:"ticker"`
+	Typename            string     `json:"__typename"`
 }
 
 type ShopLocationLegacy struct {

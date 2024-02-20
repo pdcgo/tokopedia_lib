@@ -344,3 +344,52 @@ func (api *TokopediaApi) GetChatSearch(variables ChatSearchVar) (*ChatSearchRes,
 
 	return &hasil, err
 }
+
+type ChatExistingRes struct {
+	Data *model.ChatExistingData `json:"data"`
+}
+
+type ChatExistingVariables struct {
+	Source   string `json:"source"`
+	ToShopID int    `json:"toShopId"`
+	ToUserID int    `json:"toUserId"`
+}
+
+func (api *TokopediaApi) GetChatExisting(shopId, userId int) (*ChatExistingRes, error) {
+
+	variables := ChatExistingVariables{
+		Source:   "pdp",
+		ToShopID: shopId,
+		ToUserID: userId,
+	}
+
+	query := GraphqlPayload{
+		OperationName: "ChatExistingChatQuery",
+		Variables:     variables,
+		Query: `query ChatExistingChatQuery($toShopId: Int, $toUserId: Int, $source: String) {
+			chatExistingChat(toShopId: $toShopId, toUserId: $toUserId, source: $source) {
+			  messageId
+			  contact {
+				id
+				role
+				attributes {
+				  name
+				  domain
+				  thumbnail
+				  __typename
+				}
+				__typename
+			  }
+			  __typename
+			}
+		  }
+		  `,
+	}
+
+	req := api.NewGraphqlReq(&query)
+
+	var hasil ChatExistingRes
+	err := api.SendRequest(req, &hasil)
+
+	return &hasil, err
+}

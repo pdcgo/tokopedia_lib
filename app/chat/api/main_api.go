@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type MainApi struct{}
@@ -28,7 +29,7 @@ func (api *MainApi) bot(ctx *gin.Context) {
 
 func (api *MainApi) Register(group *v2_gots_sdk.SdkGroup) {
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "bot",
 		Response:     BotConfigRes{},

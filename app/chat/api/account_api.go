@@ -13,6 +13,7 @@ import (
 	tokpedapi "github.com/pdcgo/tokopedia_lib/lib/api"
 	apimodel "github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type AccountApi struct {
@@ -138,27 +139,27 @@ func (api *AccountApi) togglePin(ctx *gin.Context) {
 
 func (api *AccountApi) Register(group *v2_gots_sdk.SdkGroup) {
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "",
 		Payload:      repo.ListAccountFilter{},
 		Response:     []model.Account{},
 	}, api.list)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: ":shopid",
 		Response:     []AccountRes{},
 	}, api.get)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "",
 		Payload:      AddAccountPayload{},
 		Response:     BaseResponse{},
 	}, api.add)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "toggle_pinned/:shopid",
 		Response:     BaseResponse{},

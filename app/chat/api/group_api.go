@@ -9,6 +9,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 	"gorm.io/gorm"
 )
 
@@ -88,25 +89,25 @@ func (api *GroupApi) delete(ctx *gin.Context) {
 
 func (api *GroupApi) Register(group *v2_gots_sdk.SdkGroup) {
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "",
 		Response:     []string{},
 	}, api.list)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: ":group_name",
 		Response:     BaseResponse{},
 	}, api.connect)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "reconnect/:shopid",
 		Response:     BaseResponse{},
 	}, api.reconnect)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodDelete,
 		RelativePath: ":group_name",
 		Response:     BaseResponse{},

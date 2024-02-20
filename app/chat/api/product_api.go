@@ -7,6 +7,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type ProductApi struct {
@@ -55,7 +56,7 @@ func (api *ProductApi) chatSearch(ctx *gin.Context) {
 
 func (api *ProductApi) Register(group *v2_gots_sdk.SdkGroup) {
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "chat_search",
 		Query:        ProductQuery{},

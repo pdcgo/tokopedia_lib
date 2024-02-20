@@ -281,3 +281,27 @@ type ChatSearch struct {
 		Typename string `json:"__typename"`
 	} `json:"chatSearch"`
 }
+
+type ChatExistingAttributes struct {
+	Name      string `json:"name"`
+	Domain    string `json:"domain"`
+	Thumbnail string `json:"thumbnail"`
+	Typename  string `json:"__typename"`
+}
+
+type ChatExistingContact struct {
+	ID         int                     `json:"id"`
+	Role       string                  `json:"role"`
+	Attributes *ChatExistingAttributes `json:"attributes"`
+	Typename   string                  `json:"__typename"`
+}
+
+type ChatExistingChat struct {
+	MessageID int64                `json:"messageId"`
+	Contact   *ChatExistingContact `json:"contact"`
+	Typename  string               `json:"__typename"`
+}
+
+type ChatExistingData struct {
+	ChatExistingChat *ChatExistingChat `json:"chatExistingChat"`
+}

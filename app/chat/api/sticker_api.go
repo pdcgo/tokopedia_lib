@@ -8,6 +8,7 @@ import (
 	tokpedapi "github.com/pdcgo/tokopedia_lib/lib/api"
 	apimodel "github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type StickerApi struct {
@@ -82,14 +83,14 @@ func (api *StickerApi) bundle(ctx *gin.Context) {
 
 func (api *StickerApi) Register(group *v2_gots_sdk.SdkGroup) {
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "group",
 		Query:        StickerQuery{},
 		Response:     apimodel.ChatGetGroupStickerResp{},
 	}, api.group)
 
-	group.Register(&v2_gots_sdk.Api{
+	group.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "bundle",
 		Query:        StickerBundleQuery{},
