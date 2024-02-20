@@ -43,6 +43,10 @@ func (head *Header) GetBannedWord() string {
 		if strings.Contains(message, "Nama Produk memuat kata") {
 			return message
 		}
+
+		if strings.Contains(message, "Deskripsi memuat kata") {
+			return message
+		}
 	}
 
 	return ""
