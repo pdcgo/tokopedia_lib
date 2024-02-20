@@ -3,9 +3,11 @@ package cek_bot
 import (
 	_ "embed"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/report"
+	"github.com/rs/zerolog"
 	"github.com/urfave/cli/v2"
 )
 
@@ -57,7 +60,10 @@ func Cekbot(driver *report.CekReport) {
 	apiclient, saveSession, err := driver.CreateApi()
 	log.Println("login finish", driver.Username)
 	if err != nil {
-		pdc_common.ReportError(err)
+		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+			return event.Str("username", driver.Username)
+		})
+		Waitallakun.Done()
 		return
 	}
 
@@ -198,6 +204,25 @@ func Cekbot(driver *report.CekReport) {
 			penaltyAmount := strconv.Itoa(hasil.Data.ShopScorePenaltySummary.Result.PenaltyAmount)
 			driver.Penalty = penalty
 			driver.PenaltyAmount = penaltyAmount
+		}()
+
+		// getting rekening bank
+		waitall.Add(1)
+		go func() {
+			defer waitall.Done()
+
+			backAccount, err := apiclient.GetBankAccount()
+			if err != nil {
+				pdc_common.ReportError(err)
+				return
+			}
+
+			reklist := []string{}
+			for _, bank := range backAccount.Data.GetBankAccount.Data.BankAccounts {
+				rekstr := fmt.Sprintf("%s(%s)", bank.AccNumber, bank.AccName)
+				reklist = append(reklist, rekstr)
+			}
+			driver.RekeningBank = strings.Join(reklist, "#")
 		}()
 
 		waitall.Wait()

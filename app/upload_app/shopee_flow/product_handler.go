@@ -16,7 +16,7 @@ func (flow *ShopeeToTopedFlow) createProductHandler(akun *repo.AkunItem, spin sh
 	return func(eventcore uploader.EmitFunc, tokpedup *uploader.TokopediaUploader, payload *uploader.PayloadUpload, sub *common_concept.Subscriber) error {
 
 		sub.Cancel()
-		product, _, err := flow.productRepo.Get(mongorepo.MP_SHOPEE, akun.Collection, true)
+		product, err := flow.productRepo.Get(mongorepo.MP_SHOPEE, akun.Collection, true)
 		if err != nil {
 			if strings.Contains(err.Error(), "cannot decode") {
 				return errors.New(product.Name + ", " + err.Error() + ", silahkan grab baru")
@@ -25,17 +25,22 @@ func (flow *ShopeeToTopedFlow) createProductHandler(akun *repo.AkunItem, spin sh
 		}
 		log.Println("getting from database", product.Name, product.Shop.Shopid, product.Id)
 
+		err = product.SetFinish(flow.productRepo, mongorepo.BackupNamespace)
+		if err != nil {
+			return err
+		}
+
 		source := product.PulicSource
 		if source == nil {
 			return errors.New(product.Name + " source not found grab cache expired.. silahkan grab baru")
 		}
-		distance := product.Distance
-		if distance == nil {
-			return errors.New(product.Name + " distance not found grab cache expired.. silahkan grab baru")
-		}
+		// distance := product.Distance
+		// if distance == nil {
+		// 	return errors.New(product.Name + " distance not found grab cache expired.. silahkan grab baru")
+		// }
 
 		eventcore(source)
-		eventcore(distance)
+		// eventcore(distance)
 
 		return nil
 	}

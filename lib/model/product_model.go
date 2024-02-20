@@ -55,7 +55,7 @@ type CategoryDetail []struct {
 }
 
 type Category struct {
-	ID            string          `json:"id"`
+	ID            int             `json:"id,string"`
 	Name          string          `json:"name,omitempty"`
 	Title         string          `json:"title,omitempty"`
 	Detail        *CategoryDetail `json:"detail,omitempty"`
@@ -170,8 +170,43 @@ type ProductSelection struct {
 	Options   []SelectionsOptions `json:"options"`
 }
 
+type ProductVariants []*ProductVariant
+
+func (prods ProductVariants) MinPrice() int {
+	var min int
+	for ind, prod := range prods {
+		if ind == 0 || prod.Price < min {
+			min = prod.Price
+		}
+	}
+
+	return min
+}
+
+func (prods ProductVariants) MaxPrice() int {
+	var max int
+	for ind, prod := range prods {
+		if ind == 0 || prod.Price > max {
+			max = prod.Price
+		}
+	}
+
+	return max
+}
+
+func (prods ProductVariants) MinWeight() int {
+	var min int
+	for ind, prod := range prods {
+		if ind == 0 || prod.Weight < min {
+			min = prod.Weight
+		}
+	}
+
+	return min
+}
+
 type Variant struct {
-	Products   []ProductVariant   `json:"products"`
+	Products   ProductVariants    `json:"products"`
 	Selections []ProductSelection `json:"selections"`
 	Sizecharts []interface{}      `json:"sizecharts"`
 	Typename   string             `json:"__typename,omitempty"`
@@ -226,7 +261,7 @@ type SellerProductItem struct {
 	Name               string                `json:"name"`
 	Price              Price                 `json:"price"`
 	Stock              int                   `json:"stock"`
-	Status             string                `json:"status"`
+	Status             ProductStatus         `json:"status"`
 	MinOrder           int                   `json:"minOrder"`
 	MaxOrder           int                   `json:"maxOrder"`
 	Weight             int                   `json:"weight"`
@@ -343,14 +378,25 @@ type BulkProductEditV3Input struct {
 	Status    ProductStatus       `json:"status"`
 }
 
-///////////////////////////////////////////////////////
-
 type ProductListVar struct {
 	ShopID      string   `json:"shopID"`
 	Filter      []Filter `json:"filter"`
 	Sort        Sort     `json:"sort"`
 	ExtraInfo   []string `json:"extraInfo"`
 	WarehouseID string   `json:"warehouseID"`
+}
+
+func NewProductListVar(shopid int64, filter []Filter) *ProductListVar {
+	return &ProductListVar{
+		ShopID: strconv.Itoa(int(shopid)),
+		Filter: filter,
+		Sort: Sort{
+			ID:    "DEFAULT",
+			Value: "DESC",
+		},
+		ExtraInfo:   []string{"view", "topads", "rbac", "price-suggestion"},
+		WarehouseID: "",
+	}
 }
 
 type ProductListResp struct {
@@ -366,7 +412,7 @@ type ProductAddVar struct {
 type ProductAddV3 struct {
 	Header    *Header `json:"header"`
 	IsSuccess bool    `json:"isSuccess"`
-	ProductId string  `json:"productID"`
+	ProductId int     `json:"productID,string"`
 	TypeName  string  `json:"__typename"`
 }
 

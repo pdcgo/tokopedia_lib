@@ -35,17 +35,63 @@ type DriverSession interface {
 }
 
 type DriverAccount struct {
-	Username string        `json:"username"`
-	Password string        `json:"password"`
-	Secret   string        `json:"secret"`
-	DevMode  bool          `json:"-"`
-	Proxy    string        `json:"-"`
-	Session  DriverSession `json:"-"`
+	sync.RWMutex
+	Username  string          `json:"username"`
+	Password  string          `json:"password"`
+	Secret    string          `json:"secret"`
+	PIN       string          `json:"pin"`
+	DevMode   bool            `json:"-"`
+	Proxy     string          `json:"-"`
+	Session   DriverSession   `json:"-"`
+	ParentCtx context.Context `json:"-"`
 }
 
 type BrowserClosed struct {
 	sync.Mutex
 	Data bool
+}
+
+func (d *DriverAccount) waitAcceptCookies(ctx context.Context) {
+	popuponetrust := `//*/div[@class="ot-sdk-container"]`
+	acceptonetrust := `//*/button[@id="onetrust-accept-btn-handler"]`
+
+	wait := func(wctx context.Context) error {
+		err := chromedp.Run(wctx,
+			chromedp.WaitVisible(popuponetrust, chromedp.BySearch),
+			chromedp.WaitVisible(acceptonetrust, chromedp.BySearch),
+			chromedp.Sleep(time.Second),
+			chromedp.Click(acceptonetrust, chromedp.BySearch),
+			chromedp.Sleep(time.Second),
+		)
+
+		return err
+	}
+
+	go func() {
+		// accept pertama
+		d.Lock()
+		func() {
+			defer d.Unlock()
+
+			wctx, cancel := context.WithTimeout(ctx, time.Second*10)
+			defer cancel()
+
+			wait(wctx)
+		}()
+
+		// accept lagi jika ada
+	Parent:
+		for {
+			select {
+			case <-ctx.Done():
+				break Parent
+
+			default:
+				wait(ctx)
+				time.Sleep(time.Second)
+			}
+		}
+	}()
 }
 
 func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
@@ -60,6 +106,10 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 		// chromedp.Flag("profile-directory", "Default"),
 	}
 
+	if headless {
+		opt = append(opt, chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"))
+	}
+
 	if d.DevMode {
 		opt = append(opt,
 			chromedp.Flag("auto-open-devtools-for-tabs", true),
@@ -70,6 +120,9 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 	}
 
 	parentCtx := context.Background()
+	if d.ParentCtx != nil {
+		parentCtx = d.ParentCtx
+	}
 
 	ctxall, cancelAloc := chromedp.NewExecAllocator(
 		parentCtx,
@@ -84,6 +137,7 @@ func (d *DriverAccount) CreateContext(headless bool) (*DriverContext, func()) {
 	}
 
 	d.Session.SetCookieToDriver(dctx.Ctx)
+	d.waitAcceptCookies(dctx.Ctx)
 
 	return &dctx, func() {
 
@@ -118,6 +172,10 @@ func (d *DriverAccount) SaveSession(dctx *DriverContext) error {
 
 }
 
+func (driver *DriverAccount) SetPIN(pin string) {
+	driver.PIN = pin
+}
+
 func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	chromedp.Run(ctx, chromedp.Navigate("https://mitra.tokopedia.com"))
 	errChan := make(chan error, 1)
@@ -126,6 +184,8 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	pathlogout := `//*/h4[contains(text(), "Keluar Akun")]`
 
 	go func() {
+		driver.RLock()
+		defer driver.RUnlock()
 
 		chromedp.Run(ctx,
 			chromedp.WaitVisible(tabakun, chromedp.BySearch),
@@ -136,6 +196,9 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	}()
 
 	go func() {
+		driver.RLock()
+		defer driver.RUnlock()
+
 		banner := `//*/img[@class="success fade"]`
 		chromedp.Run(ctx,
 
@@ -149,6 +212,9 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	}()
 
 	go func() {
+		driver.RLock()
+		defer driver.RUnlock()
+
 		pathemail := `//*/input[@name="login"]`
 		selanjutnya := `//*/button[@id="button-submit"]`
 		pathpass := `//*/input[@id="login-widget-password"]`
@@ -171,6 +237,9 @@ func (driver *DriverAccount) MitraLogin(ctx context.Context) error {
 	}()
 
 	go func() {
+		driver.RLock()
+		defer driver.RUnlock()
+
 		pathotp := `//*/input[@autocomplete="one-time-code"]`
 
 		chromedp.Run(ctx,
@@ -243,6 +312,12 @@ func (d *DriverAccount) CreateApi() (*api.TokopediaApi, func(), error) {
 			}
 			// return nil
 			return retry.RetryableError(err)
+		}
+
+		// check is seller account
+		data, _ := acapi.ShopInfoByID()
+		if data == nil || len(data.Data.ShopInfoByID.Result) == 0 {
+			return ErrNotSellerAccount
 		}
 
 		return nil

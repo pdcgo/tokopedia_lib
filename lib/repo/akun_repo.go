@@ -4,6 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"gorm.io/gorm"
 )
 
@@ -32,6 +34,32 @@ type AkunItem struct {
 	Collection   string `json:"collection"`
 	Hastag       string `json:"hastag"`
 	TitlePattern string `json:"title_pattern"`
+}
+
+func (akun *AkunItem) SetFinish(tx *gorm.DB) error {
+	akun.AkunUploadStatus.Active = false
+	akun.AkunUploadStatus.CountUpload = 0
+
+	return tx.Save(akun).Error
+}
+
+func (akun *AkunItem) CreateApi() (tokapi *api.TokopediaApi, saveSession func(), err error) {
+	saveSession = func() {}
+	driver, err := tokopedia_lib.NewDriverAccount(
+		akun.Username,
+		akun.Password,
+		akun.Secret,
+	)
+	if err != nil {
+		return
+	}
+
+	tokapi, saveSession, err = driver.CreateApi()
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 type AkunRepo struct {
@@ -69,6 +97,8 @@ func (iter *AkunUploadIterator) GetStatus() (*UploadStatus, error) {
 	err := iter.db.Raw(query).Scan(&hasil).Error
 	return &hasil, err
 }
+
+// deprecated
 func (iter *AkunUploadIterator) InProcessCount() (int64, error) {
 	iter.Lock()
 	defer iter.Unlock()
@@ -89,6 +119,37 @@ func (iter *AkunUploadIterator) DeactiveAll() error {
 	}).Error
 }
 
+func (iter *AkunUploadIterator) Iterate(handler func(akun *AkunItem) error) error {
+
+	query := iter.db.Model(&AkunItem{}).Where(AkunItem{
+		AkunUploadStatus: AkunUploadStatus{
+			Active:   true,
+			InUpload: false,
+		},
+	}, "Active", "InUpload").Order("lastup asc")
+
+	rows, err := query.Rows()
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var akun AkunItem
+		iter.db.ScanRows(rows, &akun)
+
+		err := handler(&akun)
+		if err != nil {
+			return err
+		}
+	}
+
+	rows.Close()
+
+	iter.InProcessCount()
+
+	return nil
+}
+
+// deprecated
 func (iter *AkunUploadIterator) Get() (akun *AkunItem, updateinc func(count int, err error) error, finish func() error, err error) {
 	iter.Lock()
 	defer iter.Unlock()

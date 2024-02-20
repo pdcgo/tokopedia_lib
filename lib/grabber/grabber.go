@@ -97,7 +97,7 @@ func (g *BaseGrabber) ApplyFilter(
 	select {
 
 	case <-ctx.Done():
-		return true, false
+		return false, true
 
 	default:
 
@@ -108,7 +108,7 @@ func (g *BaseGrabber) ApplyFilter(
 				return true, true
 			}
 			if errors.Is(filter.ErrFilterCancel, err) {
-				return false, false
+				return true, false
 			}
 
 			pdc_common.ReportError(err)
@@ -122,7 +122,7 @@ func (g *BaseGrabber) ApplyFilter(
 
 		if cek {
 			log.Printf("[ %s ] %s", reason, productName)
-			return
+			return true, false
 		}
 
 		return false, false
@@ -160,9 +160,13 @@ func (g *BaseGrabber) SaveItem(
 			return false
 		}
 
+		productName, err := layout.Data.PdpGetLayout.GetProductName()
+		if err != nil {
+			pdc_common.ReportError(err)
+		}
 		atomic.AddInt32(&g.total, 1)
 		total := atomic.LoadInt32(&g.total)
-		log.Printf("[ scraped ] %d item saved", total)
+		log.Printf("[ scraped ] %d item saved %s", total, productName)
 
 		return true
 	}

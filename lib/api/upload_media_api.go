@@ -120,6 +120,46 @@ func (api *TokopediaApi) UploadProductImage(content io.Reader) (*UploadMediaResp
 	return &hasil, nil
 }
 
+func (api *TokopediaApi) UploadProductImageV2(client *http.Client, content io.Reader) (*UploadMediaResp, error) {
+	uri := "https://upedia.tokopedia.net/v1/upload/image/VqbcmM"
+
+	boundary := getBoundary()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	writer.SetBoundary(boundary)
+
+	part, _ := CreateFormFile(writer, "file_upload", "blob")
+	_, err := io.Copy(part, content)
+	if err != nil {
+		return nil, err
+	}
+	writer.Close()
+
+	r, _ := http.NewRequest("POST", uri, body)
+	headers := headerUploadImage(boundary)
+	for key, value := range headers {
+		r.Header.Set(key, value)
+	}
+
+	res, err := client.Do(r)
+	if err != nil {
+		return nil, err
+	}
+	resBody, _ := io.ReadAll(res.Body)
+	var hasil UploadMediaResp
+
+	err = json.Unmarshal(resBody, &hasil)
+	if err != nil {
+		return nil, err
+	}
+
+	if !hasil.Header.IsSuccess {
+		return &hasil, hasil.Header
+	}
+	return &hasil, nil
+}
+
 type ImageChatRes struct {
 	Data struct {
 		URLImage string `json:"url_image"`

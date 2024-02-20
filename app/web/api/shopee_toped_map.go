@@ -13,6 +13,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/category_mapper"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 	"gorm.io/gorm"
 )
 
@@ -46,7 +47,18 @@ func (mapi *ShopeeTopedMapApi) UpdateMap(c *gin.Context) {
 	}
 
 	for _, mapitem := range payload {
-		err := mapi.db.Save(mapitem).Error
+		err := mapi.db.Transaction(func(tx *gorm.DB) error {
+			tmap := config.ShopeeMapItem{
+				TokopediaID: mapitem.TokopediaID,
+				ShopeeID:    mapitem.ShopeeID,
+			}
+			err := mapi.db.Where(&tmap).Delete(&tmap).Error
+			if err != nil {
+				return nil
+			}
+
+			return mapi.db.Save(mapitem).Error
+		})
 		if err != nil {
 			hasil.Msg = err.Error()
 			hasil.Err = "error"
@@ -231,7 +243,7 @@ func (mapi *ShopeeTopedMapApi) TokopediaCollectionCategory(ctx *gin.Context) {
 
 		} else {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
-				log.Println(err)
+				log.Println("error mapping category ", err)
 			}
 
 		}
@@ -280,39 +292,39 @@ func RegisterShopeeTopedMap(
 	grp = grp.Group("mapper")
 
 	// masih digunakan untuk toped shopee juga
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "map",
 		Payload:      []config.ShopeeMapItem{},
 		Response:     Response{},
 	}, mapapi.UpdateMap)
 
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "map",
 		Query:        GetMapQuery{},
 		Response:     ShopeeTopedMapResponse{},
 	}, mapapi.GetMap)
 
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "autosuggest",
 		Query:        GetMapQuery{},
 	}, mapapi.AutoSuggest)
 
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "autosuggest",
 		Response:     AutoSuggestStatus{},
 	}, mapapi.StatusAutoSuggest)
 
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "setting",
 		Response:     config.ShopeeMapperConfig{},
 	}, mapapi.GetConfig)
 
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "setting",
 		Response:     config.ShopeeMapperConfig{},
@@ -320,7 +332,7 @@ func RegisterShopeeTopedMap(
 	}, mapapi.UpdateConfig)
 
 	// TODO: kandidat yang baru
-	grp.Register(&v2_gots_sdk.Api{
+	grp.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "category",
 		Response:     []TokopediaMapItem{},

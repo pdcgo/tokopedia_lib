@@ -6,9 +6,19 @@ import {
     SaveOutlined,
     UploadOutlined,
 } from "@ant-design/icons"
-import { Button, Card, Checkbox, Input, message } from "antd"
-import { Flex } from "../styled_components"
+import { Button, Card, Checkbox, Input, InputNumber, Select, Space, message } from "antd"
+
 import { useRequest } from "../client"
+import { Flex } from "../styled_components"
+
+export type Mode = "shopee" | "tokopedia" | "tokopedia_manual" | "jakmall"
+
+export interface ManualQuery {
+    mode: Mode
+    reset: boolean
+    one_to_multi: boolean
+    limit: number
+}
 
 export type UploadHeaderProps = {
     loadingSave?: boolean
@@ -23,6 +33,9 @@ export type UploadHeaderProps = {
     nameQuery?: string
     onChangeNameQuery?: (name: string) => void
 
+    upquery: ManualQuery
+    onUploadQueryChange?: (query: ManualQuery) => void
+
     onClickSetActive?: () => void
     onClickSave?: () => void
     onClickStartUpload?: () => void
@@ -31,6 +44,9 @@ export type UploadHeaderProps = {
 }
 
 export default function UploadHeader(props: UploadHeaderProps) {
+    const { upquery, onUploadQueryChange } = props;
+    const isManual = upquery.mode === "tokopedia_manual"
+
     const { sender: reset } = useRequest("PutTokopediaAkunResetAllCount", {
         onSuccess() {
             message.success({ key: "rss-scss", content: "Reset fulfilled" })
@@ -48,25 +64,17 @@ export default function UploadHeader(props: UploadHeaderProps) {
                     alignItems: "center",
                 }}
             >
-                <Checkbox
-                    checked={props.checkedAll}
-                    indeterminate={props.indeterminate}
-                    onChange={(e) => {
-                        props.onChangeCheckedAll?.(e.target.checked)
-                    }}
-                >
-                    Select All
-                </Checkbox>
+                <Input
+                    allowClear
+                    placeholder="Search Profile..."
+                    style={{ flex: 1 }}
+                    value={props.nameQuery}
+                    onChange={(e) =>
+                        props.onChangeNameQuery?.(e.target.value)
+                    }
+                />
                 <Flex style={{ flex: 1 }}>
-                    <Input
-                        allowClear
-                        placeholder="Search Profile..."
-                        style={{ flex: 1 }}
-                        value={props.nameQuery}
-                        onChange={(e) =>
-                            props.onChangeNameQuery?.(e.target.value)
-                        }
-                    />
+
                     <Button
                         onClick={props.onClickPasteAll}
                         icon={<FilePptOutlined rev="paste" />}
@@ -111,18 +119,66 @@ export default function UploadHeader(props: UploadHeaderProps) {
                     >
                         Save
                     </Button>
-
+                </Flex>
+            </Flex>
+            <Flex
+                style={{
+                    alignItems: "center",
+                    marginTop: 10
+                }}
+            >
+                <Checkbox
+                    checked={props.checkedAll}
+                    indeterminate={props.indeterminate}
+                    onChange={(e) => {
+                        props.onChangeCheckedAll?.(e.target.checked)
+                    }}
+                >
+                    Select All
+                </Checkbox>
+                <Flex style={{ flex: 1, justifyContent: "end" }}>
+                    <Space>
+                        <Checkbox
+                            disabled={!isManual}
+                            style={{ fontWeight: 300 }}
+                            onChange={(e) => onUploadQueryChange?.({ ...upquery, reset: e.target.checked })}
+                        >Reset Mapper</Checkbox>
+                        <Checkbox
+                            disabled={!isManual}
+                            style={{ fontWeight: 300 }}
+                            onChange={(e) => onUploadQueryChange?.({ ...upquery, one_to_multi: e.target.checked })}
+                        >One to Multi</Checkbox>
+                        <span>Limit :</span>
+                        <InputNumber
+                            value={upquery.limit}
+                            disabled={!isManual}
+                            style={{ width: 150 }}
+                            onChange={(v) => onUploadQueryChange?.({ ...upquery, limit: v || 1 })}
+                        />
+                        <span>Mode :</span>
+                        <Select
+                            value={upquery.mode}
+                            style={{ minWidth: 200 }}
+                            options={[
+                                { value: "shopee", label: "Shopee" },
+                                { value: "tokopedia", label: "Tokopedia" },
+                                { value: "tokopedia_manual", label: "Tokopedia Manual" },
+                                { value: "jakmall", label: "Jakmall" },
+                            ]}
+                            onChange={(mode) => onUploadQueryChange?.({ ...upquery, mode })}
+                        />
+                    </Space>
                     <Button
                         type="primary"
                         icon={<UploadOutlined rev="upload" />}
                         style={{ boxShadow: "none" }}
-                        onClick={props.onClickStartUpload}
+                        onClick={() => props.onClickStartUpload?.()}
                         loading={props.loadingStartUpload}
                     >
                         Start Upload
                     </Button>
                 </Flex>
             </Flex>
-        </Card>
+        </Card >
     )
 }

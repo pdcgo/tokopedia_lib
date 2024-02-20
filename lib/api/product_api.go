@@ -1,56 +1,83 @@
 package api
 
 import (
+	"errors"
 	"log"
 	"strconv"
 
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/lib/model"
+	"github.com/rs/zerolog"
 )
+
+type MetaTab struct {
+	ID       model.ProductStatus `json:"id"`
+	Name     string              `json:"name"`
+	Value    int                 `json:"value"`
+	Typename string              `json:"__typename"`
+}
+
+type MetaTabs []MetaTab
+
+func (tabs MetaTabs) GetTab(id model.ProductStatus) *MetaTab {
+	if id == "" {
+		id = "ALL"
+	}
+
+	for _, tab := range tabs {
+		if tab.ID == id {
+			return &tab
+		}
+	}
+
+	return nil
+}
+
+type MetaFilter struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Value    []any  `json:"value"`
+	Typename string `json:"__typename"`
+}
+
+type MetaSort struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Value    string `json:"value"`
+	Typename string `json:"__typename"`
+}
+
+type MetaShopCategories struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Typename string `json:"__typename"`
+}
+
+type MetaAccess struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Value    string `json:"value"`
+	Typename string `json:"__typename"`
+}
+
+type ProductListMetaData struct {
+	Tab            MetaTabs             `json:"tab"`
+	Filter         []MetaFilter         `json:"filter"`
+	Sort           []MetaSort           `json:"sort"`
+	ShopCategories []MetaShopCategories `json:"shopCategories"`
+	Access         []MetaAccess         `json:"access"`
+	Typename       string               `json:"__typename"`
+}
+
+type ProductListMeta struct {
+	Header   Header              `json:"header"`
+	Data     ProductListMetaData `json:"data"`
+	Typename string              `json:"__typename"`
+}
 
 type ProductListMetaRes struct {
 	Data struct {
-		ProductListMeta struct {
-			Header struct {
-				ProcessTime float64 `json:"processTime"`
-				Messages    []any   `json:"messages"`
-				Reason      string  `json:"reason"`
-				ErrorCode   string  `json:"errorCode"`
-				Typename    string  `json:"__typename"`
-			} `json:"header"`
-			Data struct {
-				Tab []struct {
-					ID       string `json:"id"`
-					Name     string `json:"name"`
-					Value    int    `json:"value"`
-					Typename string `json:"__typename"`
-				} `json:"tab"`
-				Filter []struct {
-					ID       string `json:"id"`
-					Name     string `json:"name"`
-					Value    []any  `json:"value"`
-					Typename string `json:"__typename"`
-				} `json:"filter"`
-				Sort []struct {
-					ID       string `json:"id"`
-					Name     string `json:"name"`
-					Value    string `json:"value"`
-					Typename string `json:"__typename"`
-				} `json:"sort"`
-				ShopCategories []struct {
-					ID       string `json:"id"`
-					Name     string `json:"name"`
-					Typename string `json:"__typename"`
-				} `json:"shopCategories"`
-				Access []struct {
-					ID       string `json:"id"`
-					Name     string `json:"name"`
-					Value    string `json:"value"`
-					Typename string `json:"__typename"`
-				} `json:"access"`
-				Typename string `json:"__typename"`
-			} `json:"data"`
-			Typename string `json:"__typename"`
-		} `json:"ProductListMeta"`
+		ProductListMeta ProductListMeta `json:"ProductListMeta"`
 	} `json:"data"`
 }
 
@@ -66,7 +93,7 @@ func (api *TokopediaApi) ProductListMeta() (*ProductListMetaRes, error) {
 		OperationName: "ProductListMeta",
 		Variables: ProductListMetaVar{
 			ShopID:    shopid,
-			ExtraInfo: []string{"rbac", "access", "category"},
+			ExtraInfo: []string{"rbac", "access", "category", "filter-group", "archival"},
 		},
 		Query: `
 		query ProductListMeta($shopID: String!, $warehouseID: String, $extraInfo: [String]) {
@@ -147,8 +174,18 @@ func (api *TokopediaApi) ProductAdd(variables *model.ProductAddVar) (*model.Prod
 	req := api.NewGraphqlReq(&gqlQuery)
 
 	var hasil model.ProductAddResp
-	err := api.SendRequest(req, &hasil)
+	body, err := api.SendRequestTest(req, &hasil)
 	if err != nil {
+		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+			return event.Str("body", string(body))
+		})
+		return &hasil, err
+	}
+
+	if hasil.Data == nil || hasil.Data.ProductAddV3 == nil {
+		err := pdc_common.ReportErrorCustom(errors.New("upload error"), func(event *zerolog.Event) *zerolog.Event {
+			return event.Str("body", string(body))
+		})
 		return &hasil, err
 	}
 

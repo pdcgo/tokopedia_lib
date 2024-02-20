@@ -80,13 +80,33 @@ type ShopInfoByIDVar struct {
 	Fields  []string `json:"fields"`
 }
 
-func (api *TokopediaApi) ShopInfoByID() (*ShopInfoByIDRes, error) {
+func NewShopInfoByIDVar(shopid int64) *ShopInfoByIDVar {
+	return &ShopInfoByIDVar{
+		ShopIDs: []int64{shopid},
+		Fields: []string{
+			"assets",
+			"core",
+			"favorite",
+			"location",
+			"other-goldos",
+			"other-shiploc",
+			"status",
+			"allow_manage",
+			"is_owner",
+			"closed_info",
+			"status",
+			"assets",
+		},
+	}
+}
+
+var ErrIsNotAuthorized = errors.New("shop is not authorized")
+
+func (api *TokopediaApi) ShopInfoByID() (*model.ShopInfoByIDRes, error) {
+	variable := NewShopInfoByIDVar(api.AuthenticatedData.UserShopInfo.Info.ShopID)
 	query := GraphqlPayload{
 		OperationName: "ShopInfoByIDQuery",
-		Variables: ShopInfoByIDVar{
-			ShopIDs: []int64{api.AuthenticatedData.UserShopInfo.Info.ShopID},
-			Fields:  []string{"assets", "core", "favorite", "location", "other-goldos", "other-shiploc", "status", "allow_manage", "is_owner", "closed_info", "status", "assets"},
-		},
+		Variables:     variable,
 		Query: `
 		query ShopInfoByIDQuery($shopIDs: [Int!]!, $fields: [String!]!) {
 			shopInfoByID(input: {shopIDs: $shopIDs, fields: $fields}) {
@@ -158,36 +178,26 @@ func (api *TokopediaApi) ShopInfoByID() (*ShopInfoByIDRes, error) {
 
 	req := api.NewGraphqlReq(&query)
 
-	var hasil *ShopInfoByIDRes
+	var hasil *model.ShopInfoByIDRes
 	err := api.SendRequest(req, &hasil)
 
-	return hasil, err
+	if err != nil {
+		return hasil, err
+	}
+
+	if hasil.Errors.IsNotAuthorized() {
+		return hasil, ErrIsNotAuthorized
+	}
+
+	if len(hasil.Errors) > 0 {
+		return hasil, hasil.Errors
+	}
+
+	return hasil, nil
 }
 
 type GoldGetPMOSStatusRes struct {
-	Data struct {
-		GoldGetPMOSStatus struct {
-			Data struct {
-				PowerMerchant struct {
-					Status     string `json:"status"`
-					AutoExtend struct {
-						Status        string `json:"status"`
-						TkpdProductID int    `json:"tkpd_product_id"`
-						Typename      string `json:"__typename"`
-					} `json:"auto_extend"`
-					PmTier      int    `json:"pm_tier"`
-					ExpiredTime string `json:"expired_time"`
-					Typename    string `json:"__typename"`
-				} `json:"power_merchant"`
-				Typename string `json:"__typename"`
-			} `json:"data"`
-			Header struct {
-				ErrorCode string `json:"error_code"`
-				Typename  string `json:"__typename"`
-			} `json:"header"`
-			Typename string `json:"__typename"`
-		} `json:"goldGetPMOSStatus"`
-	} `json:"data"`
+	Data *model.GoldGetPMOSStatusData `json:"data"`
 }
 
 type GoldGetPMOSStatusVar struct {
@@ -235,48 +245,7 @@ func (api *TokopediaApi) GoldGetPMOSStatus() (*GoldGetPMOSStatusRes, error) {
 }
 
 type GetShopScoreLevelRes struct {
-	Data struct {
-		ShopScoreLevel struct {
-			Result struct {
-				ShopID          string  `json:"shopID"`
-				ShopScore       float32 `json:"shopScore"`
-				ShopLevel       int     `json:"shopLevel"`
-				ShopScoreDetail []struct {
-					Title        string  `json:"title"`
-					Identifier   string  `json:"identifier"`
-					Value        float32 `json:"value"`
-					RawValue     float32 `json:"rawValue"`
-					NextMinValue float64 `json:"nextMinValue"`
-					ColorText    string  `json:"colorText"`
-					Typename     string  `json:"__typename"`
-				} `json:"shopScoreDetail"`
-				Period     string `json:"period"`
-				NextUpdate string `json:"nextUpdate"`
-				Typename   string `json:"__typename"`
-			} `json:"result"`
-			Error struct {
-				Message  string `json:"message"`
-				Typename string `json:"__typename"`
-			} `json:"error"`
-			Typename string `json:"__typename"`
-		} `json:"shopScoreLevel"`
-		ShopLevel struct {
-			Result struct {
-				ShopID     string `json:"shopID"`
-				Period     string `json:"period"`
-				NextUpdate string `json:"nextUpdate"`
-				ShopLevel  int    `json:"shopLevel"`
-				ItemSold   int    `json:"itemSold"`
-				Niv        int    `json:"niv"`
-				Typename   string `json:"__typename"`
-			} `json:"result"`
-			Error struct {
-				Message  string `json:"message"`
-				Typename string `json:"__typename"`
-			} `json:"error"`
-			Typename string `json:"__typename"`
-		} `json:"shopLevel"`
-	} `json:"data"`
+	Data *model.ShopScoreData `json:"data"`
 }
 
 type GetShopScoreLevelVar struct {

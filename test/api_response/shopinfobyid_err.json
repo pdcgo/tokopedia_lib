@@ -1,0 +1,53 @@
+{
+    "errors": [
+        {
+            "message": "You are not authorized to do this action",
+            "path": [
+                "goldGetPMShopInfo"
+            ],
+            "extensions": {
+                "developerMessage": "You are not authorized to do this action",
+                "timestamp": "2023-12-06 15:24:09.711285099 +0700 WIB m=+36170.427579051"
+            }
+        }
+    ],
+    "data": {
+        "shopInfoByID": {
+            "result": [
+                {
+                    "goldOS": {
+                        "isGold": 0,
+                        "isGoldBadge": 0,
+                        "isOfficial": 0,
+                        "badge": "",
+                        "badgeSVG": "",
+                        "shopTier": 0,
+                        "shopTierWording": "Regular Merchant",
+                        "shopGrade": 0,
+                        "shopGradeWording": "",
+                        "__typename": "goldOSData"
+                    },
+                    "__typename": "TokoShopInfoData"
+                }
+            ],
+            "__typename": "ShopInfoResult"
+        },
+        "goldGetPMOSStatus": {
+            "data": {
+                "power_merchant": {
+                    "status": "idle",
+                    "pm_tier": 0,
+                    "__typename": "PMData"
+                },
+                "official_store": {
+                    "status": "inactive",
+                    "error": "",
+                    "__typename": "OSData"
+                },
+                "__typename": "getPMOSStatusDataResponse"
+            },
+            "__typename": "GetPMOSStatus"
+        },
+        "goldGetPMShopInfo": null
+    }
+}

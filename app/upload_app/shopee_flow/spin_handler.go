@@ -5,8 +5,7 @@ import (
 
 	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/spin"
-	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
-	"github.com/pdcgo/go_v2_shopeelib/lib/public_api"
+	"github.com/pdcgo/go_v2_shopeelib/lib/public_api/public_model"
 	shopeeuploader "github.com/pdcgo/go_v2_shopeelib/lib/uploader"
 	"github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
@@ -16,27 +15,27 @@ import (
 func (flow *ShopeeToTopedFlow) createSpinHandler(akun *repo.AkunItem, spinner shopeeuploader.SpinFunc) uploader.UploadHandler {
 	return func(eventcore uploader.EmitFunc, tokpedup *uploader.TokopediaUploader, payload *uploader.PayloadUpload, sub *common_concept.Subscriber) error {
 
-		var source *public_api.PublicProduct
-		var distance *mongorepo.ShopDistance
+		var source *public_model.PublicProduct
+		// var distance *mongorepo.ShopDistance
 
 	Parent:
 		for {
 			ev := <-sub.Chan
 			switch event := ev.(type) {
-			case *public_api.PublicProduct:
+			case *public_model.PublicProduct:
 				source = event
-			case *mongorepo.ShopDistance:
-				distance = event
+				// case *mongorepo.ShopDistance:
+				// 	distance = event
 
 			}
-			if source != nil && distance != nil {
+			if source != nil {
 				break Parent
 			}
 		}
 
 		havevariant := len(source.Models) > 1
-		ratio := flow.ConfigFlow.RatioWeightPredict
-		berat := float64(distance.Price) / distance.Km / ratio
+		price := int(source.GetPrice(flow.ConfigFlow.MarkupConfig.UseDiscount))
+		berat := flow.weightconfig.GetWeight(price)
 
 		fixprice := source.GetPrice(true) // TODO: fixing
 		priceprofit := spinner.Price(int(fixprice))

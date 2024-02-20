@@ -7,6 +7,9 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 )
 
+// TODO: bakalan didelete
+
+// deprecated
 type TopedToTopedFlow struct {
 	Ctx          context.Context
 	limitGuard   chan int

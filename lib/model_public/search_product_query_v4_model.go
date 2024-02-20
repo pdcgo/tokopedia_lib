@@ -126,27 +126,25 @@ type SearchProducts []*ProductSearch
 
 type SearchProductChunkHandler func([]*ProductSearch) error
 
-func (products SearchProducts) IterateChunks(num int, handler SearchProductChunkHandler) error {
+func (products SearchProducts) Chunks(num int) [][]*ProductSearch {
 
 	productlen := len(products)
 	numChunk := math.Ceil(float64(productlen) / float64(num))
 
+	hasil := [][]*ProductSearch{}
+
 	for i := 0; i < int(numChunk); i++ {
 
-		start := i * 10
-		end := (i + 1) * 10
+		start := i * num
+		end := (i + 1) * num
 
 		if end > productlen {
 			end = productlen
 		}
-
-		err := handler(products[start:end])
-		if err != nil {
-			return err
-		}
+		hasil = append(hasil, products[start:end])
 	}
 
-	return nil
+	return hasil
 }
 
 type SearchProductData struct {

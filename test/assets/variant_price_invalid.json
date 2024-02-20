@@ -1,0 +1,126 @@
+{
+    "products": [
+        {
+            "isPrimary": true,
+            "weight": 550,
+            "stock": 16666,
+            "status": "ACTIVE",
+            "sku": "",
+            "weightUnit": "GR",
+            "price": 114000,
+            "pictures": [],
+            "combination": [
+                0
+            ]
+        },
+        {
+            "weightUnit": "GR",
+            "isPrimary": false,
+            "combination": [
+                1
+            ],
+            "stock": 0,
+            "pictures": [],
+            "weight": 550,
+            "status": "INACTIVE",
+            "price": 114000,
+            "sku": ""
+        },
+        {
+            "weightUnit": "GR",
+            "sku": "",
+            "stock": 16666,
+            "isPrimary": false,
+            "price": 114000,
+            "pictures": [],
+            "weight": 550,
+            "combination": [
+                2
+            ],
+            "status": "ACTIVE"
+        },
+        {
+            "sku": "",
+            "weight": 550,
+            "stock": 16666,
+            "combination": [
+                3
+            ],
+            "isPrimary": false,
+            "status": "ACTIVE",
+            "pictures": [],
+            "weightUnit": "GR",
+            "price": 114000
+        },
+        {
+            "isPrimary": false,
+            "combination": [
+                4
+            ],
+            "price": 114000,
+            "weightUnit": "GR",
+            "status": "ACTIVE",
+            "sku": "",
+            "weight": 550,
+            "stock": 16666,
+            "pictures": []
+        },
+        {
+            "pictures": [
+                {
+                    "uploadIds": "91687ccf-4697-4405-a449-48046ab8453e"
+                }
+            ],
+            "stock": 10000,
+            "weight": 400,
+            "isPrimary": false,
+            "weightUnit": "GR",
+            "sku": "",
+            "status": "ACTIVE",
+            "price": 29000,
+            "combination": [
+                5
+            ]
+        }
+    ],
+    "sizecharts": [],
+    "selections": [
+        {
+            "unitID": "",
+            "name": "WARNA",
+            "options": [
+                {
+                    "unitValueID": "0",
+                    "hexCode": "",
+                    "value": "HITAM"
+                },
+                {
+                    "unitValueID": "0",
+                    "hexCode": "",
+                    "value": "KHAKI"
+                },
+                {
+                    "unitValueID": "0",
+                    "hexCode": "",
+                    "value": "PINK"
+                },
+                {
+                    "hexCode": "",
+                    "unitValueID": "0",
+                    "value": "NAVY"
+                },
+                {
+                    "hexCode": "",
+                    "value": "TOSCA",
+                    "unitValueID": "0"
+                },
+                {
+                    "hexCode": "",
+                    "value": "GANTUNGAN",
+                    "unitValueID": "0"
+                }
+            ],
+            "variantID": "0"
+        }
+    ]
+}

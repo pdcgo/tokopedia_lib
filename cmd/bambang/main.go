@@ -33,8 +33,14 @@ func createBaseKtp(nik string) (string, string, error) {
 	return nikfoto, selfiefoto, nil
 }
 
-func runVerification(akun *tokopedia_lib.Account) error {
+var ErrSessionInvalid = errors.New("session invalid")
+
+func runVerification(akun *tokopedia_lib.Account, force bool) error {
 	driver, _ := tokopedia_lib.NewDriverAccount(akun.Username, akun.Pass, akun.Secret)
+
+	if force {
+		driver.Session.DeleteSession()
+	}
 
 	nikfoto, selfiefoto, err := createBaseKtp(akun.Ktp)
 	if err != nil {
@@ -44,7 +50,9 @@ func runVerification(akun *tokopedia_lib.Account) error {
 
 	done := make(chan int, 1)
 	errChan := make(chan error)
+	errNowaitChan := make(chan error)
 	defer close(errChan)
+	defer close(errNowaitChan)
 
 	return driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
 		driver.SellerLogin(dctx)
@@ -56,11 +64,14 @@ func runVerification(akun *tokopedia_lib.Account) error {
 		finish := `//*/button/div/span[contains(text(), "Upload")]`
 		finishTitle := `//*/div[contains(text(), "Fotomu sedang kami proses")]`
 		toast := `//*/div[@data-unify="Toaster"]`
-		chromedp.Run(dctx.Ctx,
-			chromedp.Navigate("https://mitra.tokopedia.com/kyc"),
-			chromedp.WaitReady(button1, chromedp.BySearch),
-		)
+		toastTitle := `//*/p[@data-unify="Typography"]`
+		titleSeller := `//*/div[@data-testid="btnSellerAccount"]`
+		connectionNotEstablished := `//*/div[contains(text(), "Koneksi internet nggak stabil")]`
+
 		go func() {
+			driver.RLock()
+			defer driver.RUnlock()
+
 		Parent:
 			for {
 				select {
@@ -70,7 +81,7 @@ func runVerification(akun *tokopedia_lib.Account) error {
 					var pesan string
 					chromedp.Run(dctx.Ctx,
 						chromedp.WaitReady(toast, chromedp.BySearch),
-						chromedp.Text(toast, &pesan, chromedp.BySearch),
+						chromedp.Text(toastTitle, &pesan, chromedp.BySearch),
 					)
 					if pesan != "" {
 						log.Println("error", pesan)
@@ -87,10 +98,23 @@ func runVerification(akun *tokopedia_lib.Account) error {
 			}
 		}()
 
-		go chromedp.Run(dctx.Ctx,
-			chromedp.WaitReady(finish, chromedp.BySearch),
-			chromedp.Click(finish, chromedp.BySearch),
-		)
+		go func() {
+			driver.RLock()
+			defer driver.RUnlock()
+
+			for {
+				select {
+				case <-submitCtx.Done():
+					return
+				default:
+					chromedp.Run(dctx.Ctx,
+						chromedp.WaitReady(finish, chromedp.BySearch),
+						chromedp.Click(finish, chromedp.BySearch),
+					)
+				}
+			}
+		}()
+
 		go chromedp.Run(dctx.Ctx,
 			chromedp.WaitReady(finishTitle, chromedp.BySearch),
 			chromedp.ActionFunc(func(ctx context.Context) error {
@@ -100,8 +124,34 @@ func runVerification(akun *tokopedia_lib.Account) error {
 			}),
 		)
 
-		title := `//*/div[contains(text(), "Foto Bagian Depan KTP")]`
-		go func() {
+		go chromedp.Run(dctx.Ctx,
+			chromedp.WaitReady(finishTitle, chromedp.BySearch),
+			chromedp.ActionFunc(func(ctx context.Context) error {
+				done <- 1
+
+				return nil
+			}),
+		)
+
+		go chromedp.Run(dctx.Ctx,
+			chromedp.WaitReady(connectionNotEstablished, chromedp.BySearch),
+			chromedp.ActionFunc(func(ctx context.Context) error {
+				errNowaitChan <- ErrSessionInvalid
+				return nil
+			}),
+		)
+
+		isiktp := func() {
+			driver.RLock()
+			defer driver.RUnlock()
+
+			chromedp.Run(dctx.Ctx,
+				chromedp.WaitVisible(titleSeller, chromedp.BySearch),
+				chromedp.Navigate("https://mitra.tokopedia.com/kyc"),
+				chromedp.WaitReady(button1, chromedp.BySearch),
+			)
+
+			title := `//*/div[contains(text(), "Foto Bagian Depan KTP")]`
 			chromedp.Run(submitCtx,
 				chromedp.WaitReady(button1, chromedp.BySearch),
 				chromedp.Sleep(time.Second*4),
@@ -124,6 +174,45 @@ func runVerification(akun *tokopedia_lib.Account) error {
 				}),
 			)
 
+		}
+
+		go isiktp()
+
+		// jika ktp gagal
+		go func() {
+			driver.RLock()
+			defer driver.RUnlock()
+
+			tick := time.NewTicker(time.Second * 2)
+			defer tick.Stop()
+
+			titlerr := `//*/h5[@data-unify="Typography"]`
+			cek := "Foto KTP gagal diproses"
+
+			retry := 5
+
+			for {
+				select {
+				case <-submitCtx.Done():
+					return
+				case <-tick.C:
+					title := ""
+					chromedp.Run(submitCtx,
+						chromedp.WaitVisible(titlerr, chromedp.BySearch),
+						chromedp.Text(titlerr, &title, chromedp.BySearch),
+					)
+					log.Println(title)
+					if strings.Contains(title, cek) {
+						go isiktp()
+						retry -= 1
+					}
+
+					if retry <= 0 {
+						return
+					}
+				}
+			}
+
 		}()
 
 		timeout := time.After(time.Minute)
@@ -132,6 +221,14 @@ func runVerification(akun *tokopedia_lib.Account) error {
 		case <-done:
 			log.Println(driver.Username, "Submit Done")
 			akun.Status = "done"
+
+		case err := <-errNowaitChan:
+			log.Println(driver.Username, "error", err.Error())
+			akun.Status = err.Error()
+			if errors.Is(err, ErrSessionInvalid) {
+				return ErrSessionInvalid
+			}
+
 		case err := <-errChan:
 			log.Println(driver.Username, "error", err.Error())
 			pdc_common.ReportError(err)
@@ -156,7 +253,10 @@ func main() {
 	}
 
 	for _, akun := range akuns {
-		runVerification(akun)
+		err := runVerification(akun, false)
+		if errors.Is(err, ErrSessionInvalid) {
+			runVerification(akun, true)
+		}
 		save()
 	}
 

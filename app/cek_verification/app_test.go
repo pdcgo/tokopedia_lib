@@ -11,11 +11,22 @@ import (
 
 func TestCheckVerif(t *testing.T) {
 	dd, err := tokopedia_lib.NewDriverAccount("jimmiebowman418@yahoo.com", "jmupzYcn", "DHOUPLOFYIKL6AYAAJKRMDV5X7HQ5PBZ")
-	driver := report.CekVerifReport{
-		DriverAccount: dd,
-	}
 	assert.Nil(t, err)
 
-	err = cek_verification.CheckVerif(&driver)
-	assert.Nil(t, err)
+	t.Run("test check verif", func(t *testing.T) {
+		driver := report.CekVerifReport{
+			DriverAccount: dd,
+		}
+		err = cek_verification.CheckVerif(&driver)
+		assert.Nil(t, err)
+	})
+
+	t.Run("test check verif v2", func(t *testing.T) {
+		driver := report.CekVerifReport{
+			DriverAccount: dd,
+		}
+		err = cek_verification.CheckVerifV2(&driver)
+		assert.Nil(t, err)
+		assert.Equal(t, driver.Status, "success")
+	})
 }

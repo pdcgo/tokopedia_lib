@@ -22,6 +22,8 @@ import {
     Selection,
 } from "../store/listProfile"
 import { Flex, FlexColumn } from "../styled_components"
+import { Mode } from "../component_sections/UploadHeader"
+import CollectionSelect from "./CollectionSelect"
 
 export type ProfileCardProps = {
     updateSingleProfileFn: ListProfileActions["updateSingleProfile"]
@@ -41,6 +43,8 @@ export type ProfileCardProps = {
     markups: Selection[]
     spins: Selection[]
     collections: Selection[]
+    mode: Mode
+    manualCollections: Selection[]
 }
 
 export default function ProfileCard(
@@ -227,30 +231,13 @@ export default function ProfileCard(
                             <Typography.Text type="secondary">
                                 Collection :
                             </Typography.Text>
-                            <Select
+                            <CollectionSelect
                                 value={props.profile.colName}
-                                onChange={(n) =>
-                                    props.updateSingleProfileFn(
-                                        props.profile.id,
-                                        {
-                                            colName: n,
-                                        }
-                                    )
-                                }
-                                placeholder="Choose Collection Data"
-                            >
-                                <Select.Option value="" disabled>
-                                    Choose Collection
-                                </Select.Option>
-                                {props.collections?.map((collection) => (
-                                    <Select.Option
-                                        key={collection.value}
-                                        value={collection.value}
-                                    >
-                                        {collection.label}
-                                    </Select.Option>
-                                ))}
-                            </Select>
+                                mode={props.mode}
+                                collections={props.collections}
+                                manualCollections={props.manualCollections}
+                                onChange={(colName) => props.updateSingleProfileFn(props.profile.id, { colName })}
+                            />
                         </FlexColumn>
                     </FlexColumn>
                 </Flex>

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -39,7 +40,11 @@ func (service *AkunEtalaseService) GetEtalase(catID int) (*api.ShopShowcaseResul
 		return nil, err
 	}
 
-	return service.GetSellerEtalase(mapitem.EtalaseName)
+	etname := mapitem.EtalaseName
+	etname = strings.TrimLeft(etname, " ")
+	etname = strings.TrimRight(etname, " ")
+
+	return service.GetSellerEtalase(etname)
 }
 
 func (service *AkunEtalaseService) GetSellerEtalase(name string) (*api.ShopShowcaseResult, error) {

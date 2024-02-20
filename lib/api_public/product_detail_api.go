@@ -1,44 +1,17 @@
 package api_public
 
 import (
-	"net/url"
-	"strings"
-
 	"github.com/pdcgo/tokopedia_lib/lib/model_public"
 	"github.com/pdcgo/tokopedia_lib/lib/query"
 )
 
 func (api *TokopediaApiPublic) PdpGetlayoutQueryFromUrl(uristr string) (*model_public.PdpGetlayoutQueryResp, error) {
-	uri, err := url.Parse(uristr)
+	variable, err := model_public.NewPdpGetlayoutQueryVar(uristr)
 	if err != nil {
 		return nil, err
 	}
 
-	paths := strings.Split(uri.Path, "/")
-	shopdomain := paths[len(paths)-2]
-	pkey := paths[len(paths)-1]
-
-	variable := model_public.PdpGetlayoutQueryVar{
-		ShopDomain: shopdomain,
-		ProductKey: pkey,
-		LayoutID:   "",
-		APIVersion: 1,
-		// Tokonow: model_public.Tokonow{
-		// 	ShopID:      "0",
-		// 	WhID:        "0",
-		// 	ServiceType: "",
-		// },
-		// UserLocation: &model_public.UserLocation{
-		// 	CityID:     "",
-		// 	AddressID:  "",
-		// 	DistrictID: "",
-		// 	PostalCode: "",
-		// 	Latlon:     "",
-		// },
-		ExtParam: "",
-	}
-
-	return api.PdpGetlayoutQuery(&variable)
+	return api.PdpGetlayoutQuery(variable)
 
 }
 

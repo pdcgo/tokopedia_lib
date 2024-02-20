@@ -53,7 +53,8 @@ func runDeleteCommand(ctx *cli.Context) error {
 		runner := deleter_product.NewDeleteRunner(config)
 
 		log.Println("running deleter")
-		runner.Run()
+		report := app.Base.Path("tokopedia_delete_report.csv")
+		runner.Run(report)
 
 		return nil
 	})

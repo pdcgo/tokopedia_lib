@@ -14,6 +14,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/category_mapper"
 	"github.com/pdcgo/tokopedia_lib/scenario"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -30,7 +31,7 @@ func TestTokopediaCollectionList(t *testing.T) {
 		api.RegisterShopeeTopedMap(sdk.Group("tokopedia"), db, prepo, category_mapper.NewMapper(pubapi))
 
 		t.Run("test api category mapper list", func(t *testing.T) {
-			res := sendApi(&v2_gots_sdk.Api{
+			res := sendApi(&pdc_api.Api{
 				Method:       http.MethodGet,
 				RelativePath: "/tokopedia/mapper/category",
 				Query: &api.TokopediaMapQuery{
@@ -52,7 +53,7 @@ func TestTokopediaCollectionList(t *testing.T) {
 		})
 
 		t.Run("test api tokopedia category mapper update", func(t *testing.T) {
-			res := sendApi(&v2_gots_sdk.Api{
+			res := sendApi(&pdc_api.Api{
 				Method:       http.MethodGet,
 				RelativePath: "/tokopedia/mapper/category",
 				Query: &api.TokopediaMapQuery{
@@ -70,7 +71,7 @@ func TestTokopediaCollectionList(t *testing.T) {
 
 			randId := rand.Intn(100)
 			tokopediaID := dataBefore[0].TokopediaID
-			res = sendApi(&v2_gots_sdk.Api{
+			res = sendApi(&pdc_api.Api{
 				Method:       http.MethodPut,
 				RelativePath: "/tokopedia/mapper/map",
 				Payload: []config.ShopeeMapItem{{
@@ -82,7 +83,7 @@ func TestTokopediaCollectionList(t *testing.T) {
 			assert.Equal(t, http.StatusOK, res.Result().StatusCode)
 
 			t.Run("test check data valid ketika sudah diupdate", func(t *testing.T) {
-				res = sendApi(&v2_gots_sdk.Api{
+				res = sendApi(&pdc_api.Api{
 					Method:       http.MethodGet,
 					RelativePath: "/tokopedia/mapper/category",
 					Query: &api.TokopediaMapQuery{
@@ -108,6 +109,26 @@ func TestTokopediaCollectionList(t *testing.T) {
 
 				}
 
+			})
+
+			t.Run("test update tidak hilang", func(t *testing.T) {
+
+				defer db.Delete(&config.ShopeeMapItem{ShopeeID: 1000})
+
+				res = sendApi(&pdc_api.Api{
+					Method:       http.MethodPut,
+					RelativePath: "/tokopedia/mapper/map",
+					Payload: []config.ShopeeMapItem{
+						{ShopeeID: 1000, TokopediaID: 1000},
+						{ShopeeID: 2000, TokopediaID: 1000},
+					},
+				})
+				assert.Equal(t, res.Code, 200)
+
+				data := []*config.ShopeeMapItem{}
+				err = db.Find(&data, &config.ShopeeMapItem{TokopediaID: 1000}).Error
+				assert.Nil(t, err)
+				assert.Equal(t, 2, len(data))
 			})
 
 		})

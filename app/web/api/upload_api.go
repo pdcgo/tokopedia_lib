@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pdcgo/tokopedia_lib/app/upload_app"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type UploadApi struct {
@@ -51,19 +52,19 @@ func RegisterCommand(g *v2_gots_sdk.SdkGroup, upload *upload_app.UploadApp, base
 
 	command := g.Group("upload")
 
-	command.Register(&v2_gots_sdk.Api{
+	command.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "start",
 		Response:     Response{},
 	}, upapi.Start)
 
-	command.Register(&v2_gots_sdk.Api{
+	command.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "stop",
 		Response:     Response{},
 	}, upapi.Stop)
 
-	command.Register(&v2_gots_sdk.Api{
+	command.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "status",
 		Response:     upload_app.UploadAppStatus{},

@@ -71,19 +71,19 @@ export default function AccountDeleter() {
                                 .split("\n")
                                 .map((line) => line.trim())
                                 .filter(Boolean),
-                            ...(sold[0] != null && sold[1] != null
+                            ...(sold[1]
                                 ? {
                                       sold_filter: {
                                           max: sold[1],
-                                          min: sold[0],
+                                          min: sold[0] || 0,
                                       },
                                   }
                                 : {}),
-                            ...(view[0] != null && view[1] != null
+                            ...(view[1]
                                 ? {
                                       view_filter: {
                                           max: view[1],
-                                          min: view[0],
+                                          min: view[0] || 0,
                                       },
                                   }
                                 : {}),
@@ -191,7 +191,7 @@ regex-->obat|jamu|ramuan
                                             <InputNumber
                                                 style={{ width: "100%" }}
                                                 placeholder="Min"
-                                                value={sold[0] || null}
+                                                value={sold[0]}
                                                 onChange={(e) =>
                                                     setSold((s) => [e, s[1]])
                                                 }
@@ -200,7 +200,7 @@ regex-->obat|jamu|ramuan
                                             <InputNumber
                                                 style={{ width: "100%" }}
                                                 placeholder="Max"
-                                                value={sold[1] || null}
+                                                value={sold[1]}
                                                 onChange={(e) =>
                                                     setSold((s) => [s[0], e])
                                                 }

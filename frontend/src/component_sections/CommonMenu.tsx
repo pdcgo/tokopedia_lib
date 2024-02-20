@@ -1,25 +1,30 @@
-import React, { Suspense, useState } from "react"
 import {
-    RobotOutlined,
+    ContainerOutlined,
     IdcardOutlined,
+    RobotOutlined,
     UsergroupAddOutlined,
 } from "@ant-design/icons"
-import { Card, Alert, Input, Button, message } from "antd"
-import { FlexColumn, Flex } from "../styled_components"
+import { Alert, Button, Card, Input, message } from "antd"
 import { TextAreaRef } from "antd/es/input/TextArea"
+import React, { Suspense, useState } from "react"
 import { useRequest } from "../client"
+import { useMutation } from "../client/sdk_mutation"
 import {
     BulkItem,
     DriverAccount,
     VerifDriverAccount,
 } from "../client/sdk_types"
+import { Flex, FlexColumn } from "../styled_components"
 import { accountPayloadChecker } from "../utils/accountPayloadChecker"
+import { CheckOrderAkunItem } from "../client/newapisdk"
 
 const CheckBotAsk = React.lazy(() => import("../components/CheckBotAsk"))
 const CheckSubmitAsk = React.lazy(() => import("../components/CheckSubmitAsk"))
+const CheckOrderAsk = React.lazy(() => import("../components/CheckOrderAsk"))
 
 export default function CommonMenu() {
     const [showAsk, setShowAsk] = useState(false)
+    const [showAskOrder, setShowAskOrder] = useState(false)
     const [showAskKtp, setShowAskKtp] = useState(false)
     const { sender } = useRequest("PostTokopediaAkunBulkAdd", {
         onError: (e) => message.error(`Error: ${e.msg}`),
@@ -29,6 +34,8 @@ export default function CommonMenu() {
     })
     const { sender: checkbot } = useRequest("PutTokopediaCekbotRun")
     const { sender: verifKtp } = useRequest("PutTokopediaCheckVerifRun")
+    const { mutate: checkorder } = useMutation("PutTokopediaCekorderRun")
+    const { mutate: checkorderconf } = useMutation("PutTokopediaCekorderSaveConfig")
 
     const [accountString, setAccountString] = useState("")
     const textarea = React.createRef<TextAreaRef>()
@@ -98,6 +105,27 @@ export default function CommonMenu() {
         )
     }
 
+    function checkOrderAction(filename: string) {
+        accountPayloadChecker(
+            accountString,
+            textarea,
+            (warn) => {
+                message.warning({ content: warn, key: "corder" })
+            },
+            (data) => {
+                const payload = data.filter(Boolean) as CheckOrderAkunItem[]
+
+                checkorder({
+                    query: {
+                        base: "",
+                        fname: "",
+                        output: filename,
+                    },
+                }, payload)
+            }
+        )
+    }
+
     return (
         <Card size="small" title="Bulk Add Tokopedia Account">
             <FlexColumn>
@@ -119,6 +147,23 @@ export default function CommonMenu() {
                         }}
                         open={showAskKtp}
                         onCancel={() => setShowAskKtp(false)}
+                    />
+                </Suspense>
+                <Suspense fallback={<></>}>
+                    <CheckOrderAsk
+                        onFinish={(name, config) => {
+                            setShowAskOrder(false)
+                            checkorderconf({
+                                onSuccess() {
+                                    checkOrderAction(name)
+                                },
+                                onError(e){
+                                    message.error(`Error: ${e.message}`)
+                                },
+                            }, config)
+                        }}
+                        open={showAskOrder}
+                        onCancel={() => setShowAskOrder(false)}
                     />
                 </Suspense>
                 <Alert
@@ -143,6 +188,18 @@ export default function CommonMenu() {
                         Add Account
                     </Button>
                     <div style={{ flex: 1 }}></div>
+                    <Button
+                        style={{
+                            backgroundColor: "#1677ff",
+                            boxShadow: "none",
+                            color: "#fff",
+                        }}
+                        type="primary"
+                        icon={<ContainerOutlined rev="check-order" />}
+                        onClick={() => setShowAskOrder(true)}
+                    >
+                        Check Order
+                    </Button>
                     <Button
                         style={{
                             backgroundColor: "#005246",

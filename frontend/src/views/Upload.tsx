@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { Suspense, useEffect, useState } from "react"
 import { Card, Checkbox, Divider, Pagination, Result, message } from "antd"
+import React, { Suspense, useEffect, useState } from "react"
 import { useRequest } from "../client"
-import { useListProfileStore } from "../store/listProfile"
+import { useQuery } from "../client/newapisdk"
+import { useMutation } from "../client/sdk_mutation"
+import { ManualQuery } from "../component_sections/UploadHeader"
+import { useListProfileStore, Selection } from "../store/listProfile"
 import { Flex, FlexColumn } from "../styled_components"
 import { scroller } from "../utils/topScroller"
 
@@ -19,7 +22,6 @@ export default function Upload(props: {
         profiles,
         markups,
         spins,
-        collections,
         clipboard,
         pendingInit,
         error,
@@ -32,7 +34,6 @@ export default function Upload(props: {
         store.list,
         store.markups,
         store.spins,
-        store.collections,
         store.clipboard,
         store.pendingInit,
         store.error,
@@ -45,6 +46,14 @@ export default function Upload(props: {
     ])
 
     const [query, setQuery] = useState({ page: 1, limit: 10, name: "" })
+    const [upquery, setUpquery] = useState<ManualQuery>({
+        mode: "shopee",
+        reset: false,
+        one_to_multi: false,
+        limit: 0,
+    })
+    const [collections, setCollection] = useState<Selection[]>([])
+    const [manualCollections, setManualCollection] = useState<Selection[]>([])
     const [useMapper, setUseMapper] = useState(false)
     const [showBottomPagination, setShowBottomPagination] = useState(false)
     const [messageApi, ctx] = message.useMessage()
@@ -55,27 +64,19 @@ export default function Upload(props: {
             onError: (e) => message.error(JSON.stringify(e)),
         })
 
-    const { sender: uploadStarter, pending: pendingUploadStarter } = useRequest(
-        "GetTokopediaUploadStart",
-        {
-            onSuccess: () => message.success("Account list upload start :)"),
-            onError: (e) => message.error(JSON.stringify(e)),
-        }
-    )
+    const { send: uploadShopee, pending: pendingUploadShopee } = useQuery("GetTokopediaUploadShopee", {})
+    const { send: uploadTokped, pending: pendingUploadTokped } = useQuery("GetTokopediaUploadTokopedia", {})
+    const { send: uploadTokpedManual, pending: pendingUploadTokpedManual } = useQuery("GetUploadV6ManualToTokopedia", {})
+    const { send: uploadJakmall, pending: pendingUploadJakmall } = useQuery("GetUploadV6JakmallToTokopedia", {})
+    const { mutate: setUseMapperApi } = useMutation("PutTokopediaMapperSetting", {})
+    const { send: getCollectionList } = useQuery("GetLegacyV1ProductNamespaceAll")
+    const { send: getManualCollectionList } = useQuery("GetPdcsourceCollectionList")
 
     const { sender: getUseMapper } = useRequest("GetTokopediaMapperSetting", {
         onSuccess(data) {
             setUseMapper(data.use_mapper)
         },
     })
-    const { sender: setUseMapperApi } = useRequest(
-        "PutTokopediaMapperSetting",
-        {
-            onSuccess(data) {
-                setUseMapper(data.use_mapper)
-            },
-        }
-    )
 
     const { sender: deleterAccount } = useRequest("PostTokopediaAkunDelete", {
         onError(err) {
@@ -117,6 +118,44 @@ export default function Upload(props: {
     }, [query.limit, query.name, query.page, props.activePage])
 
     useEffect(() => {
+        getCollectionList({
+            query: {
+                is_public: false,
+                kota: "",
+                namespace: "",
+                pmax: 0,
+                pmin: 0,
+                marketplace: upquery.mode,
+                use_empty_city: false,
+            },
+            onSuccess(res) {
+                setCollection(res.map((val) => ({
+                    label: val.name,
+                    value: val.name
+                })))
+            },
+        })
+    }, [upquery.mode])
+
+    useEffect(() => {
+
+        getManualCollectionList({
+            query: {
+                page: 1,
+                limit: 999999,
+            },
+            onSuccess(data) {
+                const cols = data.data.reduce<Selection[]>((res, val) => {
+                    val && res.push({
+                        label: val.name,
+                        value: val.name
+                    })
+                    return res
+                }, [])
+                setManualCollection(cols)
+            },
+        })
+
         const observer = new IntersectionObserver(
             function (entry) {
                 if (!entry[0].isIntersecting) setShowBottomPagination(true)
@@ -185,10 +224,45 @@ export default function Upload(props: {
     }
 
     function uploadAccount() {
-        uploadStarter({
-            method: "get",
-            path: "tokopedia/upload/start",
-        })
+        switch (upquery.mode) {
+            case "tokopedia":
+                uploadTokped({
+                    onSuccess: () => message.success("Account list upload tokopedia :)"),
+                    onError: (e) => message.error(JSON.stringify(e)),
+                })
+                break
+
+            case "tokopedia_manual":
+                uploadTokpedManual({
+                    query: {
+                        base: "./",
+                        use_mapper: useMapper,
+                        reset: upquery.reset,
+                        one_to_multi: upquery.one_to_multi,
+                        limit: upquery.limit,
+                    },
+                    onSuccess: () => message.success("Account list upload tokopedia manual :)"),
+                    onError: (e) => message.error(JSON.stringify(e)),
+                })
+                break
+
+            case "jakmall":
+                uploadJakmall({
+                    query: {
+                        base: "./",
+                        use_mapper: useMapper,
+                    },
+                    onSuccess: () => message.success("Account list upload jakmall :)"),
+                    onError: (e) => message.error(JSON.stringify(e)),
+                })
+                break
+
+            default:
+                uploadShopee({
+                    onSuccess: () => message.success("Account list upload shopee :)"),
+                    onError: (e) => message.error(JSON.stringify(e)),
+                })
+        }
     }
 
     return (
@@ -222,7 +296,12 @@ export default function Upload(props: {
                     }}
                     onClickSave={updateAccount}
                     loadingSave={pendingUpdateAccount}
-                    loadingStartUpload={pendingUploadStarter}
+                    loadingStartUpload={
+                        pendingUploadShopee ||
+                        pendingUploadTokped ||
+                        pendingUploadTokpedManual ||
+                        pendingUploadJakmall
+                    }
                     onClickStartUpload={uploadAccount}
                     onClickPasteAll={() => {
                         if (clipboard) {
@@ -242,6 +321,8 @@ export default function Upload(props: {
                     }
                     disableRemoveAll={!profiles.some((p) => p.isChecked)}
                     onClickRemoveAll={deleteSome}
+                    upquery={upquery}
+                    onUploadQueryChange={setUpquery}
                 />
             </Suspense>
             <Divider dashed style={{ margin: "5px 0" }} />
@@ -281,48 +362,17 @@ export default function Upload(props: {
                         <Checkbox
                             checked={useMapper}
                             onChange={(e) => {
-                                if (e.target.checked) {
-                                    setUseMapperApi(
-                                        {
-                                            method: "put",
-                                            path: "tokopedia/mapper/setting",
-                                            payload: { use_mapper: true },
-                                        },
-                                        {
-                                            onSuccess(data) {
-                                                setUseMapper(data.use_mapper)
-                                                message.info(
-                                                    `Use category mapper ${
-                                                        data.use_mapper
-                                                            ? "ENABLED"
-                                                            : "DISABLED"
-                                                    }`
-                                                )
-                                            },
-                                        }
-                                    )
-                                    return
-                                }
-
-                                setUseMapperApi(
-                                    {
-                                        method: "put",
-                                        path: "tokopedia/mapper/setting",
-                                        payload: { use_mapper: false },
+                                setUseMapperApi({
+                                    onSuccess(data) {
+                                        setUseMapper(data.use_mapper)
+                                        message.info(
+                                            `Use category mapper ${data.use_mapper
+                                                ? "ENABLED"
+                                                : "DISABLED"
+                                            }`
+                                        )
                                     },
-                                    {
-                                        onSuccess(data) {
-                                            setUseMapper(data.use_mapper)
-                                            message.info(
-                                                `Use category mapper ${
-                                                    data.use_mapper
-                                                        ? "ENABLED"
-                                                        : "DISABLED"
-                                                }`
-                                            )
-                                        },
-                                    }
-                                )
+                                }, { use_mapper: e.target.checked })
                             }}
                         >
                             Use Automatic Category Mapping
@@ -342,9 +392,11 @@ export default function Upload(props: {
                     <Suspense fallback={<Card loading />} key={profile.id}>
                         <ProfileCard
                             key={profile.id}
+                            mode={upquery.mode}
                             number={index + 1 + (query.page - 1) * query.limit}
                             clipboard={clipboard}
                             collections={collections}
+                            manualCollections={manualCollections}
                             markups={markups}
                             profile={profile}
                             spins={spins}

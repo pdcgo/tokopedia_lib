@@ -1,9 +1,11 @@
 package model_public
 
+import "time"
+
 type ShopCore struct {
 	Description string `json:"description"`
 	Domain      string `json:"domain"`
-	ShopID      string `json:"shopID"`
+	ShopID      int    `json:"shopID,string"`
 	Name        string `json:"name"`
 	TagLine     string `json:"tagLine"`
 	DefaultSort int    `json:"defaultSort"`
@@ -14,6 +16,10 @@ type CreateInfo struct {
 	OpenSince        string `json:"openSince,omitempty"`
 	EpochShopCreated string `json:"epochShopCreated,omitempty"`
 	Typename         string `json:"__typename"`
+}
+
+func (cre *CreateInfo) ToTime() (time.Time, error) {
+	return time.Parse("January 2006", cre.OpenSince)
 }
 
 type FavoriteData struct {

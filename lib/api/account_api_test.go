@@ -15,3 +15,12 @@ func TestAccountApi(t *testing.T) {
 	assert.NotEmpty(t, hasil)
 	assert.Nil(t, err)
 }
+
+func TestUserDataQuery(t *testing.T) {
+	api, saveSession := scenario.GetTokopediaApiClient()
+	defer saveSession()
+
+	hasil, err := api.UserDataQuery()
+	assert.NotEmpty(t, hasil)
+	assert.Nil(t, err)
+}

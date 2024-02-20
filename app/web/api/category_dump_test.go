@@ -9,6 +9,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/csv"
 	"github.com/pdcgo/tokopedia_lib/scenario"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +25,7 @@ func TestApiCategoryDump(t *testing.T) {
 			dapi.RegisterApi(sdk.Group("category"))
 
 			t.Run("test category dump", func(t *testing.T) {
-				res := sendApi(&v2_gots_sdk.Api{
+				res := sendApi(&pdc_api.Api{
 					Method:       http.MethodGet,
 					RelativePath: "/category/category_dump",
 				})

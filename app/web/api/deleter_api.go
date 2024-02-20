@@ -9,6 +9,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/deleter_product"
 	"github.com/pdcgo/tokopedia_lib/lib/repo"
 	"github.com/pdcgo/v2_gots_sdk"
+	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type DeleterApi struct {
@@ -65,22 +66,22 @@ func RegisterDeleterApi(grp *v2_gots_sdk.SdkGroup, base repo.BaseInterface) {
 	}
 	delgrp := grp.Group("deleter")
 
-	delgrp.Register(&v2_gots_sdk.Api{
+	delgrp.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "setting",
 		Response:     DeleteSettingRes{},
 	}, deleter.GetSetting)
 
-	delgrp.Register(&v2_gots_sdk.Api{
+	delgrp.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "setting",
 		Payload:      deleter_product.DeleteConfig{},
 		Response:     DeleteSettingRes{},
 	}, deleter.UpdateSetting)
 
-	delgrp.Register(&v2_gots_sdk.Api{
-		Method:       http.MethodPut,
-		RelativePath: "run_delete",
-		Response:     Response{},
-	}, deleter.RunDelete)
+	// delgrp.Register(&pdc_api.Api{
+	// 	Method:       http.MethodPut,
+	// 	RelativePath: "run_delete",
+	// 	Response:     Response{},
+	// }, deleter.RunDelete)
 }

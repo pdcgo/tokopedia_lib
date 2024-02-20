@@ -32,7 +32,9 @@ func TestSearchPageIterator(t *testing.T) {
 				ctx := context.Background()
 				searchItems := []*model_public.ProductSearch{}
 
-				err := iterator.IterateSearchPage(api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
+				err := iterator.IterateSearchPage(&iterator.IterateConfig{
+					ChuckSize: 10,
+				}, api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
 
 					searchItems = append(searchItems, items...)
 					assert.LessOrEqual(t, len(items), 10)
@@ -50,7 +52,9 @@ func TestSearchPageIterator(t *testing.T) {
 				cancel()
 
 				searchItems := []*model_public.ProductSearch{}
-				err := iterator.IterateSearchPage(api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
+				err := iterator.IterateSearchPage(&iterator.IterateConfig{
+					ChuckSize: 10,
+				}, api, ctx, searchVar, func(items []*model_public.ProductSearch) error {
 					searchItems = append(searchItems, items...)
 					return nil
 				})
