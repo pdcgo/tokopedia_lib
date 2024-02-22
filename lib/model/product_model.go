@@ -257,7 +257,7 @@ type SellerProductItemShop struct {
 }
 
 type SellerProductItem struct {
-	ID                 string                `json:"id"`
+	ID                 int                   `json:"id,string"`
 	Name               string                `json:"name"`
 	Price              Price                 `json:"price"`
 	Stock              int                   `json:"stock"`
@@ -373,7 +373,7 @@ type BulkProductEditShop struct {
 }
 
 type BulkProductEditV3Input struct {
-	ProductID string              `json:"productID"`
+	ProductID int                 `json:"productID,string"`
 	Shop      BulkProductEditShop `json:"shop"`
 	Status    ProductStatus       `json:"status"`
 }

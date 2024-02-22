@@ -71,7 +71,7 @@ type ProductrevGetProductReviewList struct {
 }
 
 type ProductReviewListVar struct {
-	ProductID string `json:"productID"`
+	ProductID int64  `json:"productID,string"`
 	Page      int    `json:"page"`
 	Limit     int    `json:"limit"`
 	SortBy    string `json:"sortBy"`

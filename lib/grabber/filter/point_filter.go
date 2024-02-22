@@ -12,14 +12,9 @@ func CreatePointFilter(api *api_public.TokopediaApiPublic, grabTokopedia *legacy
 	return func(layout *model_public.PdpGetlayoutQueryResp, pdp *model_public.PdpGetDataP2Resp) (cek bool, reason string, err error) {
 
 		shopId := layout.Data.PdpGetLayout.BasicInfo.ShopID
-		shopIdInt, err := strconv.Atoi(shopId)
-		if err != nil {
-			return true, "filter point", err
-		}
-
 		variable := model_public.ShopStatisticQueryVar{
-			ShopID:    shopIdInt,
-			ShopIDStr: shopId,
+			ShopID:    shopId,
+			ShopIDStr: strconv.Itoa(shopId),
 		}
 
 		stats, err := api.ShopStatisticQuery(&variable)

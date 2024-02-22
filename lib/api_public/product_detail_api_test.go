@@ -44,7 +44,7 @@ func TestProductDetailApi(t *testing.T) {
 
 		variable := model_public.PdpGetDataP2Var{
 			Affiliate:  nil,
-			ProductID:  "2873462702",
+			ProductID:  2873462702,
 			PdpSession: "{\"sid\":6218809,\"sd\":\"toko-cctv-1\",\"cat\":{\"id\":3958},\"cp\":{\"lr\":{}},\"opr\":755000,\"pr\":755000,\"whid\":6476614,\"mo\":1,\"pn\":\"AEVISION MONITOR LED PC 19 Inch GARANSI RESMI\",\"purl\":\"https://www.tokopedia.com/toko-cctv-1/aevision-monitor-led-pc-19-inch-garansi-resmi\",\"st\":5,\"cn\":\"new\",\"li\":1,\"ln\":\"Default Layout Desktop\",\"w\":7,\"sf\":{},\"nid\":3,\"stat\":{\"cv\":10917,\"cr\":33,\"ct\":5,\"r\":4.8,\"cs\":78,\"mcs\":\"70+\"},\"fst\":[{\"FSID\":0,\"PartnerName\":\"\",\"FSType\":0,\"ShopID\":0}],\"upsn\":\"NON_SUBSCRIBER\",\"v\":1,\"pi\":2873462702,\"pse\":1,\"ps\":\"ACTIVE\",\"fc\":[\"new_variant_options\"],\"cui\":{}}",
 			DeviceID:   "",
 			// UserLocation: model_public.UserLocation{
@@ -99,7 +99,7 @@ func TestProductDetailApi(t *testing.T) {
 	t.Run("test api product review list", func(t *testing.T) {
 
 		variable := model_public.ProductReviewListVar{
-			ProductID: "2873462702",
+			ProductID: 2873462702,
 			Page:      1,
 			Limit:     15,
 			SortBy:    "create_time desc",
@@ -220,7 +220,7 @@ func TestPdpGetDataP2(t *testing.T) {
 
 	variable := model_public.PdpGetDataP2Var{
 		Affiliate:  nil,
-		ProductID:  "2873462702",
+		ProductID:  2873462702,
 		PdpSession: "{\"sid\":6218809,\"sd\":\"toko-cctv-1\",\"cat\":{\"id\":3958},\"cp\":{\"lr\":{}},\"opr\":755000,\"pr\":755000,\"whid\":6476614,\"mo\":1,\"pn\":\"AEVISION MONITOR LED PC 19 Inch GARANSI RESMI\",\"purl\":\"https://www.tokopedia.com/toko-cctv-1/aevision-monitor-led-pc-19-inch-garansi-resmi\",\"st\":5,\"cn\":\"new\",\"li\":1,\"ln\":\"Default Layout Desktop\",\"w\":7,\"sf\":{},\"nid\":3,\"stat\":{\"cv\":10917,\"cr\":33,\"ct\":5,\"r\":4.8,\"cs\":78,\"mcs\":\"70+\"},\"fst\":[{\"FSID\":0,\"PartnerName\":\"\",\"FSType\":0,\"ShopID\":0}],\"upsn\":\"NON_SUBSCRIBER\",\"v\":1,\"pi\":2873462702,\"pse\":1,\"ps\":\"ACTIVE\",\"fc\":[\"new_variant_options\"],\"cui\":{}}",
 		DeviceID:   "",
 		// UserLocation: model_public.UserLocation{
@@ -287,7 +287,7 @@ func TestProductReviewList(t *testing.T) {
 	assert.Nil(t, err)
 
 	variable := model_public.ProductReviewListVar{
-		ProductID: "2873462702",
+		ProductID: 2873462702,
 		Page:      1,
 		Limit:     15,
 		SortBy:    "create_time desc",

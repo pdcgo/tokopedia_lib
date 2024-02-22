@@ -182,6 +182,7 @@ type IsCashback struct {
 type ProductPrice struct {
 	Value    int    `json:"value"`
 	Currency string `json:"currency"`
+	PriceFmt string `json:"priceFmt"`
 	Typename string `json:"__typename"`
 }
 
@@ -493,8 +494,8 @@ type BasicInfo struct {
 	Alias            string         `json:"alias"`
 	CreatedAt        string         `json:"createdAt"`
 	IsQA             bool           `json:"isQA"`
-	ID               string         `json:"id"`
-	ShopID           string         `json:"shopID"`
+	ID               int64          `json:"id,string"`
+	ShopID           int            `json:"shopID,string"`
 	ShopName         string         `json:"shopName"`
 	MinOrder         int            `json:"minOrder"`
 	MaxOrder         int            `json:"maxOrder"`
@@ -915,7 +916,7 @@ type PdpGetData struct {
 
 type PdpGetDataP2Var struct {
 	Affiliate    interface{}   `json:"affiliate"`
-	ProductID    string        `json:"productID"`
+	ProductID    int64         `json:"productID,string"`
 	PdpSession   string        `json:"pdpSession"`
 	DeviceID     string        `json:"deviceID"`
 	UserLocation *UserLocation `json:"userLocation,omitempty"`

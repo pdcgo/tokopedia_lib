@@ -125,6 +125,7 @@ const (
 		  price {
 		    value
 		    currency
+			priceFmt
 		    __typename
 		  }
 	  campaign {

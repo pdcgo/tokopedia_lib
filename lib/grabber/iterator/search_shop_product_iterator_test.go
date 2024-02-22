@@ -19,7 +19,7 @@ func TestSearchShopProductIterator(t *testing.T) {
 	scen := scenario.NewScenario(t)
 
 	// shop: https://windomieofficialww.tokopedia.com/
-	searchVar := model_public.NewShopProductVar("4544078")
+	searchVar := model_public.NewShopProductVar(4544078)
 
 	scen.WithBase(func(dirbase string, scen *scenario.Scenario) {
 		scen.WithBaseConfig(func(base *legacy_source.BaseConfig) {

@@ -15,7 +15,7 @@ func TestShopProducts(t *testing.T) {
 
 	t.Run("test ShopProduct", func(t *testing.T) {
 		variable := model_public.ShopProductVar{
-			Sid:            "1409816",
+			Sid:            1409816,
 			Page:           1,
 			PerPage:        80,
 			EtalaseID:      "etalase",
@@ -28,5 +28,6 @@ func TestShopProducts(t *testing.T) {
 		hasil, err := api.ShopProducts(&variable)
 		assert.Nil(t, err)
 		assert.NotEmpty(t, hasil)
+		assert.NotEmpty(t, hasil.Data.GetShopProduct.Data)
 	})
 }

@@ -67,6 +67,6 @@ func RunReqBrutal() error {
 		log.Println(count)
 		panic("asdasdasd")
 
-		return false, err
+		// return false, err
 	})
 }

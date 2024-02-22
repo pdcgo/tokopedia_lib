@@ -150,7 +150,7 @@ func (sClient *SocketClient) SendEvent(payload interface{}) error {
 	defer cancel()
 
 	payloadText, _ := json.Marshal(payload)
-	log.Println(string(payloadText))
+	// log.Println(string(payloadText))
 	err := sClient.Con.Write(ctx, websocket.MessageText, payloadText)
 	if err != nil {
 		pdc_common.ReportError(err)

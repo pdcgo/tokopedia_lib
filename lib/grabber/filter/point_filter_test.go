@@ -33,7 +33,7 @@ func TestPointFilter(t *testing.T) {
 			t.Run("test filter point ok", func(t *testing.T) {
 
 				// shop: https://www.tokopedia.com/indomieofficial
-				layout.Data.PdpGetLayout.BasicInfo.ShopID = "4544078"
+				layout.Data.PdpGetLayout.BasicInfo.ShopID = 4544078
 
 				cek, reason, err := filterPoint(&layout, &pdp)
 				assert.False(t, cek)
@@ -44,7 +44,7 @@ func TestPointFilter(t *testing.T) {
 			t.Run("test filter point not ok", func(t *testing.T) {
 
 				// shop: https://www.tokopedia.com/milenialbook-1
-				layout.Data.PdpGetLayout.BasicInfo.ShopID = "10255126"
+				layout.Data.PdpGetLayout.BasicInfo.ShopID = 10255126
 
 				cek, reason, err := filterPoint(&layout, &pdp)
 				assert.True(t, cek)

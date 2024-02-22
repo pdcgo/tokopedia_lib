@@ -34,7 +34,7 @@ func TestLastReviewFilterTest(t *testing.T) {
 			t.Run("test filter last review ok", func(t *testing.T) {
 
 				// product: https://www.tokopedia.com/indomieofficial/10-pcs-indomie-goreng-spesial
-				layout.Data.PdpGetLayout.BasicInfo.ID = "448842257"
+				layout.Data.PdpGetLayout.BasicInfo.ID = 448842257
 
 				cek, reason, err := filterLastReview(&layout, &pdp)
 				assert.False(t, cek)
@@ -45,7 +45,7 @@ func TestLastReviewFilterTest(t *testing.T) {
 			t.Run("test filter last review not ok", func(t *testing.T) {
 
 				// product: https://www.tokopedia.com/milenialbook-1/novel-d-bijis
-				layout.Data.PdpGetLayout.BasicInfo.ID = "1771154061"
+				layout.Data.PdpGetLayout.BasicInfo.ID = 1771154061
 
 				cek, reason, err := filterLastReview(&layout, &pdp)
 				assert.True(t, cek)

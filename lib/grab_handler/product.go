@@ -56,20 +56,12 @@ func CreateCacheProduct(
 	shopLocation := pdp.Data.PdpGetData.ShopInfo.Location
 	url := layout.Data.PdpGetLayout.BasicInfo.URL
 
-	shopid, err := strconv.ParseInt(pdpLayout.BasicInfo.ShopID, 10, 64)
-	if err != nil {
-		return mongorepo.CacheProduct{}, err
-	}
 	shop := mongorepo.ProductShop{
-		Shopid:   shopid,
+		Shopid:   int64(pdpLayout.BasicInfo.ShopID),
 		Location: shopLocation,
 	}
 
-	productid, err := strconv.ParseInt(pdpLayout.BasicInfo.ID, 10, 64)
-	if err != nil {
-		return mongorepo.CacheProduct{}, err
-	}
-
+	productid := pdpLayout.BasicInfo.ID
 	catid := int(pdpLayout.BasicInfo.Category.ID)
 	name, err := pdpLayout.GetProductName()
 	if err != nil {

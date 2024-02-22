@@ -93,7 +93,7 @@ type GetShopProduct struct {
 ///////////////////////////////////////////////////////
 
 type ShopProductVar struct {
-	Sid            string `json:"sid"`
+	Sid            int    `json:"sid,string"`
 	Page           int    `json:"page"`
 	PerPage        int    `json:"perPage"`
 	EtalaseID      string `json:"etalaseId"`
@@ -104,7 +104,7 @@ type ShopProductVar struct {
 	UserLong       string `json:"user_long"`
 }
 
-func NewShopProductVar(shopId string) *ShopProductVar {
+func NewShopProductVar(shopId int) *ShopProductVar {
 	params := &ShopProductVar{
 		Page:           1,
 		PerPage:        100,

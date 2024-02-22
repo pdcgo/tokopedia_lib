@@ -52,7 +52,7 @@ type SendChat struct {
 	MessageId      int64                `json:"message_id"`
 	Sticker        *chat.Payload        `json:"sticker,omitempty"`
 	ParentReply    *chat.ParentReply    `json:"parent_reply,omitempty"`
-	ProductId      int                  `json:"product_id,omitempty"`
+	ProductId      int64                `json:"product_id,omitempty"`
 	ProductProfile *chat.ProductProfile `json:"product_profile,omitempty"`
 	Voucher        *chat.Voucher        `json:"voucher,omitempty"`
 	Invoice        *chat.InvoiceLink    `json:"invoice,omitempty"`

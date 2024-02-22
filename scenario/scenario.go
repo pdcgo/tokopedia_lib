@@ -27,6 +27,7 @@ type Scenario struct {
 func NewScenario(t *testing.T) *Scenario {
 	scen := Scenario{
 		Base: GetBaseTestAsset(""),
+		t:    t,
 	}
 
 	return &scen

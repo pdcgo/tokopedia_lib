@@ -104,6 +104,14 @@ func (event *RcvEventSocket) UnmarshalJSON(data []byte) error {
 		event.Data = &RcvChat{}
 		err = parse(event)
 
+	case StartTypingEvent:
+		event.Data = &RcvStartTyping{}
+		err = parse(event)
+
+	case EndTypingEvent:
+		event.Data = &RcvEndTyping{}
+		err = parse(event)
+
 	default:
 		code := strconv.Itoa(int(code.Code))
 		err = errors.New("parsing socket json event error " + code)
@@ -123,7 +131,7 @@ type SendChat struct {
 	ParentReply    *ParentReply    `json:"parent_reply"`
 	Payload        any             `json:"payload,omitempty"`
 	AttachmentType int             `json:"attachment_type,omitempty"`
-	ProductId      int             `json:"product_id,omitempty"`
+	ProductId      int64           `json:"product_id,omitempty"`
 	ProductProfile *ProductProfile `json:"product_profile,omitempty"`
 	InvoiceLink    *InvoiceLink    `json:"invoice_link,omitempty"`
 }
@@ -182,12 +190,12 @@ type RcvStartTyping struct {
 }
 
 type RcvEndTyping struct {
-	MsgID             int64          `json:"msg_id"`
-	FromUID           int            `json:"from_uid"`
-	FromUserName      string         `json:"from_user_name"`
-	FromRole          string         `json:"from_role"`
-	ReminderTicker    ReminderTicker `json:"reminder_ticker"`
-	IsOpposite        bool           `json:"is_opposite"`
-	ToUID             int            `json:"to_uid"`
-	ClientConnectTime time.Time      `json:"client_connect_time"`
+	MsgID             int64           `json:"msg_id"`
+	FromUID           int             `json:"from_uid"`
+	FromUserName      string          `json:"from_user_name"`
+	FromRole          string          `json:"from_role"`
+	ReminderTicker    *ReminderTicker `json:"reminder_ticker"`
+	IsOpposite        bool            `json:"is_opposite"`
+	ToUID             int             `json:"to_uid"`
+	ClientConnectTime time.Time       `json:"client_connect_time"`
 }

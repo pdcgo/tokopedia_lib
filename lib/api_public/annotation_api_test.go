@@ -15,7 +15,7 @@ func TestGetDrogonAnnotation(t *testing.T) {
 	varibale := model_public.GetDrogonAnnotationVar{
 		CategoryID:       2830,
 		ExcludeSensitive: "true",
-		ProductID:        "7010430068",
+		ProductID:        7010430068,
 		VendorName:       "merchant",
 	}
 

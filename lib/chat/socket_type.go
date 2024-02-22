@@ -45,11 +45,11 @@ type ProductProfile struct {
 	IosUrl                    string        `json:"ios_url"`
 	IsUpcomingCampaignProduct bool          `json:"is_upcoming_campaign_product"`
 	PlayStoreProductData      interface{}   `json:"playstore_product_data"`
-	ShopId                    int64         `json:"shop_id"`
+	ShopId                    int           `json:"shop_id"`
 	Status                    int64         `json:"status"`
-	MinOrder                  int64         `json:"mmin_order"`
-	Categoryid                int64         `json:"category_id"`
-	RemainingStock            int64         `json:"remaining_stock"`
+	MinOrder                  int           `json:"mmin_order"`
+	Categoryid                int           `json:"category_id"`
+	RemainingStock            int           `json:"remaining_stock"`
 	CategoryBreadCrumb        string        `json:"category_breadcrumb"`
 	ListImageUrl              []string      `json:"list_image_url"`
 	Variant                   []interface{} `json:"variant"`
