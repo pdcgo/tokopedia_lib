@@ -38,7 +38,8 @@ type AkunItem struct {
 
 func (akun *AkunItem) SetFinish(tx *gorm.DB) error {
 	akun.AkunUploadStatus.Active = false
-	akun.AkunUploadStatus.CountUpload = 0
+	// akun.AkunUploadStatus.CountUpload = 0
+	akun.AkunUploadStatus.Lastup = time.Now().UnixNano()
 
 	return tx.Save(akun).Error
 }
