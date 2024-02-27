@@ -2,13 +2,26 @@ package autochat
 
 import (
 	"context"
+	"encoding/csv"
+	"io"
 	"log"
 	"os"
 	"sync"
 
+	"github.com/gocarina/gocsv"
 	"github.com/pdcgo/common_conf/pdc_application"
+	"github.com/pdcgo/tokopedia_lib/app/autochat/report"
 	"github.com/pdcgo/tokopedia_lib/lib/api_public"
 )
+
+func init() {
+	gocsv.SetCSVReader(func(in io.Reader) gocsv.CSVReader {
+		r := csv.NewReader(in)
+		r.FieldsPerRecord = -1
+		r.LazyQuotes = true
+		return r
+	})
+}
 
 type AutochatMode int
 
@@ -54,14 +67,23 @@ func (app *Application) RunAutoSend() error {
 	if err != nil {
 		return err
 	}
+	shoplen := len(shops)
 
 	pubapi, err := api_public.NewTokopediaApiPublic()
 	if err != nil {
-		panic(err)
+		return err
 	}
+
+	autoreport := report.NewAutosendReport(app.base)
 
 	var wg sync.WaitGroup
 	for akun := range senderchan {
+
+		_, updateItem := autoreport.CreateItem(akun.GetName(), shoplen)
+		updateItem(func(item *report.AutosendReportItem) error {
+			item.SellerChatProcessed++
+			return nil
+		})
 
 		wg.Add(1)
 		go func(sender *AutochatSender) {
@@ -69,16 +91,27 @@ func (app *Application) RunAutoSend() error {
 
 			limitchan <- true
 			defer func() {
+				updateItem(func(item *report.AutosendReportItem) error {
+					item.SellerChatDone++
+					return nil
+				})
 				<-limitchan
 			}()
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			autosend := NewAutochatSend(sender, pubapi)
+			autosend := NewAutochatSend(sender, pubapi, updateItem, akun.config.Autosend)
 			for _, shop := range shops {
+
 				limit := app.config.LimitMessageSend.Get()
-				autosend.Run(ctx, limit, shop)
+				err := autosend.Run(ctx, limit, shop)
+				if err != nil {
+					updateItem(func(item *report.AutosendReportItem) error {
+						item.Error = err.Error()
+						return nil
+					})
+				}
 			}
 
 		}(akun)
@@ -97,6 +130,8 @@ func (app *Application) RunAutoReply() error {
 	parentCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	autoreport := report.NewAutoreplyReport(app.base)
+
 	var wg sync.WaitGroup
 	for akun := range senderchan {
 
@@ -108,7 +143,7 @@ func (app *Application) RunAutoReply() error {
 			defer cancel()
 
 			autoreply := NewAutochatReply(sender)
-			autoreply.Run(ctx)
+			autoreply.Run(ctx, autoreport)
 		}(akun)
 	}
 

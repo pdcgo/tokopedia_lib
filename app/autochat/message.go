@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/pdcgo/common_conf/pdc_application"
 )
@@ -116,7 +117,11 @@ func (p *AutochatMessage) GetMessage() string {
 
 	msglen := len(p.Messages)
 	if msglen > 0 {
-		msgind := rand.Intn(msglen - 1)
+		msgind := msglen - 1
+		if msgind > 0 {
+			rand.Seed(time.Now().UnixNano())
+			msgind = rand.Intn(msgind)
+		}
 		return p.Messages[msgind]
 	}
 

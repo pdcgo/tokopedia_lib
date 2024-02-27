@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/tokopedia_lib/app/autochat/report"
 	"github.com/pdcgo/tokopedia_lib/lib/chat"
 )
 
@@ -18,9 +19,10 @@ func NewAutochatReply(sender *AutochatSender) *AutochatReply {
 	}
 }
 
-func (s *AutochatReply) Run(ctx context.Context) {
+func (s *AutochatReply) Run(ctx context.Context, autoreport *report.AutoreplyReport) {
 
 	name := s.sender.GetName()
+	reportcache := map[string]report.EditAutoreplyReportItem{}
 	messages := s.sender.GetMessages(ctx, func(msg *chat.RcvChat) bool {
 		return msg.FromRole != "User"
 	})
@@ -35,7 +37,24 @@ Parent:
 			break Parent
 
 		default:
-			err := s.sender.SendReply(message.MsgID)
+
+			itemUpdate := reportcache[message.From]
+			if itemUpdate == nil {
+				_, itemUpdate = autoreport.CreateItem(name, message.FromUserName)
+				reportcache[message.From] = itemUpdate
+			}
+
+			itemUpdate(func(item *report.AutoreplyReportItem) error {
+				item.ReceiveChatCount++
+				return nil
+			})
+
+			err := s.sender.SendReply(message.MsgID, func(chat *chat.SendChat) error {
+				return itemUpdate(func(item *report.AutoreplyReportItem) error {
+					item.SendChatCount++
+					return nil
+				})
+			})
 			if err != nil {
 				pdc_common.ReportError(err)
 			}

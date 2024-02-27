@@ -66,7 +66,9 @@ func (s *AutochatSender) TypingMessage(msgId int64) error {
 	})
 }
 
-func (s *AutochatSender) SendReply(msgId int64) error {
+type SendReplyHandler func(chat *chat.SendChat) error
+
+func (s *AutochatSender) SendReply(msgId int64, handlers ...SendReplyHandler) error {
 
 	err := s.ReadMessage(msgId)
 	if err != nil {
@@ -82,18 +84,27 @@ func (s *AutochatSender) SendReply(msgId int64) error {
 	message := s.message.GetMessage()
 
 	log.Printf("[ %s ] %d | send message '%s'", name, msgId, message)
+	data := chat.SendChat{
+		From:         name,
+		FromUserName: name,
+		MessageID:    msgId,
+		Message:      message,
+		Source:       "inbox",
+		StartTime:    time.Now(),
+	}
+
+	for _, handler := range handlers {
+		err := handler(&data)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = s.socket.SendEvent(chat.EmitEventSocket{
 		EventCode: &chat.EventCode{
 			Code: chat.ChatEvent,
 		},
-		Data: chat.SendChat{
-			From:         name,
-			FromUserName: name,
-			MessageID:    msgId,
-			Message:      message,
-			Source:       "inbox",
-			StartTime:    time.Now(),
-		},
+		Data: data,
 	})
 	if err != nil {
 		return err
