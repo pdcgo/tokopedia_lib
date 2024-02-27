@@ -1,0 +1,7 @@
+- buat file "akun_verification.txt" dan isikan akun yang diinginkan
+- akun dibaca per line dengan format "username|password|otp_secret|nik_ktp|status"
+- untuk "status" dapat dikosongi sejak awal
+- masukkan gambar ktp dan selfie di folder "ktp"
+- untuk gambar ktp berikan nama "nik_ktp.jpg" dan untuk selfie "nik_ktp_2.jpg", "nik_ktp" merujuk pada nik_ktp di akun.txt
+- program "submit_ktp.exe" siap dijalankan
+- ketika selesai dijalankan, status pada "akun_verification.txt" akan diperbaharui

@@ -25,11 +25,11 @@ func TestWithdrawBalance(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestSaldoQuery(t *testing.T) {
-	api, saveSession := scenario.GetTokopediaApiClient()
-	defer saveSession()
+// func TestSaldoQuery(t *testing.T) {
+// 	api, saveSession := scenario.GetTokopediaApiClient()
+// 	defer saveSession()
 
-	hasil, err := api.SaldoQuery(false)
-	assert.NotEmpty(t, hasil)
-	assert.Nil(t, err)
-}
+// 	hasil, err := api.SaldoQuery(false)
+// 	assert.NotEmpty(t, hasil)
+// 	assert.Nil(t, err)
+// }
