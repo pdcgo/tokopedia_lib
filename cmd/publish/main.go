@@ -46,6 +46,18 @@ func main() {
 					return nil
 				},
 			},
+			{
+				Name:    "publish_autochat",
+				Aliases: []string{"pachat"},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "m",
+						Value: "release",
+						Usage: "mode 'release' atau 'build'",
+					},
+				},
+				Action: publishAutochat,
+			},
 		},
 	}
 
