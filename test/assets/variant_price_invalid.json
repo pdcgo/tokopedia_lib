@@ -1,126 +1,65 @@
 {
     "products": [
         {
-            "isPrimary": true,
-            "weight": 550,
-            "stock": 16666,
-            "status": "ACTIVE",
-            "sku": "",
-            "weightUnit": "GR",
-            "price": 114000,
-            "pictures": [],
             "combination": [
+                0,
                 0
-            ]
+            ],
+            "pictures": [],
+            "price": 1000,
+            "sku": "",
+            "status": "ACTIVE",
+            "stock": 1,
+            "weight": 1,
+            "weightUnit": "GR"
         },
         {
-            "weightUnit": "GR",
-            "isPrimary": false,
             "combination": [
+                0,
                 1
             ],
-            "stock": 0,
             "pictures": [],
-            "weight": 550,
-            "status": "INACTIVE",
-            "price": 114000,
-            "sku": ""
-        },
-        {
-            "weightUnit": "GR",
-            "sku": "",
-            "stock": 16666,
-            "isPrimary": false,
-            "price": 114000,
-            "pictures": [],
-            "weight": 550,
-            "combination": [
-                2
-            ],
-            "status": "ACTIVE"
-        },
-        {
-            "sku": "",
-            "weight": 550,
-            "stock": 16666,
-            "combination": [
-                3
-            ],
-            "isPrimary": false,
-            "status": "ACTIVE",
-            "pictures": [],
-            "weightUnit": "GR",
-            "price": 114000
-        },
-        {
-            "isPrimary": false,
-            "combination": [
-                4
-            ],
-            "price": 114000,
-            "weightUnit": "GR",
-            "status": "ACTIVE",
-            "sku": "",
-            "weight": 550,
-            "stock": 16666,
-            "pictures": []
-        },
-        {
-            "pictures": [
-                {
-                    "uploadIds": "91687ccf-4697-4405-a449-48046ab8453e"
-                }
-            ],
-            "stock": 10000,
-            "weight": 400,
-            "isPrimary": false,
-            "weightUnit": "GR",
+            "price": 10000,
             "sku": "",
             "status": "ACTIVE",
-            "price": 29000,
-            "combination": [
-                5
-            ]
+            "stock": 1,
+            "weight": 1,
+            "weightUnit": "GR"
         }
     ],
-    "sizecharts": [],
     "selections": [
         {
-            "unitID": "",
-            "name": "WARNA",
             "options": [
                 {
-                    "unitValueID": "0",
-                    "hexCode": "",
-                    "value": "HITAM"
+                    "hexCode": "#ffffff",
+                    "unitValueID": "1",
+                    "value": "Putih"
                 },
                 {
-                    "unitValueID": "0",
-                    "hexCode": "",
-                    "value": "KHAKI"
-                },
-                {
-                    "unitValueID": "0",
-                    "hexCode": "",
-                    "value": "PINK"
-                },
-                {
-                    "hexCode": "",
-                    "unitValueID": "0",
-                    "value": "NAVY"
-                },
-                {
-                    "hexCode": "",
-                    "value": "TOSCA",
-                    "unitValueID": "0"
-                },
-                {
-                    "hexCode": "",
-                    "value": "GANTUNGAN",
-                    "unitValueID": "0"
+                    "hexCode": "#000000",
+                    "unitValueID": "2",
+                    "value": "Hitam"
                 }
             ],
-            "variantID": "0"
+            "unitID": "",
+            "variantID": "1"
+        },
+        {
+            "options": [
+                {
+                    "hexCode": "",
+                    "unitValueID": "445",
+                    "value": "0"
+                },
+                {
+                    "hexCode": "",
+                    "unitValueID": "446",
+                    "value": "2"
+                }
+            ],
+            "unitID": "27",
+            "variantID": "29"
         }
-    ]
+    ],
+    "sizeChart": []
 }

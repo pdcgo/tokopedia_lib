@@ -11,7 +11,6 @@ import (
 	"github.com/pdcgo/go_v2_shopeelib/app/app_config"
 	shopee_upapp "github.com/pdcgo/go_v2_shopeelib/app/upload_app"
 	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
-	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/spin"
 	"github.com/pdcgo/go_v2_shopeelib/lib/mongorepo"
 	shopeeuploader "github.com/pdcgo/go_v2_shopeelib/lib/uploader"
 	"github.com/pdcgo/tokopedia_lib/app/config"
@@ -177,15 +176,7 @@ func (flow *ShopeeToTopedFlow) GenerateSpinHandler(akun *repo.AkunItem) shopeeup
 		Markup:    akun.Markup,
 		Polatitle: akun.Spin,
 	}
-	spinhandler := spin.NewSpinHandler(
-		&akunlegacy,
-		flow.ConfigFlow.FilterText,
-		flow.ConfigFlow.TitleConfig,
-		flow.ConfigFlow.DescConfig,
-		flow.ConfigFlow.SpinDataRepo,
-		flow.ConfigFlow.HastagRepo,
-		flow.ConfigFlow.MarkupConfig,
-	)
+	spinhandler := flow.ConfigFlow.CreateSpinHandler(&akunlegacy)
 
 	return spinhandler
 }

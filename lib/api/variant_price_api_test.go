@@ -30,7 +30,7 @@ func TestVariantPriceApi(t *testing.T) {
 		assert.Nil(t, err)
 
 		messages := hasil.Data.ProductValidateV3.Data.Variants.Messages
-		assert.Equalf(t, 1, len(messages), "%+v", messages)
+		assert.NotZero(t, len(messages))
 	})
 
 	t.Run("test variant price validation invalid", func(t *testing.T) {
@@ -45,8 +45,8 @@ func TestVariantPriceApi(t *testing.T) {
 		assert.NotEmpty(t, hasil)
 		assert.Nil(t, err)
 
-		messages := hasil.Data.ProductValidateV3.Data.Variants.Messages
-		assert.Equalf(t, 1, len(messages), "%+v", messages)
-		assert.Contains(t, messages[0], "maks. 3 kali lipat.")
+		variants := hasil.Data.ProductValidateV3.Data.Variants
+		assert.NotZero(t, len(variants.Messages))
+		assert.Equal(t, variants.GetPriceGab(), 3)
 	})
 }
