@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Card, Checkbox, Divider, Pagination, Result, message } from "antd"
+import { Alert, Card, Checkbox, Divider, Pagination, Result, message } from "antd"
 import React, { Suspense, useEffect, useState } from "react"
 import { useRequest } from "../client"
 import { useQuery } from "../client/newapisdk"
@@ -269,6 +269,14 @@ export default function Upload(props: {
         <FlexColumn>
             {ctx}
             <Suspense fallback={<Card loading />}>
+                <Alert
+                    showIcon
+                    type="info"
+                    className="mb-2"
+                    message={<span>report upload tersimpan di&nbsp;
+                        <strong style={{ fontWeight: 500 }}>&quot;tokopedia_upload_report.csv&quot;</strong>
+                    </span>}
+                />
                 <UploadHeader
                     disablePasteAll={clipboard === null}
                     checkedAll={
