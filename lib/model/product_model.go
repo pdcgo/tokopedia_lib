@@ -208,7 +208,7 @@ func (prods ProductVariants) MinWeight() int {
 type Variant struct {
 	Products   ProductVariants    `json:"products"`
 	Selections []ProductSelection `json:"selections"`
-	Sizecharts []interface{}      `json:"sizecharts"`
+	Sizecharts []interface{}      `json:"sizeChart"`
 	Typename   string             `json:"__typename,omitempty"`
 }
 

@@ -63,56 +63,22 @@ func TestProductApi(t *testing.T) {
 	})
 }
 
-func TestProductAddApi(t *testing.T) {
-	// apiSession, saveSession := scenario.GetTokopediaApiClient()
-	// defer saveSession()
+// func TestProductAddApi(t *testing.T) {
+// 	apiSession, saveSession := scenario.GetTokopediaApiClient()
+// 	defer saveSession()
 
-	// t.Run("product add", func(t *testing.T) {
-	// 	input := model.InputNoVariant{
-	// 		InputVariable: model.InputVariable{
-	// 			Pictures: struct {
-	// 				Data []model.Pictures "json:\"data\""
-	// 			}{
-	// 				Data: []model.Pictures{{
-	// 					UploadIds: "efd84e98-1fa6-41a2-a69c-eb969ad61191",
-	// 				}},
-	// 			},
-	// 			ProductName: "Fantech CRYPTO VX7 Mouse Gaming Macro - Hitam",
-	// 			Category: model.Category{
-	// 				ID: "4011",
-	// 			},
-	// 			Condition:     "NEW",
-	// 			MinOrder:      1,
-	// 			PriceCurrency: "IDR",
-	// 			Weight:        124,
-	// 			WeightUnit:    "GR",
-	// 			MustInsurance: true,
-	// 			Menus: []struct {
-	// 				MenuID string "json:\"menuID\""
-	// 			}{},
-	// 			Annotations: []string{"5037"},
-	// 			Description: "Fantech VX7 Crypto adalah wired gaming mouse dengan gaming optical sensor, sensitivitas 200-8000 DPI, 60 IPS speed, akselerasi 20g, dan juga polling rate 125Hz. Mouse gaming ini juga dilengkapi dengan switch yang memiliki lifecycle hingga 10 juta klik, teflon mouse skates yang besar, 6 tombol yang bisa diatur, serta 4 mode efek pencahayaan. \n",
-	// 			Dimention: model.Dimension{
-	// 				Width:  12,
-	// 				Height: 8,
-	// 				Length: 16,
-	// 			},
-	// 		},
-	// 		Sku:    "BlackHead",
-	// 		Stock:  12,
-	// 		Price:  125000,
-	// 		Status: "LIMITED",
-	// 	}
-	// 	variable := model.ProductAddVar{
-	// 		Input: input,
-	// 	}
-	// 	hasil, err := apiSession.ProductAdd(&variable)
-	// 	hasilraw, _ := json.Marshal(hasil)
-	// 	t.Log(string(hasilraw), "hasilnya seperti ini")
-	// 	assert.NotEmpty(t, hasil)
-	// 	if err != nil {
-	// 		// cek product name telah dipakai errCode = "2"
-	// 		assert.Equal(t, hasil.Data.ProductAddV3.Header.ErrorCode, "2")
-	// 	}
-	// })
-}
+// 	payload := uploader.PayloadUpload{}
+
+// 	fname := scenario.GetBaseTestAsset("payload.json")
+// 	b, err := os.ReadFile(fname)
+// 	assert.Nil(t, err)
+
+// 	err = json.Unmarshal(b, &payload)
+// 	assert.Nil(t, err)
+
+// 	hasil, err := apiSession.ProductAdd(payload.GetProductAddVar())
+// 	assert.Nil(t, err)
+// 	hasilraw, err := json.Marshal(hasil)
+// 	assert.Nil(t, err)
+// 	t.Log(hasilraw)
+// }
