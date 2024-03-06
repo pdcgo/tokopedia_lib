@@ -1,7 +1,7 @@
 package deleter_product_test
 
 import (
-	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -10,149 +10,138 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func scenarioConfig1(t *testing.T) *deleter_product.DeleteConfig {
-	var hasil deleter_product.DeleteConfig
-
-	data := "{\"limit_concurent\":3,\"limit_product\":4,\"title\":[\"elemen\"],\"product_status\":\"\",\"category_id\":\"\",\"start_time\":0,\"end_time\":1686982546,\"akuns\":[{\"username\":\"pdcthoni@gmail.com\",\"password\":\"Muhammad123!`\",\"secret\":\"IULIWGH6TIK3CZBKHGE27DBRLQ5LR5WQ\"}]}\r\n"
-
-	err := json.Unmarshal([]byte(data), &hasil)
-	assert.NotEmpty(t, hasil)
-	assert.Nil(t, err)
-
-	return &hasil
-}
-
-func scenarioConfigWithSold(t *testing.T) *deleter_product.DeleteConfig {
-	var hasil deleter_product.DeleteConfig
-
-	data := "{\"sold_filter\": {\"min\": 10, \"max\":20 }, \"limit_concurent\":3,\"limit_product\":4,\"title\":[],\"product_status\":\"\",\"category_id\":\"\",\"start_time\":0,\"end_time\":1686982546,\"akuns\":[{\"username\":\"pdcthoni@gmail.com\",\"password\":\"Muhammad123!`\",\"secret\":\"IULIWGH6TIK3CZBKHGE27DBRLQ5LR5WQ\"}]}\r\n"
-
-	err := json.Unmarshal([]byte(data), &hasil)
-	assert.NotEmpty(t, hasil)
-	assert.Nil(t, err)
-
-	return &hasil
-}
-
-func scenarioConfigWithView(t *testing.T) *deleter_product.DeleteConfig {
-	var hasil deleter_product.DeleteConfig
-
-	data := "{\"view_filter\": {\"min\": 10, \"max\":20 }, \"limit_concurent\":3,\"limit_product\":4,\"title\":[],\"product_status\":\"\",\"category_id\":\"\",\"start_time\":0,\"end_time\":1686982546,\"akuns\":[{\"username\":\"pdcthoni@gmail.com\",\"password\":\"Muhammad123!`\",\"secret\":\"IULIWGH6TIK3CZBKHGE27DBRLQ5LR5WQ\"}]}\r\n"
-
-	err := json.Unmarshal([]byte(data), &hasil)
-	assert.NotEmpty(t, hasil)
-	assert.Nil(t, err)
-
-	return &hasil
-}
-
 func TestScenarioView(t *testing.T) {
-	cfg := scenarioConfigWithView(t)
+	cfg := deleter_product.TokopediaDeleteConfig{
+		Title: []string{
+			"ayam",
+			"regex-->pisang",
+		},
+		SoldFilter: &deleter_product.SoldConfig{
+			Min: 10,
+			Max: 20,
+		},
+		ViewFilter: &deleter_product.ViewConfig{
+			Min: 10,
+			Max: 20,
+		},
+		PriceFilter: &deleter_product.PriceConfig{
+			Min: 10000,
+			Max: 20000,
+		},
+		TStartTime: time.Time{},
+		TEndTime:   time.Now(),
+	}
 
-	filterFunc := cfg.GenerateFilter()
+	t.Run("test filter title", func(t *testing.T) {
 
-	t.Run("test masuk view", func(t *testing.T) {
-		product := model.SellerProductItem{
-			Name: "Elemen Tutup Rice Cooker / Element Heater Pemanas Magicom / Alumunium",
+		filter := cfg.GenerateFilterTitle()
+		for name, expect := range map[string]bool{
+			"ayam kecap manis":   true,
+			"pisang keju biadab": true,
+			"nasi padang":        false,
+		} {
+
+			t.Run(fmt.Sprintf("test filter name should be %t", expect), func(t *testing.T) {
+				cek := filter(&model.SellerProductItem{
+					Name: name,
+				})
+				assert.Equal(t, cek, expect)
+			})
+		}
+	})
+
+	t.Run("test filter view", func(t *testing.T) {
+
+		filter := cfg.ViewFilter.GenerateFilter()
+		for expect, view := range map[bool]int{
+			true:  15,
+			false: 50,
+		} {
+
+			t.Run(fmt.Sprintf("test filter view should be %t", expect), func(t *testing.T) {
+				cek := filter(&model.SellerProductItem{
+					Stats: model.Stats{
+						CountView: view,
+					},
+				})
+				assert.Equal(t, cek, expect)
+			})
+		}
+	})
+
+	t.Run("test filter sold", func(t *testing.T) {
+
+		filter := cfg.SoldFilter.GenerateFilter()
+		for expect, sold := range map[bool]int{
+			true:  15,
+			false: 50,
+		} {
+
+			t.Run(fmt.Sprintf("test filter sold should be %t", expect), func(t *testing.T) {
+				cek := filter(&model.SellerProductItem{
+					TxStats: model.TxStats{
+						Sold: sold,
+					},
+				})
+				assert.Equal(t, cek, expect)
+			})
+		}
+	})
+
+	t.Run("test filter time", func(t *testing.T) {
+
+		filter := cfg.GenerateFilterTime()
+		for expect, ctime := range map[bool]time.Time{
+			true:  time.Now().Add(-time.Hour),
+			false: time.Now().Add(time.Hour),
+		} {
+
+			t.Run(fmt.Sprintf("test filter time should be %t", expect), func(t *testing.T) {
+				cek := filter(&model.SellerProductItem{
+					CreateTime: ctime,
+				})
+				assert.Equal(t, cek, expect)
+			})
+		}
+	})
+
+	t.Run("test filter price", func(t *testing.T) {
+
+		filter := cfg.PriceFilter.GenerateFilter()
+		for expect, price := range map[bool]int{
+			true:  15000,
+			false: 50000,
+		} {
+
+			t.Run(fmt.Sprintf("test filter price should be %t", expect), func(t *testing.T) {
+				cek := filter(&model.SellerProductItem{
+					Price: model.Price{
+						Min: price,
+						Max: price,
+					},
+				})
+				assert.Equal(t, cek, expect)
+			})
+		}
+	})
+
+	t.Run("test filter all true", func(t *testing.T) {
+
+		filter := cfg.GenerateFilter()
+		cek, _ := filter(&model.SellerProductItem{
+			Name: "mie ayam",
 			Stats: model.Stats{
 				CountView: 15,
 			},
-			CreateTime: cfg.TStartTime.Add(time.Hour),
-		}
-
-		cek, key := filterFunc(&product)
-		assert.True(t, cek, key)
-	})
-
-	t.Run("test masuk diluar view", func(t *testing.T) {
-		product := model.SellerProductItem{
-			Name: "Elemen Tutup Rice Cooker / Element Heater Pemanas Magicom / Alumunium",
-			Stats: model.Stats{
-				CountView: 50,
-			},
-			CreateTime: cfg.TStartTime.Add(time.Hour),
-		}
-
-		cek, key := filterFunc(&product)
-		assert.False(t, cek, key)
-	})
-}
-
-func TestScenarioSold(t *testing.T) {
-	cfg := scenarioConfigWithSold(t)
-
-	filterFunc := cfg.GenerateFilter()
-
-	t.Run("test masuk sold", func(t *testing.T) {
-		product := model.SellerProductItem{
-			Name: "Elemen Tutup Rice Cooker / Element Heater Pemanas Magicom / Alumunium",
 			TxStats: model.TxStats{
-				Sold: 20,
+				Sold: 15,
 			},
-			CreateTime: cfg.TStartTime.Add(time.Hour),
-		}
-
-		cek, key := filterFunc(&product)
-		assert.True(t, cek, key)
-	})
-
-	t.Run("test masuk diluar sold", func(t *testing.T) {
-		product := model.SellerProductItem{
-			Name: "Elemen Tutup Rice Cooker / Element Heater Pemanas Magicom / Alumunium",
-			TxStats: model.TxStats{
-				Sold: 50,
+			CreateTime: time.Now().Add(-time.Hour),
+			Price: model.Price{
+				Min: 15000,
+				Max: 15000,
 			},
-			CreateTime: cfg.TStartTime.Add(time.Hour),
-		}
-
-		cek, key := filterFunc(&product)
-		assert.False(t, cek, key)
+		})
+		assert.True(t, cek)
 	})
-}
-
-func TestFilterProduct(t *testing.T) {
-	cfg := scenarioConfig1(t)
-
-	filterFunc := cfg.GenerateFilter()
-
-	t.Run("test sold", func(t *testing.T) {
-		product := model.SellerProductItem{
-			Name:       "Elemen Tutup Rice Cooker / Element Heater Pemanas Magicom / Alumunium",
-			CreateTime: cfg.TStartTime.Add(time.Hour),
-		}
-
-		cek, key := filterFunc(&product)
-		assert.True(t, cek, key)
-	})
-
-	t.Run("test diluar tanggal", func(t *testing.T) {
-		product := model.SellerProductItem{
-			Name:       "Elemen Tutup Rice Cooker / Element Heater Pemanas Magicom / Alumunium",
-			CreateTime: time.Now().Add(time.Hour * 24 * 3000),
-		}
-
-		cek, key := filterFunc(&product)
-		assert.False(t, cek, key)
-	})
-
-	t.Run("test didalam tanggal", func(t *testing.T) {
-		product := model.SellerProductItem{
-			Name:       "Elemen Tutup Rice Cooker / Element Heater Pemanas Magicom / Alumunium",
-			CreateTime: cfg.TStartTime.Add(time.Hour),
-		}
-
-		cek, key := filterFunc(&product)
-		assert.True(t, cek, key)
-	})
-
-	t.Run("test didalam tanggal tapi name tidak sesuai", func(t *testing.T) {
-		product := model.SellerProductItem{
-			Name:       "Alumunium",
-			CreateTime: cfg.TStartTime.Add(time.Hour),
-		}
-
-		cek, key := filterFunc(&product)
-		assert.False(t, cek, key)
-	})
-
 }

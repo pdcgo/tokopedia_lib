@@ -38,7 +38,18 @@ func (view *ViewConfig) GenerateFilter() FilterHandler {
 	}
 }
 
-type DeleteConfig struct {
+type PriceConfig struct {
+	Min int `json:"min"`
+	Max int `json:"max"`
+}
+
+func (price *PriceConfig) GenerateFilter() FilterHandler {
+	return func(product *model.SellerProductItem) bool {
+		return price.Min <= product.Price.Max && product.Price.Max <= price.Max
+	}
+}
+
+type TokopediaDeleteConfig struct {
 	LimitConcurent int                 `json:"limit_concurent"`
 	LimitProduct   int                 `json:"limit_product"`
 	Title          []string            `json:"title"`
@@ -51,10 +62,11 @@ type DeleteConfig struct {
 	Akuns          []*AkunDeleteItem   `json:"akuns"`
 	SoldFilter     *SoldConfig         `json:"sold_filter,omitempty"`
 	ViewFilter     *ViewConfig         `json:"view_filter,omitempty"`
+	PriceFilter    *PriceConfig        `json:"price_filter,omitempty"`
 }
 
-func NewDeleteConfig(fname string) (*DeleteConfig, error) {
-	var cfg DeleteConfig
+func NewDeleteConfig(fname string) (*TokopediaDeleteConfig, error) {
+	var cfg TokopediaDeleteConfig
 
 	data, err := os.ReadFile(fname)
 	if err != nil {
@@ -66,7 +78,7 @@ func NewDeleteConfig(fname string) (*DeleteConfig, error) {
 	return &cfg, err
 }
 
-func SaveDeleteConfig(fname string, cfg *DeleteConfig) error {
+func SaveDeleteConfig(fname string, cfg *TokopediaDeleteConfig) error {
 	file, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		return err
@@ -80,8 +92,8 @@ func SaveDeleteConfig(fname string, cfg *DeleteConfig) error {
 	return nil
 }
 
-func (cfg *DeleteConfig) UnmarshalJSON(data []byte) error {
-	type Alias DeleteConfig
+func (cfg *TokopediaDeleteConfig) UnmarshalJSON(data []byte) error {
+	type Alias TokopediaDeleteConfig
 	aux := &struct {
 		*Alias
 	}{
@@ -99,7 +111,7 @@ func (cfg *DeleteConfig) UnmarshalJSON(data []byte) error {
 
 type FilterHandler func(product *model.SellerProductItem) bool
 
-func (cfg *DeleteConfig) GenerateFilter() func(product *model.SellerProductItem) (bool, string) {
+func (cfg *TokopediaDeleteConfig) GenerateFilter() func(product *model.SellerProductItem) (bool, string) {
 
 	handlers := map[string]FilterHandler{}
 	handlers["time"] = cfg.GenerateFilterTime()
@@ -111,6 +123,10 @@ func (cfg *DeleteConfig) GenerateFilter() func(product *model.SellerProductItem)
 
 	if cfg.ViewFilter != nil {
 		handlers["view"] = cfg.ViewFilter.GenerateFilter()
+	}
+
+	if cfg.PriceFilter != nil {
+		handlers["price"] = cfg.PriceFilter.GenerateFilter()
 	}
 
 	return func(product *model.SellerProductItem) (bool, string) {
@@ -125,7 +141,7 @@ func (cfg *DeleteConfig) GenerateFilter() func(product *model.SellerProductItem)
 	}
 }
 
-func (cfg *DeleteConfig) GenerateFilterTime() FilterHandler {
+func (cfg *TokopediaDeleteConfig) GenerateFilterTime() FilterHandler {
 	return func(product *model.SellerProductItem) bool {
 		data := product.CreateTime
 
@@ -133,7 +149,7 @@ func (cfg *DeleteConfig) GenerateFilterTime() FilterHandler {
 	}
 }
 
-func (cfg *DeleteConfig) GenerateFilterTitle() FilterHandler {
+func (cfg *TokopediaDeleteConfig) GenerateFilterTitle() FilterHandler {
 	fstring := []string{}
 	fregex := []*regexp.Regexp{}
 

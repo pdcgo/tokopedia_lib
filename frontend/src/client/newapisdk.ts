@@ -62,6 +62,7 @@ export interface SettingSpinData {
 	smin: number
 	smax: number
 	merek_ins_t: boolean
+	ignore_first_word: boolean
 	title: string
 	desc: string
 }
@@ -155,7 +156,7 @@ export interface MarkupData {
 	mark: string
 	type: string
 	range: any
-	up: null
+	up: Array<number>
 }
 
 export interface Markup {
@@ -449,6 +450,10 @@ export interface SettingFilterWordQuery {
 	makedefault: boolean
 }
 
+export interface ReportQuery {
+	output: string
+}
+
 export interface Akun {
 	_id: string
 	user: string
@@ -633,6 +638,10 @@ export interface CategoryTokopediaMapItem {
 	shopee_categ: Array<string>
 }
 
+export interface HastagQuery {
+	name: string
+}
+
 export interface HastagDataResponse {
 	name: string
 	data: Array<string>
@@ -649,7 +658,12 @@ export interface HastagDeleteQuery {
 
 export interface HastagLimitResponse {
 	name: string
-	data: null
+	data: Array<number>
+}
+
+export interface HastagLimitData {
+	min: number
+	max: number
 }
 
 export interface ExampleSpinProductsQuery {
@@ -865,8 +879,43 @@ export interface UpdateTopedCategoryPayload {
 	secret: string
 }
 
+export interface AkunDeleteItem {
+	username: string
+	password: string
+	secret: string
+}
+
+export interface SoldConfig {
+	min: number
+	max: number
+}
+
+export interface ViewConfig {
+	min: number
+	max: number
+}
+
+export interface PriceConfig {
+	min: number
+	max: number
+}
+
+export interface TokopediaDeleteConfig {
+	limit_concurent: number
+	limit_product: number
+	title: Array<string>
+	product_status: string
+	category_id: string
+	start_time: number
+	end_time: number
+	akuns: Array<AkunDeleteItem | undefined>
+	sold_filter: SoldConfig | undefined
+	view_filter: ViewConfig | undefined
+	price_filter: PriceConfig | undefined
+}
+
 export interface DeleteSettingRes {
-	data: DeleteConfig | undefined
+	data: TokopediaDeleteConfig | undefined
 }
 
 export interface DumpCategoryResponse {
@@ -1116,6 +1165,11 @@ export interface TopedShopeeUploadQueryCli {
 
 export interface QlobotShopeeUploadQueryCli {
 	base: string
+}
+
+export interface JakmallShopeeUploadQueryCli {
+	base: string
+	use_mapper: boolean
 }
 
 export interface JakmallTokopediaUploadQueryCli {
@@ -1539,6 +1593,15 @@ export const clients = {
 	GetLegacyApiDataspin: {
 		url: "legacy/api/dataspin" as const,
 		method: "GET" as const,
+		query: undefined,
+		body: {},
+		response: [
+			``
+		] as Array<string>
+	},
+	GetLegacyApiDataspinGet: {
+		url: "legacy/api/dataspin/get" as const,
+		method: "GET" as const,
 		query: {
 			name: ``
 		},
@@ -1591,6 +1654,7 @@ export const clients = {
 				smin: 0,
 				smax: 0,
 				merek_ins_t: false,
+				ignore_first_word: false,
 				title: ``,
 				desc: ``
 			} as SettingSpinData | undefined,
@@ -1611,6 +1675,7 @@ export const clients = {
 			smin: 0,
 			smax: 0,
 			merek_ins_t: false,
+			ignore_first_word: false,
 			title: ``,
 			desc: ``
 		},
@@ -1848,7 +1913,9 @@ export const clients = {
 				mark: ``,
 				type: ``,
 				range: {},
-				up: null
+				up: [
+				0
+				] as Array<number>
 			}
 			] as Array<MarkupData>,
 			fix_mark: 0,
@@ -1873,7 +1940,9 @@ export const clients = {
 				mark: ``,
 				type: ``,
 				range: {},
-				up: null
+				up: [
+				0
+				] as Array<number>
 			}
 			] as Array<MarkupData>,
 			fix_mark: 0,
@@ -1893,7 +1962,9 @@ export const clients = {
 				mark: ``,
 				type: ``,
 				range: {},
-				up: null
+				up: [
+				0
+				] as Array<number>
 			}
 			] as Array<MarkupData>,
 			fix_mark: 0,
@@ -2738,7 +2809,9 @@ export const clients = {
 	GetLegacyApiBackupAkun: {
 		url: "legacy/api/backupAkun" as const,
 		method: "GET" as const,
-		query: undefined,
+		query: {
+			output: ``
+		},
 		body: {},
 		response: {
 			errcode: 0,
@@ -3217,7 +3290,9 @@ export const clients = {
 	GetLegacyApiHastag: {
 		url: "legacy/api/hastag" as const,
 		method: "GET" as const,
-		query: undefined,
+		query: {
+			name: ``
+		},
 		body: {},
 		response: {
 			name: ``,
@@ -3225,6 +3300,15 @@ export const clients = {
 			``
 			] as Array<string>
 		}
+	},
+	GetLegacyApiHastagList: {
+		url: "legacy/api/hastag/list" as const,
+		method: "GET" as const,
+		query: undefined,
+		body: {},
+		response: [
+			``
+		] as Array<string>
 	},
 	PostLegacyApiHastag: {
 		url: "legacy/api/hastag" as const,
@@ -3262,7 +3346,23 @@ export const clients = {
 		body: {},
 		response: {
 			name: ``,
-			data: null
+			data: [
+			0
+			] as Array<number>
+		}
+	},
+	PostLegacyApiConfigHastagLimit: {
+		url: "legacy/api/config/hastagLimit" as const,
+		method: "POST" as const,
+		query: undefined,
+		body: {
+			min: 0,
+			max: 0
+		},
+		response: {
+			errcode: 0,
+			message: ``,
+			status: ``
 		}
 	},
 	GetLegacyV1ExamplespinProducts: {
@@ -3716,16 +3816,35 @@ export const clients = {
 		body: {},
 		response: {
 			data: {
-				akun: ``,
-				awaltanggal: `2021-12-01T07:00:00+07:00`,
-				blokir: false,
-				delete: 0,
-				diarsipkan: false,
-				diperiksa: false,
-				sold: 0,
-				tanggal: `2021-12-01T07:00:00+07:00`,
-				view: 0
-			} as DeleteConfig | undefined
+				limit_concurent: 0,
+				limit_product: 0,
+				title: [
+				``
+				] as Array<string>,
+				product_status: ``,
+				category_id: ``,
+				start_time: 0,
+				end_time: 0,
+				akuns: [
+				{
+						username: ``,
+						password: ``,
+						secret: ``
+					} as AkunDeleteItem | undefined
+				] as Array<AkunDeleteItem | undefined>,
+				sold_filter: {
+					min: 0,
+					max: 0
+				} as SoldConfig | undefined,
+				view_filter: {
+					min: 0,
+					max: 0
+				} as ViewConfig | undefined,
+				price_filter: {
+					min: 0,
+					max: 0
+				} as PriceConfig | undefined
+			} as TokopediaDeleteConfig | undefined
 		}
 	},
 	PutTokopediaDeleterSetting: {
@@ -3733,28 +3852,66 @@ export const clients = {
 		method: "PUT" as const,
 		query: undefined,
 		body: {
-			akun: ``,
-			awaltanggal: `2021-12-01T07:00:00+07:00`,
-			blokir: false,
-			delete: 0,
-			diarsipkan: false,
-			diperiksa: false,
-			sold: 0,
-			tanggal: `2021-12-01T07:00:00+07:00`,
-			view: 0
+			limit_concurent: 0,
+			limit_product: 0,
+			title: [
+			``
+			] as Array<string>,
+			product_status: ``,
+			category_id: ``,
+			start_time: 0,
+			end_time: 0,
+			akuns: [
+			{
+					username: ``,
+					password: ``,
+					secret: ``
+				} as AkunDeleteItem | undefined
+			] as Array<AkunDeleteItem | undefined>,
+			sold_filter: {
+				min: 0,
+				max: 0
+			} as SoldConfig | undefined,
+			view_filter: {
+				min: 0,
+				max: 0
+			} as ViewConfig | undefined,
+			price_filter: {
+				min: 0,
+				max: 0
+			} as PriceConfig | undefined
 		},
 		response: {
 			data: {
-				akun: ``,
-				awaltanggal: `2021-12-01T07:00:00+07:00`,
-				blokir: false,
-				delete: 0,
-				diarsipkan: false,
-				diperiksa: false,
-				sold: 0,
-				tanggal: `2021-12-01T07:00:00+07:00`,
-				view: 0
-			} as DeleteConfig | undefined
+				limit_concurent: 0,
+				limit_product: 0,
+				title: [
+				``
+				] as Array<string>,
+				product_status: ``,
+				category_id: ``,
+				start_time: 0,
+				end_time: 0,
+				akuns: [
+				{
+						username: ``,
+						password: ``,
+						secret: ``
+					} as AkunDeleteItem | undefined
+				] as Array<AkunDeleteItem | undefined>,
+				sold_filter: {
+					min: 0,
+					max: 0
+				} as SoldConfig | undefined,
+				view_filter: {
+					min: 0,
+					max: 0
+				} as ViewConfig | undefined,
+				price_filter: {
+					min: 0,
+					max: 0
+				} as PriceConfig | undefined
+			} as TokopediaDeleteConfig | undefined
 		}
 	},
 	GetTokopediaDumpCategoryDump: {
@@ -4253,7 +4410,8 @@ export const clients = {
 		url: "upload/v6/jakmall_to_shopee" as const,
 		method: "GET" as const,
 		query: {
-			base: ``
+			base: ``,
+			use_mapper: false
 		},
 		body: {},
 		response: {

@@ -10,36 +10,40 @@ import {
     message
 } from "antd"
 import { TextAreaRef } from "antd/es/input/TextArea"
+import { AxiosError } from "axios"
 import dayjs from "dayjs"
 import React, { useState } from "react"
-import { useRequest } from "../client"
-import { AkunDeleteItem } from "../client/sdk_types"
+
+import { AkunDeleteItem, TokopediaDeleteConfig } from "../client/newapisdk"
+import { useMutation } from "../client/sdk_mutation"
+import { Response } from "../client/sdk_types"
 import LabelInput from "../components/LabelInput"
 import { Flex, FlexColumn } from "../styled_components"
 import { accountPayloadChecker } from "../utils/accountPayloadChecker"
 
 export default function AccountDeleter() {
-    const { sender: filterPutter } = useRequest("PutTokopediaDeleterSetting")
-    const { sender: runner } = useRequest("PutTokopediaDeleterRunDelete")
+    const { mutate: filterPutter } = useMutation("PutTokopediaDeleterSetting")
+    const { mutate: runner } = useMutation("PutTokopediaDeleterRunDelete")
     const [accounts, setAccounts] = useState("")
     const textarea = React.createRef<TextAreaRef>()
 
     // bagian setting filter
-    const [limitCon, setLimitCon] = useState(0)
-    const [limitDel, setLimitDel] = useState(0)
-    const [status, setStatus] = useState("")
-    const [keywords, setKeywords] = useState("")
+    const [config, setConfig] = useState<TokopediaDeleteConfig>({
+        limit_concurent: 0,
+        limit_product: 0,
+        title: [],
+        product_status: "",
+        category_id: "",
+        start_time: 0,
+        end_time: 0,
+        akuns: [],
+        sold_filter: undefined,
+        view_filter: undefined,
+        price_filter: undefined
+    })
     const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
         dayjs().subtract(30, "day"),
         dayjs(),
-    ])
-    const [view, setView] = useState<[number | null, number | null]>([
-        null,
-        null,
-    ])
-    const [sold, setSold] = useState<[number | null, number | null]>([
-        null,
-        null,
     ])
 
     const deleteAction = () => {
@@ -53,62 +57,33 @@ export default function AccountDeleter() {
                 })
             },
             (data) => {
-                const payload = data.filter(Boolean) as AkunDeleteItem[]
+                config.akuns = data.filter(Boolean) as AkunDeleteItem[]
+                config.start_time = dateRange[0].unix()
+                config.end_time = dateRange[1].unix()
 
-                filterPutter(
-                    {
-                        method: "put",
-                        path: "tokopedia/deleter/setting",
-                        payload: {
-                            category_id: "",
-                            akuns: payload,
-                            start_time: dateRange[0].unix(),
-                            end_time: dateRange[1].unix(),
-                            limit_concurent: limitCon,
-                            limit_product: limitDel,
-                            product_status: status,
-                            title: keywords
-                                .split("\n")
-                                .map((line) => line.trim())
-                                .filter(Boolean),
-                            ...(sold[1]
-                                ? {
-                                      sold_filter: {
-                                          max: sold[1],
-                                          min: sold[0] || 0,
-                                      },
-                                  }
-                                : {}),
-                            ...(view[1]
-                                ? {
-                                      view_filter: {
-                                          max: view[1],
-                                          min: view[0] || 0,
-                                      },
-                                  }
-                                : {}),
-                        },
+                if (!config.sold_filter?.max) {
+                    config.sold_filter = undefined
+                }
+                if (!config.view_filter?.max) {
+                    config.view_filter = undefined
+                }
+                if (!config.price_filter?.max) {
+                    config.price_filter = undefined
+                }
+
+                filterPutter({
+                    onSuccess() {
+                        message.info("Running deleter...")
+                        runner({
+                            onError(err) {
+                                message.error((err as AxiosError<Response>).response?.data.msg)
+                            },
+                        })
                     },
-                    {
-                        onSuccess() {
-                            message.info("Running deleter...")
-                            runner(
-                                {
-                                    method: "put",
-                                    path: "tokopedia/deleter/run_delete",
-                                },
-                                {
-                                    onError(err) {
-                                        message.error(err.msg)
-                                    },
-                                }
-                            )
-                        },
-                        onError(e) {
-                            message.error(e.msg)
-                        },
-                    }
-                )
+                    onError(err) {
+                        message.error((err as AxiosError<Response>).response?.data.msg)
+                    },
+                }, config)
             }
         )
     }
@@ -131,116 +106,153 @@ export default function AccountDeleter() {
                     />
                     <Card size="small" type="inner" title="Filter">
                         <Flex style={{ alignItems: "start" }}>
-                            <LabelInput
-                                style={{ flex: 1 }}
-                                label="Filter Title (Regex Allowed) :"
-                            >
+                            <LabelInput style={{ flex: 1 }} label="Filter Title (Regex Allowed) :">
                                 <Input.TextArea
                                     size="large"
-                                    autoSize={{ minRows: 13, maxRows: 13 }}
+                                    autoSize={{ minRows: 16, maxRows: 16 }}
                                     placeholder={`rokok herbal
 obat pelangsing
 regex-->obat|jamu|ramuan
                                     `}
-                                    value={keywords}
-                                    onChange={(e) =>
-                                        setKeywords(e.target.value)
-                                    }
+                                    value={config.title.join("\n")}
+                                    onChange={(e) => setConfig({
+                                        ...config,
+                                        title: e.target.value.split("\n")
+                                            .map((line) => line.trim())
+                                            .filter(Boolean)
+                                    })}
                                 />
                             </LabelInput>
                             <FlexColumn style={{ width: "50%" }}>
                                 <Flex style={{ width: "100%" }}>
-                                    <LabelInput
-                                        style={{ flex: 1 }}
-                                        label="Limit Concurrent :"
-                                    >
+                                    <LabelInput style={{ flex: 1 }} label="Limit Concurrent :">
                                         <InputNumber
                                             style={{ width: "100%" }}
                                             placeholder="10"
-                                            value={limitCon}
-                                            onChange={(e) =>
-                                                e && setLimitCon(e)
+                                            value={config.limit_concurent}
+                                            onChange={(limit_concurent) => limit_concurent &&
+                                                setConfig({ ...config, limit_concurent })
                                             }
                                         />
                                     </LabelInput>
-                                    <LabelInput
-                                        style={{ flex: 1 }}
-                                        label="Limit Delete :"
-                                    >
+                                    <LabelInput style={{ flex: 1 }} label="Limit Delete :">
                                         <InputNumber
                                             style={{ width: "100%" }}
                                             placeholder="10"
-                                            value={limitDel}
-                                            onChange={(e) =>
-                                                e && setLimitDel(e)
+                                            value={config.limit_product}
+                                            onChange={(limit_product) => limit_product &&
+                                                setConfig({ ...config, limit_product })
                                             }
                                         />
                                     </LabelInput>
                                 </Flex>
                                 <Flex style={{ width: "100%" }}>
-                                    <LabelInput
-                                        style={{ flex: 1 }}
-                                        label="Sold :"
-                                    >
-                                        <Flex
-                                            style={{
-                                                alignItems: "center",
-                                                columnGap: 7,
-                                            }}
-                                        >
+                                    <LabelInput style={{ flex: 1 }} label="Sold :">
+                                        <Flex style={{
+                                            alignItems: "center",
+                                            columnGap: 7,
+                                        }}>
                                             <InputNumber
                                                 style={{ width: "100%" }}
                                                 placeholder="Min"
-                                                value={sold[0]}
-                                                onChange={(e) =>
-                                                    setSold((s) => [e, s[1]])
-                                                }
+                                                value={config.sold_filter?.min}
+                                                onChange={(e) => setConfig({
+                                                    ...config,
+                                                    sold_filter: {
+                                                        min: e || 0,
+                                                        max: config.sold_filter?.max || 0,
+                                                    },
+                                                })}
                                             />
                                             -
                                             <InputNumber
                                                 style={{ width: "100%" }}
                                                 placeholder="Max"
-                                                value={sold[1]}
-                                                onChange={(e) =>
-                                                    setSold((s) => [s[0], e])
-                                                }
+                                                value={config.sold_filter?.max}
+                                                onChange={(e) => setConfig({
+                                                    ...config,
+                                                    sold_filter: {
+                                                        min: config.sold_filter?.min || 0,
+                                                        max: e || 0,
+                                                    },
+                                                })}
                                             />
                                         </Flex>
                                     </LabelInput>
-                                    <LabelInput
-                                        style={{ flex: 1 }}
-                                        label="View :"
-                                    >
-                                        <Flex
-                                            style={{
-                                                alignItems: "center",
-                                                columnGap: 7,
-                                            }}
-                                        >
+                                    <LabelInput style={{ flex: 1 }} label="View :">
+                                        <Flex style={{
+                                            alignItems: "center",
+                                            columnGap: 7,
+                                        }}>
                                             <InputNumber
                                                 style={{ width: "100%" }}
                                                 placeholder="Min"
-                                                value={view[0] || null}
-                                                onChange={(e) =>
-                                                    setView((v) => [e, v[1]])
-                                                }
+                                                value={config.view_filter?.min}
+                                                onChange={(e) => setConfig({
+                                                    ...config,
+                                                    view_filter: {
+                                                        min: e || 0,
+                                                        max: config.view_filter?.max || 0,
+                                                    },
+                                                })}
                                             />
                                             -
                                             <InputNumber
                                                 style={{ width: "100%" }}
                                                 placeholder="Max"
-                                                value={view[1] || null}
-                                                onChange={(e) =>
-                                                    setView((v) => [v[0], e])
-                                                }
+                                                value={config.view_filter?.max}
+                                                onChange={(e) => setConfig({
+                                                    ...config,
+                                                    view_filter: {
+                                                        min: config.view_filter?.min || 0,
+                                                        max: e || 0,
+                                                    },
+                                                })}
                                             />
                                         </Flex>
                                     </LabelInput>
                                 </Flex>
+                                <LabelInput style={{ flex: 1 }} label="Price :">
+                                    <Flex style={{
+                                        alignItems: "center",
+                                        columnGap: 7,
+                                    }}>
+                                        <InputNumber
+                                            style={{ width: "100%" }}
+                                            placeholder="Min"
+                                            prefix="Rp."
+                                            value={config.price_filter?.min}
+                                            onChange={(e) => setConfig({
+                                                ...config,
+                                                price_filter: {
+                                                    min: e || 0,
+                                                    max: config.price_filter?.max || 0,
+                                                },
+                                            })}
+                                        />
+                                        -
+                                        <InputNumber
+                                            style={{ width: "100%" }}
+                                            placeholder="Max"
+                                            prefix="Rp."
+                                            value={config.price_filter?.max}
+                                            onChange={(e) => setConfig({
+                                                ...config,
+                                                price_filter: {
+                                                    min: config.price_filter?.min || 0,
+                                                    max: e || 0,
+                                                },
+                                            })}
+                                        />
+                                    </Flex>
+                                </LabelInput>
                                 <LabelInput label="Product Status :">
                                     <Select
-                                        value={status}
-                                        onChange={setStatus}
+                                        value={config.product_status}
+                                        onChange={(product_status) => setConfig({
+                                            ...config,
+                                            product_status,
+                                        })}
                                         defaultValue=""
                                     >
                                         <Select.Option value="">
@@ -257,10 +269,7 @@ regex-->obat|jamu|ramuan
                                         </Select.Option>
                                     </Select>
                                 </LabelInput>
-                                <LabelInput
-                                    style={{ flex: 2 }}
-                                    label="Date Range :"
-                                >
+                                <LabelInput style={{ flex: 2 }} label="Date Range :">
                                     <DatePicker.RangePicker
                                         onChange={(d) => {
                                             if (d?.[0] && d?.[1])
