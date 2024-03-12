@@ -16,6 +16,7 @@ type AutochatSender struct {
 	socket  *chat.SocketClient
 	message *AutochatMessage
 	config  *AutochatConfig
+	OnDone  func()
 }
 
 func NewAutochatSender(api *api.TokopediaApi, message *AutochatMessage, config *AutochatConfig) *AutochatSender {

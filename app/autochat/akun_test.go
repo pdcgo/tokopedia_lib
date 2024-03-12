@@ -1,7 +1,6 @@
 package autochat_test
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/pdcgo/tokopedia_lib/app/autochat"
@@ -20,31 +19,33 @@ func TestAkun(t *testing.T) {
 		config, err := autochat.NewAutochatConfig(scen)
 		assert.Nil(t, err)
 
+		limit := 5
+		fname := scen.Path(config.AkunLoc)
 		app := autochat.NewApplication(scen, message, config)
 
-		t.Run("iterate akun sender file not exist", func(t *testing.T) {
+		t.Run("get akuns file not exist", func(t *testing.T) {
 
-			akunchan, err := app.IterateAkunSender()
+			akuns, err := autochat.GetAkuns(fname)
 			assert.Nil(t, err)
-
-			count := 0
-			for range akunchan {
-				count++
-			}
-			assert.Zero(t, count)
+			assert.Zero(t, len(akuns))
 		})
 
-		t.Run("iterate akun sender file exist", func(t *testing.T) {
+		t.Run("save akuns", func(t *testing.T) {
 
-			akuns := []string{}
-			for i := 0; i < 5; i++ {
-				akuns = append(akuns, "pdcthoni@gmail.com|SilentIsMyMantra|IULIWGH6TIK3CZBKHGE27DBRLQ5LR5WQ")
+			akuns := []*autochat.Akun{}
+			for i := 0; i < limit; i++ {
+				akuns = append(akuns, &autochat.Akun{
+					Username: "pdcthoni@gmail.com",
+					Password: "SilentIsMyMantra",
+					Secret:   "IULIWGH6TIK3CZBKHGE27DBRLQ5LR5WQ",
+				})
 			}
 
-			akundata := strings.Join(akuns, "\n")
-			remove := scen.CreateFile([]byte(akundata), scen.Path(config.AkunLoc))
-			defer remove()
+			err := autochat.SaveAkuns(fname, akuns)
+			assert.Nil(t, err)
+		})
 
+		t.Run("iterate akun sender", func(t *testing.T) {
 			akunchan, err := app.IterateAkunSender()
 			assert.Nil(t, err)
 
@@ -52,7 +53,7 @@ func TestAkun(t *testing.T) {
 			for range akunchan {
 				count++
 			}
-			assert.Equal(t, count, len(akuns))
+			assert.Equal(t, count, limit)
 		})
 	})
 }

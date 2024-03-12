@@ -162,7 +162,7 @@ func (app *Application) Run(mode AutochatMode) error {
 		return app.RunAutoReply()
 
 	default:
-		log.Printf("mode %d tidak ditemukan", mode)
+		log.Printf("\nmode %d tidak ditemukan", mode)
 		return nil
 	}
 }
