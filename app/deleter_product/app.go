@@ -13,10 +13,10 @@ import (
 
 type DeleteRunner struct {
 	limitGuard chan int
-	Config     *DeleteConfig
+	Config     *TokopediaDeleteConfig
 }
 
-func NewDeleteRunner(cfg *DeleteConfig) *DeleteRunner {
+func NewDeleteRunner(cfg *TokopediaDeleteConfig) *DeleteRunner {
 	deleter := DeleteRunner{
 		limitGuard: make(chan int, cfg.LimitConcurent),
 		Config:     cfg,

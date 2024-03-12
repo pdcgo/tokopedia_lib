@@ -2,10 +2,22 @@ package api
 
 import "github.com/pdcgo/tokopedia_lib/lib/model"
 
-func (api *TokopediaApi) VariantPricevValidation(catId int, variant *model.Variant) (*model.VPVRes, error) {
+func (api *TokopediaApi) VariantPriceValidation(catId int, variant *model.Variant) (*model.VPVRes, error) {
+
+	cpvariant := &model.Variant{
+		Products:   model.ProductVariants{},
+		Selections: variant.Selections,
+		Sizecharts: []any{},
+	}
+
+	for _, prod := range variant.Products {
+		prod.Pictures = []model.Pictures{}
+		cpvariant.Products = append(cpvariant.Products, prod)
+	}
+
 	variable := model.VPVVariable{
 		Input: &model.VPVInput{
-			Variant: variant,
+			Variant: cpvariant,
 			Category: &model.VPVCategory{
 				ID: catId,
 			},

@@ -17,7 +17,7 @@ type DeleterApi struct {
 }
 
 type DeleteSettingRes struct {
-	Data *deleter_product.DeleteConfig `json:"data"`
+	Data *deleter_product.TokopediaDeleteConfig `json:"data"`
 }
 
 func (runapi *DeleterApi) GetSetting(c *gin.Context) {
@@ -33,7 +33,7 @@ func (runapi *DeleterApi) GetSetting(c *gin.Context) {
 }
 
 func (runapi *DeleterApi) UpdateSetting(c *gin.Context) {
-	var payload deleter_product.DeleteConfig
+	var payload deleter_product.TokopediaDeleteConfig
 	c.BindJSON(&payload)
 
 	fname := runapi.base.Path("data/deleter_config.json")
@@ -75,7 +75,7 @@ func RegisterDeleterApi(grp *v2_gots_sdk.SdkGroup, base repo.BaseInterface) {
 	delgrp.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "setting",
-		Payload:      deleter_product.DeleteConfig{},
+		Payload:      deleter_product.TokopediaDeleteConfig{},
 		Response:     DeleteSettingRes{},
 	}, deleter.UpdateSetting)
 

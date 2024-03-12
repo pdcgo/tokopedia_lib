@@ -59,3 +59,12 @@ type VPVData struct {
 type VPVRes struct {
 	Data VPVData `json:"data"`
 }
+
+func (r *VPVRes) GetPriceGab() int {
+
+	if r.Data.ProductValidateV3 != nil && r.Data.ProductValidateV3.Data != nil {
+		return r.Data.ProductValidateV3.Data.Variants.GetPriceGab()
+	}
+
+	return 0
+}
