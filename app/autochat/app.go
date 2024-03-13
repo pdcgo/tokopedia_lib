@@ -3,9 +3,9 @@ package autochat
 import (
 	"context"
 	"encoding/csv"
+	"errors"
 	"io"
 	"log"
-	"os"
 	"sync"
 
 	"github.com/gocarina/gocsv"
@@ -31,44 +31,122 @@ const (
 )
 
 type Application struct {
-	base    pdc_application.BaseApplication
-	message *AutochatMessage
-	config  *AutochatConfig
+	base      pdc_application.BaseApplication
+	message   *AutochatMessage
+	config    *AutochatConfig
+	akundata  *AkunData
+	shopdata  *ShopData
+	limitchan chan bool
 }
 
 func NewApplication(
 	base pdc_application.BaseApplication,
 	message *AutochatMessage,
 	config *AutochatConfig,
+	akundata *AkunData,
+	shopdata *ShopData,
 ) *Application {
 
 	return &Application{
-		base:    base,
-		message: message,
-		config:  config,
+		base:      base,
+		message:   message,
+		config:    config,
+		akundata:  akundata,
+		shopdata:  shopdata,
+		limitchan: make(chan bool, config.Concurrent),
 	}
+}
+
+func (app *Application) autoSendOneToMulti(wg *sync.WaitGroup, autosend *AutochatSend, updateItem report.EditAutosendReportItem) {
+
+	defer wg.Done()
+
+	app.limitchan <- true
+	defer func() {
+		<-app.limitchan
+	}()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	app.shopdata.Iterate(func(shop *Shop) error {
+
+		updateItem(func(item *report.AutosendReportItem) error {
+			item.SellerChatProcessed++
+			return nil
+		})
+		defer func() {
+			updateItem(func(item *report.AutosendReportItem) error {
+				item.SellerChatDone++
+				return nil
+			})
+		}()
+
+		limit := app.config.LimitMessageSend.Get()
+		err := autosend.Run(ctx, limit, shop.ShopName)
+		if err != nil {
+			updateItem(func(item *report.AutosendReportItem) error {
+				item.Error = err.Error()
+				return nil
+			})
+		}
+
+		return nil
+	})
+}
+
+func (app *Application) autoSendOneToOne(wg *sync.WaitGroup, autosend *AutochatSend, updateItem report.EditAutosendReportItem) {
+
+	defer wg.Done()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	app.shopdata.Iterate(func(shop *Shop) error {
+
+		updateItem(func(item *report.AutosendReportItem) error {
+			item.SellerChatProcessed++
+			return nil
+		})
+		defer func() {
+			updateItem(func(item *report.AutosendReportItem) error {
+				item.SellerChatDone++
+				return nil
+			})
+		}()
+
+		for {
+			shop, err := app.shopdata.Get()
+			if errors.Is(err, ErrNoShopMore) || errors.Is(err, ErrNoShop) {
+				break
+			}
+
+			func() {
+				app.limitchan <- true
+				defer func() {
+					shop.Status = SHOP_STATUS_DONE
+					app.shopdata.Save()
+					<-app.limitchan
+				}()
+
+				limit := app.config.LimitMessageSend.Get()
+				err := autosend.Run(ctx, limit, shop.ShopName)
+				if err != nil {
+					updateItem(func(item *report.AutosendReportItem) error {
+						item.Error = err.Error()
+						return nil
+					})
+				}
+			}()
+		}
+
+		return nil
+	})
 }
 
 func (app *Application) RunAutoSend() error {
 
-	limitchan := make(chan bool, app.config.Concurrent)
-	senderchan, err := app.IterateAkunSender()
-	if err != nil {
-		return err
-	}
-
-	fname := app.base.Path(app.config.ShopLoc)
-	file, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	shops, err := fileLineSplit(file)
-	if err != nil {
-		return err
-	}
-	shoplen := len(shops)
-
+	shoplen := len(app.shopdata.Data)
 	pubapi, err := api_public.NewTokopediaApiPublic()
 	if err != nil {
 		return err
@@ -77,55 +155,35 @@ func (app *Application) RunAutoSend() error {
 	autoreport := report.NewAutosendReport(app.base)
 
 	var wg sync.WaitGroup
-	for akun := range senderchan {
+	app.akundata.IterateAkunSender(app.message, func(akun *Akun, sender *AutochatSender) error {
 
-		_, updateItem := autoreport.CreateItem(akun.GetName(), shoplen)
-		updateItem(func(item *report.AutosendReportItem) error {
-			item.SellerChatProcessed++
-			return nil
-		})
+		_, updateItem := autoreport.CreateItem(sender.GetName(), shoplen)
 
 		wg.Add(1)
-		go func(sender *AutochatSender) {
-			defer wg.Done()
+		autosend := NewAutochatSend(sender, pubapi, updateItem, app.config.Autosend)
 
-			limitchan <- true
+		go func() {
+
 			defer func() {
-				updateItem(func(item *report.AutosendReportItem) error {
-					item.SellerChatDone++
-					return nil
-				})
-				<-limitchan
+				akun.Status = AKUN_STATUS_DONE
+				app.akundata.Save()
 			}()
 
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-
-			autosend := NewAutochatSend(sender, pubapi, updateItem, akun.config.Autosend)
-			for _, shop := range shops {
-
-				limit := app.config.LimitMessageSend.Get()
-				err := autosend.Run(ctx, limit, shop)
-				if err != nil {
-					updateItem(func(item *report.AutosendReportItem) error {
-						item.Error = err.Error()
-						return nil
-					})
-				}
+			if app.config.Autosend.OneToMulti {
+				app.autoSendOneToMulti(&wg, autosend, updateItem)
+			} else {
+				app.autoSendOneToOne(&wg, autosend, updateItem)
 			}
+		}()
 
-		}(akun)
-	}
+		return nil
+	})
 
 	wg.Wait()
 	return nil
 }
 
 func (app *Application) RunAutoReply() error {
-	senderchan, err := app.IterateAkunSender()
-	if err != nil {
-		return err
-	}
 
 	parentCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -133,7 +191,7 @@ func (app *Application) RunAutoReply() error {
 	autoreport := report.NewAutoreplyReport(app.base)
 
 	var wg sync.WaitGroup
-	for akun := range senderchan {
+	app.akundata.IterateAkunSender(app.message, func(akun *Akun, sender *AutochatSender) error {
 
 		wg.Add(1)
 		go func(sender *AutochatSender) {
@@ -144,8 +202,10 @@ func (app *Application) RunAutoReply() error {
 
 			autoreply := NewAutochatReply(sender)
 			autoreply.Run(ctx, autoreport)
-		}(akun)
-	}
+		}(sender)
+
+		return nil
+	})
 
 	wg.Wait()
 	return nil

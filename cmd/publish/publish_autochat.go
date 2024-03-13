@@ -11,7 +11,7 @@ import (
 var autochatStorage = "tokopedia_chat_artifact"
 var autochatVariant = "auto_chat"
 var autochatEntryPoint = "./bin/autochat.exe"
-var autochatVersion = "1.0.1"
+var autochatVersion = "1.0.2"
 
 func publishAutochat(ctx *cli.Context) error {
 

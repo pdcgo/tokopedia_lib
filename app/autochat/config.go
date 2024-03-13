@@ -22,6 +22,7 @@ func (i *Range) Get() int {
 
 type AutosendConfig struct {
 	CustomLastMessage string `json:"custom_last_message"`
+	OneToMulti        bool   `json:"one_to_multi"`
 }
 
 type AutochatConfig struct {
@@ -76,7 +77,9 @@ func NewAutochatConfig(base pdc_application.BaseApplication) (*AutochatConfig, e
 			Min: 4,
 			Max: 6,
 		},
-		Autosend: &AutosendConfig{},
+		Autosend: &AutosendConfig{
+			OneToMulti: true,
+		},
 	}
 
 	fname := base.Path(AutoConfigName)
@@ -105,11 +108,9 @@ func NewAutochatConfig(base pdc_application.BaseApplication) (*AutochatConfig, e
 	if err != nil {
 		return &autoconfig, err
 	}
-	if checkAutoconfig.Autosend == nil {
-		err = writeConfig(fname, &autoconfig)
-		if err != nil {
-			return &autoconfig, err
-		}
+	err = writeConfig(fname, &autoconfig)
+	if err != nil {
+		return &autoconfig, err
 	}
 
 	return &autoconfig, nil

@@ -149,9 +149,6 @@ Parent:
 			}
 
 			if limit <= 0 {
-				if s.sender.OnDone != nil {
-					s.sender.OnDone()
-				}
 				break Parent
 			}
 		}

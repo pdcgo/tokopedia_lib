@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/pdcgo/common_conf/pdc_application"
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib"
 )
@@ -45,39 +46,53 @@ func (a *Akun) ToLine() string {
 	}, "|")
 }
 
-func GetAkuns(fname string) (akuns []*Akun, err error) {
+type AkunData struct {
+	sync.Mutex
+
+	config *AutochatConfig
+	fname  string
+	Data   []*Akun
+}
+
+func NewAkunData(base pdc_application.BaseApplication, config *AutochatConfig) (*AkunData, error) {
+
+	fname := base.Path(config.AkunLoc)
+	akundata := AkunData{
+		config: config,
+		fname:  fname,
+	}
 
 	file, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err != nil {
-		return nil, err
+		return &akundata, err
 	}
 	defer file.Close()
 
 	lines, err := fileLineSplit(file)
 	if err != nil {
-		return nil, err
+		return &akundata, err
 	}
 
 	for _, line := range lines {
 
 		akun := Akun{}
 		akun.ParseLine(line)
-		akuns = append(akuns, &akun)
+		akundata.Data = append(akundata.Data, &akun)
 	}
 
-	return
+	return &akundata, nil
 }
 
-func SaveAkuns(fname string, akuns []*Akun) error {
+func (ad *AkunData) Save() error {
 
-	file, err := os.Create(fname)
+	file, err := os.Create(ad.fname)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
 	lines := []string{}
-	for _, akun := range akuns {
+	for _, akun := range ad.Data {
 		lines = append(lines, akun.ToLine())
 	}
 
@@ -85,58 +100,37 @@ func SaveAkuns(fname string, akuns []*Akun) error {
 	return err
 }
 
-func (app *Application) IterateAkunSender() (chan *AutochatSender, error) {
+func (ad *AkunData) IterateAkunSender(message *AutochatMessage, handler func(akun *Akun, sender *AutochatSender) error) error {
 
-	var lock sync.Mutex
-	fname := app.base.Path(app.config.AkunLoc)
-	akunsendchan := make(chan *AutochatSender, app.config.Concurrent)
-	akuns, err := GetAkuns(fname)
+	for _, akun := range ad.Data {
 
-	if os.IsNotExist(err) {
-		close(akunsendchan)
-		return akunsendchan, nil
+		if akun.Status == AKUN_STATUS_DONE {
+			log.Printf("[ %s ] akun status done...", akun.Username)
+			continue
+		}
 
-	} else if err != nil {
-		return nil, err
+		driver, err := tokopedia_lib.NewDriverAccount(
+			akun.Username,
+			akun.Password,
+			akun.Secret,
+		)
+		if err != nil {
+			pdc_common.ReportError(err)
+			continue
+		}
+
+		api, _, err := driver.CreateApi()
+		if err != nil {
+			pdc_common.ReportError(err)
+			continue
+		}
+
+		sender := NewAutochatSender(api, message, ad.config)
+		err = handler(akun, sender)
+		if err != nil {
+			return err
+		}
 	}
 
-	go func() {
-		defer close(akunsendchan)
-
-		for _, akun := range akuns {
-
-			if akun.Status == AKUN_STATUS_DONE {
-				log.Printf("[ %s ] akun status done...", akun.Username)
-				continue
-			}
-
-			driver, err := tokopedia_lib.NewDriverAccount(
-				akun.Username,
-				akun.Password,
-				akun.Secret,
-			)
-			if err != nil {
-				pdc_common.ReportError(err)
-				continue
-			}
-
-			api, _, err := driver.CreateApi()
-			if err != nil {
-				pdc_common.ReportError(err)
-				continue
-			}
-
-			sender := NewAutochatSender(api, app.message, app.config)
-			sender.OnDone = func() {
-				lock.Lock()
-				defer lock.Unlock()
-
-				akun.Status = AKUN_STATUS_DONE
-				SaveAkuns(fname, akuns)
-			}
-			akunsendchan <- sender
-		}
-	}()
-
-	return akunsendchan, nil
+	return nil
 }

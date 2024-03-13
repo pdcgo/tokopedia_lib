@@ -13,6 +13,8 @@ func InitApplication(base pdc_application.BaseApplication) (*Application, error)
 	wire.Build(
 		NewAutochatMessage,
 		NewAutochatConfig,
+		NewAkunData,
+		NewShopData,
 		NewApplication,
 	)
 

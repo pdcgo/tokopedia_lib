@@ -21,6 +21,14 @@ func InitApplication(base pdc_application.BaseApplication) (*Application, error)
 	if err != nil {
 		return nil, err
 	}
-	application := NewApplication(base, autochatMessage, autochatConfig)
+	akunData, err := NewAkunData(base, autochatConfig)
+	if err != nil {
+		return nil, err
+	}
+	shopData, err := NewShopData(base, autochatConfig)
+	if err != nil {
+		return nil, err
+	}
+	application := NewApplication(base, autochatMessage, autochatConfig, akunData, shopData)
 	return application, nil
 }
