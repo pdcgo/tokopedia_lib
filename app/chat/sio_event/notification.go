@@ -9,12 +9,12 @@ import (
 )
 
 type NotificationEvent struct {
-	Shopid int                         `json:"shopid"`
+	Shopid int                         `json:"shopid,string"`
 	Event  *api.NotificationCounterRes `json:"event"`
 }
 
 type SyncAccountNotificationEvent struct {
-	Shopid              int `json:"shopid"`
+	Shopid              int `json:"shopid,string"`
 	ArriveAtDestination int `json:"arriveAtDestination"`
 	NewOrder            int `json:"newOrder"`
 	ReadyToShip         int `json:"readyToShip"`

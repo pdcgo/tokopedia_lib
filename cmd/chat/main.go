@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	conf := config.NewAppConfig(".\\..")
+	conf := config.NewAppConfig(".")
 	if !conf.DebugMode {
 		gin.SetMode(gin.ReleaseMode)
 	}

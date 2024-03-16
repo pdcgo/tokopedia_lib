@@ -27,7 +27,7 @@ func (cfg *InitConfig) Save() error {
 }
 
 func NewInitConfig(config *AppConfig) *InitConfig {
-	loc := config.FullPath("chat_init_config.yml")
+	loc := config.Path("chat_init_config.yml")
 
 	initcfg := InitConfig{
 		Loc:         loc,

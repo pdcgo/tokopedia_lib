@@ -9,7 +9,7 @@ import (
 
 func CreateSqliteDatabase(conf *config.AppConfig) *gorm.DB {
 
-	dst := conf.FullPath("tokopedia_chat.db")
+	dst := conf.Path("tokopedia_chat.db")
 	sqlitedb := datasource.NewSqliteDatabase(dst)
 
 	sqlitedb.AutoMigrate(

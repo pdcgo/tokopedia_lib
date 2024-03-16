@@ -5,21 +5,27 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
+	"github.com/pdcgo/tokopedia_lib/app/chat/report"
+	"github.com/pdcgo/tokopedia_lib/app/withdraw"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 )
 
 type AccountService struct {
 	sync.Mutex
 	accountRepo *repo.AccountRepo
+	driverGroup *group.DriverGroup
 }
 
-func NewAccountService(accountRepo *repo.AccountRepo) *AccountService {
+func NewAccountService(accountRepo *repo.AccountRepo, driverGroup *group.DriverGroup) *AccountService {
 	return &AccountService{
 		accountRepo: accountRepo,
+		driverGroup: driverGroup,
 	}
 }
 
@@ -29,32 +35,10 @@ type Account struct {
 	Username    string `json:"username"`
 }
 
-func (s *AccountService) AddAccount(account Account, groupName string) error {
-
-	lock := s.TryLock()
-	if !lock {
-		return errors.New("masih dalam pemrosesan akun lain")
-	}
-	defer s.Unlock()
-
-	driver, err := tokopedia_lib.NewDriverAccount(
-		account.Username,
-		account.Password,
-		account.OtpPassword,
-	)
-	if err != nil {
-		return err
-	}
-
-	api, saveSession, err := driver.CreateApi()
-	if err != nil {
-		return err
-	}
-	defer saveSession()
-
+func (s *AccountService) createAccount(account Account, api *api.TokopediaApi) (*model.AccountData, error) {
 	auth, err := api.IsAutheticated()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	user := auth.Data.User
@@ -65,17 +49,17 @@ func (s *AccountService) AddAccount(account Account, groupName string) error {
 			"username %s tidak sama dengan %s / %s",
 			account.Username, user.Name, user.Email,
 		)
-		return errors.New(msg)
+		return nil, errors.New(msg)
 	}
 
 	info, err := api.AccountInfo()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	notif, err := api.NotificationCounter()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	shopInfo := info.Data.UserShopInfo.Info
@@ -95,8 +79,32 @@ func (s *AccountService) AddAccount(account Account, groupName string) error {
 		},
 	}
 
-	err = s.accountRepo.AddAccountData(groupName, accountData)
-	return err
+	return &accountData, nil
+}
+
+func (s *AccountService) AddAccount(account Account, groupName string) error {
+
+	lock := s.TryLock()
+	if !lock {
+		return errors.New("masih dalam pemrosesan akun lain")
+	}
+	defer s.Unlock()
+
+	err := s.driverGroup.AddDriver(account.Username, account.Password, account.OtpPassword)
+	if err != nil {
+		return err
+	}
+
+	return s.driverGroup.WithDriverApi(account.Username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
+
+		accountData, err := s.createAccount(account, api)
+		if err != nil {
+			return err
+		}
+
+		err = s.accountRepo.AddAccountData(groupName, accountData)
+		return err
+	})
 }
 
 func (s *AccountService) SyncAccount(shopid int, notifHash string, notif *api.NotificationCounterRes) (err error) {
@@ -110,4 +118,50 @@ func (s *AccountService) SyncAccount(shopid int, notifHash string, notif *api.No
 		account.NotifHash = notifHash
 	})
 	return err
+}
+
+var ErrPinKosong = errors.New("pin kosong")
+var WdLock sync.Mutex
+
+func (s *AccountService) Withdraw(username string, pin string, report *report.WitdrawReport) (err error) {
+
+	WdLock.Lock()
+	defer func() {
+		time.Sleep(time.Second)
+		WdLock.Unlock()
+	}()
+
+	item := &withdraw.WithdrawReport{
+		Jumlah:    "Rp0",
+		SisaSaldo: "Rp0",
+	}
+	if report != nil {
+		report.Add(item)
+		defer report.Save()
+	}
+
+	return s.driverGroup.WithDriverApi(username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
+
+		items, err := withdraw.GetUnwithdrawTransaction(api)
+		if err != nil {
+			return err
+		}
+		if report != nil {
+			report.Add(items...)
+		}
+
+		if pin == "" {
+			item.Keterangan = ErrPinKosong.Error()
+			return ErrPinKosong
+		}
+
+		return driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
+			wd := withdraw.NewWithdraw(api)
+			err := wd.Run(dctx, pin, item)
+			if err != nil {
+				item.Keterangan = err.Error()
+			}
+			return err
+		})
+	})
 }

@@ -3,13 +3,12 @@ package helper
 import (
 	"log"
 	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/faiface/beep"
+	"github.com/faiface/beep/mp3"
 	"github.com/faiface/beep/speaker"
-	"github.com/faiface/beep/wav"
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 )
 
@@ -37,12 +36,12 @@ func (s *SoundPlayer) Pause() {
 
 func NewSoundPlayer(config *config.AppConfig) *SoundPlayer {
 
-	f, err := os.Open(filepath.Join(config.Base, "data/sound/alert-chat.mp3"))
+	f, err := os.Open(config.Path("./data/sound/alert-chat.mp3"))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	streamer, format, err := wav.Decode(f)
+	streamer, format, err := mp3.Decode(f)
 	if err != nil {
 		log.Fatal(err)
 	}

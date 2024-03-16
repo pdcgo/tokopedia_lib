@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
@@ -66,7 +67,7 @@ func (api *BaseDriverApi) WithDriverApi(shopid int, handler DriverApiHandler) er
 		return err
 	}
 
-	return api.driverGroup.WithDriverApi(account.GetUsername(), func(chatapi *tokpedapi.TokopediaApi) error {
+	return api.driverGroup.WithDriverApi(account.GetUsername(), func(driver *tokopedia_lib.DriverAccount, chatapi *tokpedapi.TokopediaApi) error {
 		return handler(account, chatapi)
 	})
 }

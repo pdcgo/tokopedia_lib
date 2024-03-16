@@ -7,6 +7,7 @@ import (
 
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
@@ -82,7 +83,7 @@ func (g *ChatGroup) Connect(groupName string) {
 				return nil
 			}
 
-			err = g.driverGroup.WithDriverApi(account.Username, func(api *api.TokopediaApi) error {
+			err = g.driverGroup.WithDriverApi(account.Username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
 				return g.socketGroup.AddSocket(g.connectCtx, &account, api)
 			})
 			if err != nil {
@@ -117,7 +118,7 @@ func (g *ChatGroup) Reconnect(shopid int) error {
 	username := account.GetUsername()
 	err = g.socketGroup.WithSocket(username, func(sc *chat.SocketClient) error {
 
-		g.sio.BroadcastToNamespace("", "disconnected_event", sio_event.SocketDisconnectedEvent{
+		g.sio.BroadcastToNamespace("", "disconnected_event", &sio_event.SocketDisconnectedEvent{
 			Shopid: int(sc.Api.AuthenticatedData.UserShopInfo.Info.ShopID),
 		})
 
@@ -128,7 +129,7 @@ func (g *ChatGroup) Reconnect(shopid int) error {
 		return err
 	}
 
-	return g.driverGroup.WithDriverApi(username, func(api *api.TokopediaApi) error {
+	return g.driverGroup.WithDriverApi(username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
 		return g.socketGroup.AddSocket(g.connectCtx, account.AccountData, api)
 	})
 }

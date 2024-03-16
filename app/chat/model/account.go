@@ -32,6 +32,7 @@ type AccountData struct {
 	ShopID      int    `json:"-"`
 	Pinned      bool   `json:"pinned"`
 	Deleted     bool   `json:"-"`
+	Pin         string `json:"pin"`
 
 	Account Account `gorm:"foreignKey:ShopID" json:"-"`
 	Groups  []Group `gorm:"many2many:account_groups" json:"groups"`

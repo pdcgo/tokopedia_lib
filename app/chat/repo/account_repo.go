@@ -60,7 +60,7 @@ func (repo *AccountRepo) IterateGroupAccount(groupName string, handler func(acco
 	return nil
 }
 
-func (repo *AccountRepo) AddAccountData(groupName string, accountData model.AccountData) error {
+func (repo *AccountRepo) AddAccountData(groupName string, accountData *model.AccountData) error {
 
 	group := model.Group{
 		Name: groupName,
@@ -127,6 +127,7 @@ func (repo *AccountRepo) List(filter *ListAccountFilter) ([]*model.Account, erro
 		tx = tx.Where(`EXISTS (
 			SELECT 1 FROM "groups", account_groups
 			WHERE AccountData__id = account_groups.account_data_id
+			AND AccountData__deleted = false
 			AND "groups".id = account_groups.group_id
 			AND "groups".name = ?
 		)`, filter.GroupName)
@@ -134,6 +135,7 @@ func (repo *AccountRepo) List(filter *ListAccountFilter) ([]*model.Account, erro
 		tx = tx.Where(`EXISTS (
 			SELECT 1 FROM "groups", account_groups
 			WHERE AccountData__id = account_groups.account_data_id
+			AND AccountData__deleted = false
 			AND "groups".id = account_groups.group_id
 		)`)
 	}
@@ -161,4 +163,19 @@ func (repo *AccountRepo) List(filter *ListAccountFilter) ([]*model.Account, erro
 	}
 
 	return accounts, nil
+}
+
+func (repo *AccountRepo) RemoveAccount(username string) error {
+
+	akunData := model.AccountData{
+		Username: username,
+	}
+	tx := repo.db.First(&akunData)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	akunData.Deleted = true
+	tx = repo.db.Save(&akunData)
+	return tx.Error
 }

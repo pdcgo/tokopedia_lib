@@ -67,11 +67,12 @@ type ChatRoomRes struct {
 }
 
 type ChatRoomVar struct {
-	PerPage    int    `json:"perPage"`
-	MessageID  int64  `json:"messageId"`
-	Keyword    string `json:"keyword"`
-	IsTextOnly bool   `json:"isTextOnly"`
-	Page       int    `json:"page"`
+	PerPage         int    `json:"perPage"`
+	MessageID       int64  `json:"messageId"`
+	Keyword         string `json:"keyword"`
+	IsTextOnly      bool   `json:"isTextOnly"`
+	Page            int    `json:"page"`
+	BeforeReplyTime string `json:"beforeReplyTime,omitempty"`
 }
 
 func (api *TokopediaApi) GetChatRoom(variables ChatRoomVar) (*ChatRoomRes, error) {

@@ -9,15 +9,16 @@ import (
 )
 
 type AppConfig struct {
-	Base        string `yaml:"-"`
-	Port        string `yaml:"-"`
-	Host        string `yaml:"-"`
-	DebugMode   bool   `yaml:"debug_mode"`
-	OpenBrowser bool   `yaml:"open_browser"`
-	GsheetUrl   string `yaml:"google_sheet_url"`
+	Base                string `yaml:"-"`
+	Port                string `yaml:"-"`
+	Host                string `yaml:"-"`
+	DebugMode           bool   `yaml:"debug_mode"`
+	OpenBrowser         bool   `yaml:"open_browser"`
+	GsheetUrl           string `yaml:"google_sheet_url"`
+	SyncCommandInterval []int  `yaml:"sync_command_interval"`
 }
 
-func (app *AppConfig) FullPath(elem ...string) string {
+func (app *AppConfig) Path(elem ...string) string {
 	elem = append([]string{app.Base}, elem...)
 	return filepath.Join(elem...)
 }
@@ -26,11 +27,12 @@ func NewAppConfig(base string) *AppConfig {
 	fconfig := filepath.Join(base, "chat_config.yml")
 
 	config := AppConfig{
-		Base:        base,
-		OpenBrowser: true,
-		DebugMode:   false,
-		Port:        "5003",
-		Host:        "localhost",
+		Base:                base,
+		OpenBrowser:         true,
+		DebugMode:           false,
+		Port:                "5003",
+		Host:                "localhost",
+		SyncCommandInterval: []int{5, 30},
 	}
 
 	if _, err := os.Stat(fconfig); os.IsNotExist(err) {

@@ -45,10 +45,12 @@ func (g *SocketGroup) socketEventHandler(accountData *model.AccountData) chat.So
 			g.event.Emit(&event)
 
 		case *chat.RcvChat:
-			g.sio.BroadcastToNamespace("", "rcv_message", &sio_event.SendChatEvent{
+			event := sio_event.SendChatEvent{
 				Shopid: accountData.ShopID,
 				Event:  data,
-			})
+			}
+			g.sio.BroadcastToNamespace("", "rcv_message", &event)
+			g.event.Emit(&event)
 
 		case *chat.RcvStartTyping:
 			g.sio.BroadcastToNamespace("", "rcv_start_typing_event", &sio_event.TypingStartChatEvent{

@@ -6,6 +6,7 @@ import (
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/common_conf/pdc_common"
+	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
@@ -50,7 +51,7 @@ func NewNotificationService(
 func (s *NotificationService) SendSyncAccountNotification(account *model.Account) error {
 
 	username := account.GetUsername()
-	return s.driverGroup.WithDriverApi(username, func(api *api.TokopediaApi) error {
+	return s.driverGroup.WithDriverApi(username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
 
 		notif, err := api.NotificationCounter()
 		if err != nil {

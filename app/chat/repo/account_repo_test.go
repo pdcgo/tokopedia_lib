@@ -36,7 +36,7 @@ func TestAccountModel(t *testing.T) {
 			}
 
 			t.Run("test add account data", func(t *testing.T) {
-				err := accountRepo.AddAccountData("test", testAccountData)
+				err := accountRepo.AddAccountData("test", &testAccountData)
 				assert.Nil(t, err)
 
 				t.Run("test account data ada", func(t *testing.T) {
