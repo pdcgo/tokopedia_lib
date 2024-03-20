@@ -25,6 +25,7 @@ func InitApplication(cfg *config.AppConfig) (*Application, error) {
 		common_concept.NewCoreEvent,
 		api_public.NewTokopediaApiPublic,
 		config.NewInitConfig,
+		config.NewAutoReplyConfig,
 		repo.NewAccountRepo,
 		repo.NewGroupRepo,
 		group.NewDriverGroup,
@@ -41,6 +42,7 @@ func InitApplication(cfg *config.AppConfig) (*Application, error) {
 		api.NewGroupApi,
 		api.NewProductApi,
 		api.NewStickerApi,
+		api.NewAutoReplyApi,
 		CreateSocketIO,
 		NewApplication,
 	)

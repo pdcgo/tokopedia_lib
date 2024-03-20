@@ -18,7 +18,7 @@ func NewAccountRepo(db *gorm.DB) *AccountRepo {
 	}
 }
 
-func (repo *AccountRepo) GetChatAccount(groupName string, shopid int) (*model.Account, error) {
+func (repo *AccountRepo) GetAccount(groupName string, shopid int) (*model.Account, error) {
 
 	var account model.Account
 	tx := repo.db.
@@ -37,6 +37,15 @@ func (repo *AccountRepo) GetChatAccount(groupName string, shopid int) (*model.Ac
 	}
 
 	return &account, tx.Error
+}
+
+func (repo *AccountRepo) WithAccount(groupName string, shopid int, handler func(account *model.Account) error) error {
+	account, err := repo.GetAccount(groupName, shopid)
+	if err != nil {
+		return err
+	}
+
+	return handler(account)
 }
 
 func (repo *AccountRepo) IterateGroupAccount(groupName string, handler func(account model.AccountData) error) error {
@@ -82,9 +91,7 @@ func (repo *AccountRepo) AddAccountData(groupName string, accountData *model.Acc
 	return tx.Error
 }
 
-type UpdateAccountHandler func(account *model.Account)
-
-func (repo *AccountRepo) UpdateAccount(shopid int, handler UpdateAccountHandler) error {
+func (repo *AccountRepo) UpdateAccount(shopid int, handler func(account *model.Account) error) error {
 
 	account := model.Account{
 		ID: shopid,
@@ -98,7 +105,10 @@ func (repo *AccountRepo) UpdateAccount(shopid int, handler UpdateAccountHandler)
 		return errors.New("shopid tidak ditemukan")
 	}
 
-	handler(&account)
+	err := handler(&account)
+	if err != nil {
+		return tx.Error
+	}
 
 	tx = repo.db.Save(&account)
 	if tx.Error != nil {

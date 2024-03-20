@@ -9,6 +9,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/service"
 	tokpedapi "github.com/pdcgo/tokopedia_lib/lib/api"
+	"github.com/pdcgo/tokopedia_lib/lib/chat"
 	"github.com/pdcgo/v2_gots_sdk"
 	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
@@ -115,19 +116,14 @@ func (api *ChatApi) read(ctx *gin.Context) {
 		return
 	}
 
-	account, err := api.accountRepo.GetChatAccount(api.initConfig.ActiveGroup, query.Shopid)
-	if err != nil {
-		ctx.JSON(api.BaseResponseInternalServerError(err))
-		return
-	}
+	err = api.accountRepo.WithAccount(api.initConfig.ActiveGroup, query.Shopid, func(account *model.Account) error {
+		err = api.chatService.ReadChat(account.GetUsername(), query.MessageId)
+		if err != nil {
+			return err
+		}
 
-	err = api.chatService.ReadChat(account.GetUsername(), query.MessageId)
-	if err != nil {
-		ctx.JSON(api.BaseResponseInternalServerError(err))
-		return
-	}
-
-	err = api.notificationService.SendSyncAccountNotification(account)
+		return api.notificationService.SendSyncAccountNotification(account)
+	})
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return
@@ -247,20 +243,17 @@ func (api *ChatApi) send(ctx *gin.Context) {
 		return
 	}
 
-	payload := service.SendChat{}
+	payload := chat.SendChatPayload{}
 	err = ctx.BindJSON(&payload)
 	if err != nil {
 		ctx.JSON(api.BaseResponseBadRequest(err))
 		return
 	}
 
-	account, err := api.accountRepo.GetChatAccount(api.initConfig.ActiveGroup, query.Shopid)
-	if err != nil {
-		ctx.JSON(api.BaseResponseInternalServerError(err))
-		return
-	}
-
-	err = api.chatService.SendChat(account.GetUsername(), account.ShopName, &payload)
+	err = api.accountRepo.WithAccount(api.initConfig.ActiveGroup, query.Shopid, func(account *model.Account) error {
+		data := payload.CreateEventData(account.ShopName)
+		return api.chatService.SendChat(account.GetUsername(), data)
+	})
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return
@@ -330,7 +323,7 @@ func (api *ChatApi) Register(group *v2_gots_sdk.SdkGroup) {
 		Method:       http.MethodPost,
 		RelativePath: "send",
 		Query:        ChatQuery{},
-		Payload:      service.SendChat{},
+		Payload:      chat.SendChatPayload{},
 		Response:     tokpedapi.ChatSearchRes{},
 	}, api.send)
 }

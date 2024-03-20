@@ -360,6 +360,33 @@ func (api *TokopediaApi) OrderList(payload *query.OrderListQuery) (*model.OrderL
 	return hasil, err
 }
 
+func (api *TokopediaApi) IterateOrder(payload *query.OrderListQuery, handler func(order *model.OrderItem) error) error {
+
+	page := 1
+	for {
+
+		payload.SetPage(page)
+		res, err := api.OrderList(payload)
+		if err != nil {
+			return err
+		}
+
+		for _, order := range res.Data.OrderList.List {
+			err := handler(order)
+			if err != nil {
+				return err
+			}
+		}
+
+		if !res.Data.OrderList.Paging.ShowNextButton {
+			break
+		}
+		page++
+	}
+
+	return nil
+}
+
 func (api *TokopediaApi) OrderIncomeDetail(orderid int) (*model.SOMIncomeDetailRes, error) {
 	payload := query.OrderIncomeDetailQuery{
 		Input: &query.OrderIncomeDetailInput{

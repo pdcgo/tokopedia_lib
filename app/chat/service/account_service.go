@@ -1,41 +1,65 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/pdcgo/common_conf/common_concept"
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/tokopedia_lib/app/chat/report"
+	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
 	"github.com/pdcgo/tokopedia_lib/app/withdraw"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
+	apimodel "github.com/pdcgo/tokopedia_lib/lib/model"
 )
 
 type AccountService struct {
 	sync.Mutex
-	accountRepo *repo.AccountRepo
-	driverGroup *group.DriverGroup
+	*group.ChatGroup
+	*repo.AccountRepo
+	initConfig    *config.InitConfig
+	event         *common_concept.CoreEvent
+	driverGroup   *group.DriverGroup
+	browserCancel context.CancelFunc
 }
 
-func NewAccountService(accountRepo *repo.AccountRepo, driverGroup *group.DriverGroup) *AccountService {
-	return &AccountService{
-		accountRepo: accountRepo,
+func NewAccountService(
+	initConfig *config.InitConfig,
+	event *common_concept.CoreEvent,
+	accountRepo *repo.AccountRepo,
+	driverGroup *group.DriverGroup,
+	chatGroup *group.ChatGroup,
+) *AccountService {
+
+	accountService := AccountService{
+		initConfig:  initConfig,
+		event:       event,
+		ChatGroup:   chatGroup,
+		AccountRepo: accountRepo,
 		driverGroup: driverGroup,
 	}
+
+	go accountService.handleEvent()
+	return &accountService
 }
 
-type Account struct {
+type AccountPayload struct {
 	OtpPassword string `json:"otp_password"`
 	Password    string `json:"password"`
 	Username    string `json:"username"`
 }
 
-func (s *AccountService) createAccount(account Account, api *api.TokopediaApi) (*model.AccountData, error) {
+func (s *AccountService) createAccount(account AccountPayload, api *api.TokopediaApi) (*model.AccountData, error) {
 	auth, err := api.IsAutheticated()
 	if err != nil {
 		return nil, err
@@ -82,12 +106,9 @@ func (s *AccountService) createAccount(account Account, api *api.TokopediaApi) (
 	return &accountData, nil
 }
 
-func (s *AccountService) AddAccount(account Account, groupName string) error {
+func (s *AccountService) AddAccount(account AccountPayload, groupName string) error {
 
-	lock := s.TryLock()
-	if !lock {
-		return errors.New("masih dalam pemrosesan akun lain")
-	}
+	s.Lock()
 	defer s.Unlock()
 
 	err := s.driverGroup.AddDriver(account.Username, account.Password, account.OtpPassword)
@@ -102,22 +123,42 @@ func (s *AccountService) AddAccount(account Account, groupName string) error {
 			return err
 		}
 
-		err = s.accountRepo.AddAccountData(groupName, accountData)
+		err = s.AddAccountData(groupName, accountData)
 		return err
 	})
 }
 
 func (s *AccountService) SyncAccount(shopid int, notifHash string, notif *api.NotificationCounterRes) (err error) {
 
+	s.Lock()
+	defer s.Unlock()
+
 	notifData := notif.Data.Notifications
-	err = s.accountRepo.UpdateAccount(shopid, func(account *model.Account) {
+	err = s.UpdateAccount(shopid, func(account *model.Account) error {
 		account.UnreadChat = notifData.Chat.UnreadsSeller
 		account.NewOrder = notifData.SellerOrderStatus.NewOrder
 		account.Diskusi = notifData.Inbox.TalkSeller
 		account.Online = true
 		account.NotifHash = notifHash
+		return nil
 	})
 	return err
+}
+
+func (s *AccountService) OpenBrowser(username string) {
+
+	s.Lock()
+	defer s.Unlock()
+
+	if s.browserCancel != nil {
+		s.browserCancel()
+	}
+
+	cancel, err := s.driverGroup.OpenDriver(username)
+	s.browserCancel = cancel
+	if err != nil {
+		pdc_common.ReportError(err)
+	}
 }
 
 var ErrPinKosong = errors.New("pin kosong")
@@ -164,4 +205,68 @@ func (s *AccountService) Withdraw(username string, pin string, report *report.Wi
 			return err
 		})
 	})
+}
+
+func (s *AccountService) GetLocations(username string) ([]apimodel.ShopLocationLegacy, error) {
+
+	var locations []apimodel.ShopLocationLegacy
+	err := s.driverGroup.WithDriverApi(username, func(driver *tokopedia_lib.DriverAccount, tapi *api.TokopediaApi) error {
+
+		shopid := int(tapi.AuthenticatedData.UserShopInfo.Info.ShopID)
+		locationAll, err := tapi.GetShopLocationAll(shopid)
+		if err != nil {
+			return err
+		}
+
+		locations = locationAll.Data.ShopLocGetAllLocations.Data.Warehouses.GetLocations()
+		return nil
+	})
+
+	return locations, err
+}
+
+func (s *AccountService) updateActive(shopid int) error {
+	return s.WithAccount(s.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
+		log.Printf("[ %s ] set active", account.AccountData.Username)
+		return s.driverGroup.WithDriverApi(account.AccountData.Username, func(driver *tokopedia_lib.DriverAccount, tapi *api.TokopediaApi) error {
+			_, err := tapi.SetShopActive()
+			return err
+		})
+	})
+}
+
+func (s *AccountService) updateSaldo(shopid int) error {
+	return s.WithAccount(s.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
+		log.Printf("[ %s ] getting saldo", account.AccountData.Username)
+		return s.driverGroup.WithDriverApi(account.AccountData.Username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
+			balance, err := api.GetBalance()
+			if err != nil {
+				return err
+			}
+			return s.UpdateAccount(shopid, func(account *model.Account) error {
+				account.Saldo = balance.Data.Balance.SellerAll
+				return nil
+			})
+		})
+	})
+}
+
+func (s *AccountService) handleEvent() {
+
+	for event := range s.event.GetEvent() {
+		switch ev := event.(type) {
+
+		case *sio_event.AccountActiveEvent:
+			err := s.updateActive(ev.Shopid)
+			if err != nil {
+				pdc_common.ReportError(err)
+			}
+
+		case *sio_event.SocketConnectEvent:
+			err := s.updateSaldo(ev.Shopid)
+			if err != nil {
+				pdc_common.ReportError(err)
+			}
+		}
+	}
 }

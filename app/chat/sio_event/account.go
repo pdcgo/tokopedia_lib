@@ -10,3 +10,7 @@ type AccountWithdrawEvent struct {
 	Shopid int            `json:"shopid,string"`
 	Event  *WithdrawEvent `json:"event"`
 }
+
+type AccountActiveEvent struct {
+	Shopid int `json:"shopid,string"`
+}

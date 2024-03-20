@@ -22,13 +22,14 @@ type Application struct {
 	event  *common_concept.CoreEvent
 	sio    *socketio.Server
 
-	sdk        *v2_gots_sdk.ApiSdk
-	mainApi    *api.MainApi
-	accountApi *api.AccountApi
-	groupApi   *api.GroupApi
-	chatApi    *api.ChatApi
-	productApi *api.ProductApi
-	stickerApi *api.StickerApi
+	sdk          *v2_gots_sdk.ApiSdk
+	mainApi      *api.MainApi
+	accountApi   *api.AccountApi
+	groupApi     *api.GroupApi
+	chatApi      *api.ChatApi
+	productApi   *api.ProductApi
+	stickerApi   *api.StickerApi
+	autoreplyApi *api.AutoReplyApi
 }
 
 func NewApplication(
@@ -42,19 +43,21 @@ func NewApplication(
 	chatApi *api.ChatApi,
 	productApi *api.ProductApi,
 	stickerApi *api.StickerApi,
+	autoreplyApi *api.AutoReplyApi,
 ) *Application {
 
 	return &Application{
-		sdk:        sdk,
-		config:     config,
-		event:      event,
-		sio:        sio,
-		mainApi:    mainApi,
-		accountApi: accountApi,
-		groupApi:   groupApi,
-		chatApi:    chatApi,
-		productApi: productApi,
-		stickerApi: stickerApi,
+		sdk:          sdk,
+		config:       config,
+		event:        event,
+		sio:          sio,
+		mainApi:      mainApi,
+		accountApi:   accountApi,
+		groupApi:     groupApi,
+		chatApi:      chatApi,
+		productApi:   productApi,
+		stickerApi:   stickerApi,
+		autoreplyApi: autoreplyApi,
 	}
 }
 
@@ -94,6 +97,7 @@ func (app *Application) Run() error {
 	app.chatApi.Register(apiGr.Group("chat"))
 	app.productApi.Register(apiGr.Group("product"))
 	app.stickerApi.Register(apiGr.Group("sticker"))
+	app.autoreplyApi.Register(apiGr.Group("autoreply"))
 
 	err := app.sdk.R.Run(app.config.Host + ":" + app.config.Port)
 	return err

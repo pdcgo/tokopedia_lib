@@ -1,22 +1,15 @@
 package api
 
 import (
-	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	socketio "github.com/googollee/go-socket.io"
-	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
-	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
-	"github.com/pdcgo/tokopedia_lib/app/chat/report"
 	"github.com/pdcgo/tokopedia_lib/app/chat/service"
-	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
-	tokpedapi "github.com/pdcgo/tokopedia_lib/lib/api"
 	apimodel "github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/v2_gots_sdk"
 	"github.com/pdcgo/v2_gots_sdk/pdc_api"
@@ -26,26 +19,19 @@ type AccountApi struct {
 	BaseApi
 	sio            *socketio.Server
 	accountService *service.AccountService
-	driverGroup    *group.DriverGroup
 	initConfig     *config.InitConfig
-	accountRepo    *repo.AccountRepo
-	browserCancel  context.CancelFunc
 }
 
 func NewAccountApi(
 	sio *socketio.Server,
 	accountService *service.AccountService,
-	driverGroup *group.DriverGroup,
 	initConfig *config.InitConfig,
-	accountRepo *repo.AccountRepo,
 ) *AccountApi {
 
 	return &AccountApi{
 		sio:            sio,
 		accountService: accountService,
-		driverGroup:    driverGroup,
 		initConfig:     initConfig,
-		accountRepo:    accountRepo,
 	}
 }
 
@@ -58,7 +44,7 @@ func (api *AccountApi) list(ctx *gin.Context) {
 		return
 	}
 
-	accounts, err := api.accountRepo.List(&query)
+	accounts, err := api.accountService.List(&query)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return
@@ -80,41 +66,27 @@ func (api *AccountApi) get(ctx *gin.Context) {
 		return
 	}
 
-	account, err := api.accountRepo.GetChatAccount(api.initConfig.ActiveGroup, shopid)
+	res := AccountRes{}
+	err = api.accountService.WithAccount(api.initConfig.ActiveGroup, shopid, func(account *model.Account) (err error) {
+		res.Akun = account
+		username := account.GetUsername()
+		go api.accountService.OpenBrowser(username)
+
+		res.Address, err = api.accountService.GetLocations(username)
+		return
+	})
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return
 	}
 
-	username := account.GetUsername()
-	go func() {
-		if api.browserCancel != nil {
-			api.browserCancel()
-		}
-		api.browserCancel, err = api.driverGroup.OpenDriver(username)
-	}()
-
-	api.driverGroup.WithDriverApi(username, func(driver *tokopedia_lib.DriverAccount, tokpedapi *tokpedapi.TokopediaApi) error {
-
-		locationAll, err := tokpedapi.GetShopLocationAll(shopid)
-		if err != nil {
-			ctx.JSON(api.BaseResponseInternalServerError(err))
-			return err
-		}
-
-		locations := locationAll.Data.ShopLocGetAllLocations.Data.Warehouses.GetLocations()
-		ctx.JSON(http.StatusOK, AccountRes{
-			Address: locations,
-			Akun:    account,
-		})
-		return nil
-	})
+	ctx.JSON(http.StatusOK, res)
 }
 
 type AddAccountPayload struct {
-	Akun    service.Account `json:"akun"`
-	Name    string          `json:"name"`
-	Cookies []any           `json:"cookies"`
+	Akun    service.AccountPayload `json:"akun"`
+	Name    string                 `json:"name"`
+	Cookies []any                  `json:"cookies"`
 }
 
 func (api *AccountApi) add(ctx *gin.Context) {
@@ -135,17 +107,22 @@ func (api *AccountApi) add(ctx *gin.Context) {
 	ctx.JSON(api.BaseResponseSuccess())
 }
 
-func (api *AccountApi) togglePin(ctx *gin.Context) {
+func (api *AccountApi) edit(ctx *gin.Context) {
 
-	shopid, err := strconv.Atoi(ctx.Param("shopid"))
+	payload := AddAccountPayload{}
+	err := ctx.BindJSON(&payload)
 	if err != nil {
 		ctx.JSON(api.BaseResponseBadRequest(err))
 		return
 	}
 
-	err = api.accountRepo.UpdateAccount(shopid, func(account *model.Account) {
-		account.AccountData.Pinned = !account.AccountData.Pinned
-	})
+	err = api.accountService.RemoveAccount(payload.Akun.Username)
+	if err != nil {
+		ctx.JSON(api.BaseResponseBadRequest(err))
+		return
+	}
+
+	err = api.accountService.AddAccount(payload.Akun, payload.Name)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return
@@ -157,70 +134,13 @@ func (api *AccountApi) togglePin(ctx *gin.Context) {
 func (api *AccountApi) remove(ctx *gin.Context) {
 
 	username := ctx.Param("username")
-	err := api.accountRepo.RemoveAccount(username)
+	err := api.accountService.RemoveAccount(username)
 	if err != nil {
 		ctx.JSON(api.BaseResponseBadRequest(err))
 		return
 	}
 
 	ctx.JSON(api.BaseResponseSuccess())
-}
-
-func (api *AccountApi) withdraw(ctx *gin.Context) {
-
-	shopid, err := strconv.Atoi(ctx.Param("shopid"))
-	if err != nil {
-		ctx.JSON(api.BaseResponseBadRequest(err))
-		return
-	}
-
-	account, err := api.accountRepo.GetChatAccount(api.initConfig.ActiveGroup, shopid)
-	if err != nil {
-		ctx.JSON(api.BaseResponseInternalServerError(err))
-		return
-	}
-
-	username := account.GetUsername()
-	report := report.NewWitdrawReport(fmt.Sprintf("withdraw_%s_report.csv", username))
-	err = api.accountService.Withdraw(username, account.AccountData.Pin, report)
-	if err != nil {
-		ctx.JSON(api.BaseResponseInternalServerError(err))
-		return
-	}
-
-	ctx.JSON(api.BaseResponseSuccess())
-}
-
-func (api *AccountApi) autoWithdraw(ctx *gin.Context) {
-
-	accounts, err := api.accountRepo.List(&repo.ListAccountFilter{
-		GroupName: api.initConfig.ActiveGroup,
-	})
-	if err != nil {
-		ctx.JSON(api.BaseResponseInternalServerError(err))
-		return
-	}
-
-	report := report.NewWitdrawReport("withdraw_report.csv")
-	for _, account := range accounts {
-		username := account.GetUsername()
-		event := sio_event.WithdrawEvent{
-			Name:    username,
-			Type:    "success",
-			Message: "success",
-		}
-
-		err = api.accountService.Withdraw(username, account.AccountData.Pin, report)
-		if err != nil {
-			event.Type = "error"
-			event.Message = err.Error()
-		}
-
-		api.sio.BroadcastToNamespace("", "withdraw", &sio_event.AccountWithdrawEvent{
-			Shopid: account.AccountData.ShopID,
-			Event:  &event,
-		})
-	}
 }
 
 func (api *AccountApi) Register(group *v2_gots_sdk.SdkGroup) {
@@ -228,7 +148,7 @@ func (api *AccountApi) Register(group *v2_gots_sdk.SdkGroup) {
 	group.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "",
-		Payload:      repo.ListAccountFilter{},
+		Query:        repo.ListAccountFilter{},
 		Response:     []model.Account{},
 	}, api.list)
 
@@ -247,15 +167,28 @@ func (api *AccountApi) Register(group *v2_gots_sdk.SdkGroup) {
 
 	group.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
-		RelativePath: "toggle_pinned/:shopid",
+		RelativePath: "",
+		Payload:      AddAccountPayload{},
 		Response:     BaseResponse{},
-	}, api.togglePin)
+	}, api.edit)
 
 	group.Register(&pdc_api.Api{
 		Method:       http.MethodDelete,
 		RelativePath: "/:username",
 		Response:     BaseResponse{},
 	}, api.remove)
+
+	group.Register(&pdc_api.Api{
+		Method:       http.MethodPut,
+		RelativePath: "toggle_pinned/:shopid",
+		Response:     BaseResponse{},
+	}, api.togglePin)
+
+	group.Register(&pdc_api.Api{
+		Method:       http.MethodPut,
+		RelativePath: "/reconnect/:shopid",
+		Response:     BaseResponse{},
+	}, api.reconnect)
 
 	group.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
@@ -268,4 +201,12 @@ func (api *AccountApi) Register(group *v2_gots_sdk.SdkGroup) {
 		RelativePath: "/auto_withdraw",
 		Response:     BaseResponse{},
 	}, api.autoWithdraw)
+
+	group.Register(&pdc_api.Api{
+		Method:       http.MethodPut,
+		RelativePath: "/set_pin",
+		Query:        SetpinQuery{},
+		Payload:      Setpinpayload{},
+		Response:     BaseResponse{},
+	}, api.setPin)
 }

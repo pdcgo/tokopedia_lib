@@ -11,11 +11,8 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
-	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
-	"github.com/pdcgo/tokopedia_lib/lib/chat"
 	"github.com/rs/zerolog"
-	"nhooyr.io/websocket"
 )
 
 type ChatGroup struct {
@@ -56,17 +53,19 @@ func (g *ChatGroup) reportErr(err error, ev string, data any) error {
 
 func (g *ChatGroup) Connect(groupName string) {
 
-	if groupName == g.initConfig.ActiveGroup {
+	if g.initConfig.CheckGroup(groupName) {
 		return
 	}
-	g.initConfig.ActiveGroup = groupName
+	err := g.initConfig.SetGroup(groupName)
+	if err != nil {
+		g.reportErr(err, "connect", map[string]string{"group_name": groupName})
+	}
 
 	g.connectCancel()
 	g.driverGroup.Reset()
-
 	g.connectCtx, g.connectCancel = context.WithCancel(context.Background())
 
-	err := g.accountRepo.IterateGroupAccount(groupName, func(account model.AccountData) error {
+	err = g.accountRepo.IterateGroupAccount(groupName, func(account model.AccountData) error {
 		select {
 
 		case <-g.connectCtx.Done():
@@ -105,31 +104,19 @@ func (g *ChatGroup) Connect(groupName string) {
 }
 
 func (g *ChatGroup) Reconnect(shopid int) error {
-
-	account, err := g.accountRepo.GetChatAccount(g.initConfig.ActiveGroup, shopid)
-	if err != nil {
-		return err
-	}
-
 	g.reconnectLock.Lock()
 	defer g.reconnectLock.Unlock()
 
-	// disconnect socket if exist
-	username := account.GetUsername()
-	err = g.socketGroup.WithSocket(username, func(sc *chat.SocketClient) error {
+	return g.accountRepo.WithAccount(g.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
+		// disconnect socket if exist
+		username := account.GetUsername()
+		err := g.socketGroup.DisconnectSocket(username, "reconnect")
+		if err != nil && !errors.Is(err, ErrNoSocket) {
+			return err
+		}
 
-		g.sio.BroadcastToNamespace("", "disconnected_event", &sio_event.SocketDisconnectedEvent{
-			Shopid: int(sc.Api.AuthenticatedData.UserShopInfo.Info.ShopID),
+		return g.driverGroup.WithDriverApi(username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
+			return g.socketGroup.AddSocket(g.connectCtx, account.AccountData, api)
 		})
-
-		err := sc.Con.Close(websocket.StatusNormalClosure, "reconnect")
-		return err
-	})
-	if err != nil && !errors.Is(err, ErrNoSocket) {
-		return err
-	}
-
-	return g.driverGroup.WithDriverApi(username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
-		return g.socketGroup.AddSocket(g.connectCtx, account.AccountData, api)
 	})
 }

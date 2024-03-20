@@ -5,10 +5,13 @@ import (
 	"errors"
 	"io"
 	"log"
+	"math/rand"
 	"sync"
+	"time"
 
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/pdcgo/common_conf/common_concept"
+	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
@@ -18,16 +21,23 @@ import (
 
 type SocketGroup struct {
 	sync.RWMutex
-	data  map[string]*chat.SocketClient
-	event *common_concept.CoreEvent
-	sio   *socketio.Server
+	config *config.AppConfig
+	data   map[string]*chat.SocketClient
+	event  *common_concept.CoreEvent
+	sio    *socketio.Server
 }
 
-func NewSocketGroup(event *common_concept.CoreEvent, sio *socketio.Server) *SocketGroup {
+func NewSocketGroup(
+	config *config.AppConfig,
+	event *common_concept.CoreEvent,
+	sio *socketio.Server,
+) *SocketGroup {
+
 	return &SocketGroup{
-		data:  map[string]*chat.SocketClient{},
-		event: event,
-		sio:   sio,
+		config: config,
+		data:   map[string]*chat.SocketClient{},
+		event:  event,
+		sio:    sio,
 	}
 }
 
@@ -92,6 +102,50 @@ func (g *SocketGroup) socketErrHandler(accountData *model.AccountData) chat.Sock
 	}
 }
 
+func (g *SocketGroup) getSyncActive(min, max float32) time.Duration {
+	r := min + rand.Float32()*(max-min)
+	return time.Second * time.Duration(r)
+}
+
+func (g *SocketGroup) syncSocket(ctx context.Context, shopid int) {
+
+	syncTimer := time.NewTimer(g.config.GetSync())
+	defer syncTimer.Stop()
+
+	activeTimer := time.NewTimer(g.getSyncActive(180, 300))
+	defer syncTimer.Stop()
+
+Parent:
+	for {
+		rand.Seed(time.Now().Unix())
+
+		select {
+		case <-ctx.Done():
+			break Parent
+
+		case <-syncTimer.C:
+			g.event.Emit(&sio_event.SocketSyncEvent{
+				Shopid: shopid,
+			})
+			syncTimer.Reset(g.config.GetSync())
+
+		case <-activeTimer.C:
+			g.event.Emit(&sio_event.AccountActiveEvent{
+				Shopid: shopid,
+			})
+			activeTimer.Reset(g.getSyncActive(180, 300))
+		}
+	}
+}
+
+func (g *SocketGroup) disconnect(shopid int) {
+	event := sio_event.SocketDisconnectedEvent{
+		Shopid: shopid,
+	}
+	g.event.Emit(&event)
+	g.sio.BroadcastToNamespace("", "disconnected_event", &event)
+}
+
 func (g *SocketGroup) AddSocket(ctx context.Context, accountData *model.AccountData, api *api.TokopediaApi) error {
 	g.Lock()
 	defer g.Unlock()
@@ -99,6 +153,7 @@ func (g *SocketGroup) AddSocket(ctx context.Context, accountData *model.AccountD
 	oldSocket := g.data[accountData.Username]
 	if oldSocket != nil {
 		oldSocket.Con.Close(websocket.StatusNormalClosure, "renew")
+		g.disconnect(int(api.AuthenticatedData.UserShopInfo.Info.ShopID))
 	}
 
 	socket := chat.NewSocketClient(api)
@@ -107,13 +162,14 @@ func (g *SocketGroup) AddSocket(ctx context.Context, accountData *model.AccountD
 	eventHandler := g.socketEventHandler(accountData)
 	errorHandler := g.socketErrHandler(accountData)
 
-	g.sio.BroadcastToNamespace("", "connected_event", &sio_event.SocketConnectEvent{
+	event := sio_event.SocketConnectEvent{
 		Shopid: accountData.ShopID,
-	})
-	g.event.Emit(&sio_event.SocketSyncEvent{
-		Shopid: accountData.ShopID,
-	})
+	}
+	g.event.Emit(&event)
+	g.sio.BroadcastToNamespace("", "connected_event", &event)
+
 	go socket.Connect(ctx, eventHandler, errorHandler)
+	go g.syncSocket(ctx, accountData.ShopID)
 
 	return nil
 }
@@ -131,6 +187,13 @@ func (g *SocketGroup) WithSocket(username string, handler SocketHandler) error {
 		return ErrNoSocket
 	}
 
-	err := handler(socket)
-	return err
+	return handler(socket)
+}
+
+func (g *SocketGroup) DisconnectSocket(username, cause string) error {
+	return g.WithSocket(username, func(sc *chat.SocketClient) error {
+		g.disconnect(int(sc.Api.AuthenticatedData.UserShopInfo.Info.ShopID))
+		sc.Con.Close(websocket.StatusNormalClosure, cause)
+		return nil
+	})
 }

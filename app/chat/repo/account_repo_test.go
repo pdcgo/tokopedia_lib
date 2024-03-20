@@ -52,8 +52,9 @@ func TestAccountModel(t *testing.T) {
 			})
 
 			t.Run("test update account", func(t *testing.T) {
-				err := accountRepo.UpdateAccount(testAccountData.ShopID, func(account *model.Account) {
+				err := accountRepo.UpdateAccount(testAccountData.ShopID, func(account *model.Account) error {
 					account.ShopName = "updated"
+					return nil
 				})
 				assert.Nil(t, err)
 
@@ -71,7 +72,7 @@ func TestAccountModel(t *testing.T) {
 			})
 
 			t.Run("test get account", func(t *testing.T) {
-				account, err := accountRepo.GetChatAccount(groupName, testAccountData.ShopID)
+				account, err := accountRepo.GetAccount(groupName, testAccountData.ShopID)
 				assert.Nil(t, err)
 				assert.Equal(t, account.ID, testAccountData.ID)
 			})
@@ -87,7 +88,7 @@ func TestAccountModel(t *testing.T) {
 
 				t.Run("test get list filter name", func(t *testing.T) {
 					list, err := accountRepo.List(&repo.ListAccountFilter{
-						Name: "testAccountData.Account.ShopName",
+						Name: "updated",
 					})
 					assert.Nil(t, err)
 					assert.NotEmpty(t, list)

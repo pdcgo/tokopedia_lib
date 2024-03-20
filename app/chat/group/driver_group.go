@@ -13,12 +13,14 @@ import (
 
 type DriverGroup struct {
 	sync.RWMutex
-	data map[string]*tokopedia_lib.DriverAccount
+	data     map[string]*tokopedia_lib.DriverAccount
+	apicache map[string]*api.TokopediaApi
 }
 
 func NewDriverGroup() *DriverGroup {
 	return &DriverGroup{
-		data: map[string]*tokopedia_lib.DriverAccount{},
+		data:     map[string]*tokopedia_lib.DriverAccount{},
+		apicache: map[string]*api.TokopediaApi{},
 	}
 }
 
@@ -39,7 +41,7 @@ var ErrNoDriver = errors.New("driver not found")
 
 type DriverApiHandler func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error
 
-func (g *DriverGroup) WithDriverApi(username string, handler DriverApiHandler) error {
+func (g *DriverGroup) WithDriverApi(username string, handler DriverApiHandler) (err error) {
 	g.RLock()
 	defer g.RUnlock()
 
@@ -48,11 +50,15 @@ func (g *DriverGroup) WithDriverApi(username string, handler DriverApiHandler) e
 		return ErrNoDriver
 	}
 
-	acapi, saveSession, err := driver.CreateApi()
-	if err != nil {
-		return err
+	acapi := g.apicache[username]
+	if acapi == nil {
+		acapi, _, err = driver.CreateApi()
+		if err != nil {
+			return err
+		}
+
+		g.apicache[username] = acapi
 	}
-	defer saveSession()
 
 	err = handler(driver, acapi)
 	return err

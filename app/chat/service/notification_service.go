@@ -44,7 +44,6 @@ func NewNotificationService(
 	}
 
 	go notificationService.handleEvent()
-
 	return &notificationService
 }
 
@@ -71,7 +70,7 @@ func (s *NotificationService) SendSyncAccountNotification(account *model.Account
 
 		log.Printf("[ %s ] send notification %s", username, hash)
 
-		s.sio.BroadcastToNamespace("", "notification_event", &syncAccountEvent)
+		s.event.Emit(&syncAccountEvent)
 		s.sio.BroadcastToNamespace("", "notification", &sio_event.NotificationEvent{
 			Shopid: account.ID,
 			Event:  notif,
@@ -81,25 +80,36 @@ func (s *NotificationService) SendSyncAccountNotification(account *model.Account
 	})
 }
 
+func (s *NotificationService) syncAccount(shopid int) {
+
+	err := s.accountRepo.WithAccount(s.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
+		return s.SendSyncAccountNotification(account)
+	})
+	if err != nil {
+		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+			return event.Str("event", "sync").Int("shopid", shopid)
+		})
+	}
+}
+
 func (s *NotificationService) handleEvent() {
 	for event := range s.event.GetEvent() {
 		switch ev := event.(type) {
 
 		case *sio_event.SocketSyncEvent:
+			s.syncAccount(ev.Shopid)
+		case *sio_event.SocketConnectEvent:
+			s.syncAccount(ev.Shopid)
+		case *sio_event.SendChatEvent:
+			s.syncAccount(ev.Shopid)
+		case *sio_event.ReadChatEvent:
+			s.syncAccount(ev.Shopid)
 
-			account, err := s.accountRepo.GetChatAccount(s.initConfig.ActiveGroup, ev.Shopid)
-			if err != nil {
-				pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
-					return event.Str("event", "sync").Int("shopid", ev.Shopid)
-				})
-			}
-
-			err = s.SendSyncAccountNotification(account)
-			if err != nil {
-				pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
-					return event.Str("event", "sync").Int("shopid", ev.Shopid)
-				})
-			}
+		case *sio_event.SocketDisconnectedEvent:
+			s.accountRepo.UpdateAccount(ev.Shopid, func(account *model.Account) error {
+				account.Online = false
+				return nil
+			})
 		}
 	}
 }

@@ -404,3 +404,46 @@ func (api *TokopediaApi) GetShopLocationAll(shopid int) (*GetShopLocationAllRes,
 
 	return hasil, err
 }
+
+type UpdateShopActive struct {
+	Success  bool   `json:"success"`
+	Message  string `json:"message"`
+	Typename string `json:"__typename"`
+}
+
+type SetShopActiveData struct {
+	UpdateShopActive *UpdateShopActive `json:"updateShopActive"`
+}
+
+type SetShopActiveRes struct {
+	Data *SetShopActiveData `json:"data"`
+}
+
+type SetShopActiveVariable struct {
+	Device string `json:"device"`
+}
+
+func (api *TokopediaApi) SetShopActive() (*SetShopActiveRes, error) {
+	query := GraphqlPayload{
+		OperationName: "SetShopActive",
+		Variables: SetShopActiveVariable{
+			Device: "desktop",
+		},
+		Query: `
+		mutation SetShopActive($device: String!) {
+			updateShopActive(input: {device: $device}) {
+			  success
+			  message
+			  __typename
+			}
+		  }
+		  `,
+	}
+
+	req := api.NewGraphqlReq(&query)
+
+	var hasil *SetShopActiveRes
+	err := api.SendRequest(req, &hasil)
+
+	return hasil, err
+}

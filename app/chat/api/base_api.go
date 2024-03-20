@@ -62,12 +62,9 @@ func NewBaseDriverApi(
 type DriverApiHandler func(account *model.Account, driverApi *tokpedapi.TokopediaApi) error
 
 func (api *BaseDriverApi) WithDriverApi(shopid int, handler DriverApiHandler) error {
-	account, err := api.accountRepo.GetChatAccount(api.initConfig.ActiveGroup, shopid)
-	if err != nil {
-		return err
-	}
-
-	return api.driverGroup.WithDriverApi(account.GetUsername(), func(driver *tokopedia_lib.DriverAccount, chatapi *tokpedapi.TokopediaApi) error {
-		return handler(account, chatapi)
+	return api.accountRepo.WithAccount(api.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
+		return api.driverGroup.WithDriverApi(account.GetUsername(), func(driver *tokopedia_lib.DriverAccount, chatapi *tokpedapi.TokopediaApi) error {
+			return handler(account, chatapi)
+		})
 	})
 }

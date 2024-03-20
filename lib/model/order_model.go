@@ -215,42 +215,41 @@ type OrderItem struct {
 	Typename                    string                   `json:"__typename"`
 }
 
-func (s *OrderItem) GetTanggalPemesanan(format string) (string, error) {
+func (s *OrderItem) GetTanggalPemesanan() (dtime time.Time, err error) {
 	if s.OrderDate != "" {
-		dtime, err := time.Parse("02 Jan 2006, 15:04 WIB", s.OrderDate)
+		dtime, err = time.Parse("02 Jan 2006, 15:04 WIB", s.OrderDate)
 		if err != nil {
-			return "", err
+			return
 		}
-		return dtime.Format(format), nil
 	}
-
-	return "", nil
+	return
 }
 
-func (s *OrderItem) GetDiprosesSebelum(year int, format string) (string, error) {
+func (s *OrderItem) GetDiprosesSebelum() (dtime time.Time, err error) {
 	if s.DeadlineText != "" {
-		ordtime, err := time.Parse("02 Jan 2006, 15:04 WIB", s.OrderDate)
-		if err != nil {
-			return "", err
+
+		ordtime, oerr := s.GetTanggalPemesanan()
+		if oerr != nil {
+			return
 		}
 
-		dtime, err := time.Parse("2 Jan; 15:04", s.DeadlineText)
+		dtime, err = time.Parse("2 Jan; 15:04", s.DeadlineText)
 		if err != nil {
-			return "", err
+			return time.Time{}, err
 		}
 
 		// handle tahun baru
 		_, dmonth, _ := dtime.Date()
-		_, ordmonth, _ := ordtime.Date()
+		year, ordmonth, _ := ordtime.Date()
 		if ordmonth > dmonth {
 			year += 1
 		}
 
 		dtime = dtime.AddDate(year, 0, 0)
-		return dtime.Format(format), nil
+		return
 	}
 
-	return "", nil
+	return
 }
 
 type OrderList struct {
