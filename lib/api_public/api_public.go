@@ -7,6 +7,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/http/cookiejar"
+	"net/url"
 	"sync"
 	"time"
 
@@ -14,7 +16,35 @@ import (
 	"github.com/sethvargo/go-retry"
 )
 
+var jar, _ = cookiejar.New(nil)
+
 // var CountClientPool int = 5
+func init() {
+	client := http.Client{
+		Timeout: 30 * time.Second,
+	}
+	headers := map[string]string{
+		"Content-Type": "application/json",
+		"Origin":       "https://www.tokopedia.com",
+		"Accept":       "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+		"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
+	}
+	req, err := http.NewRequest(http.MethodGet, "https://www.tokopedia.com/", nil)
+	if err != nil {
+		return
+	}
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return
+	}
+
+	urlObj, _ := url.Parse("https://www.tokopedia.com/")
+	cookies := res.Cookies()
+	jar.SetCookies(urlObj, cookies)
+}
 
 type TokopediaApiPublic struct {
 	sync.RWMutex
@@ -73,41 +103,11 @@ func (api *TokopediaApiPublic) SendRequest(req *http.Request, hasil any) error {
 	return nil
 }
 
-// func defaultHeader() map[string]string {
-// 	headers := map[string]string{
-// 		"Content-Type": "application/json",
-// 		"Origin":       "https://www.tokopedia.com",
-// 		"Accept":       "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-// 		"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
-// 	}
-// 	return headers
-// }
-
 func NewTokopediaApiPublic() (*TokopediaApiPublic, error) {
-
-	// headers := defaultHeader()
-	// req, err := http.NewRequest(http.MethodGet, "https://www.tokopedia.com/", nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// for key, value := range headers {
-	// 	req.Header.Set(key, value)
-	// }
-	// _, err = client.Do(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// jar, err := cookiejar.New(nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// transport := &http2.Transport{
-	// 	DisableCompression: false,
-	// }
 	transport := &http.Transport{
-		ForceAttemptHTTP2:  false,
-		DisableCompression: false,
+		ForceAttemptHTTP2:   false,
+		DisableCompression:  false,
+		MaxIdleConnsPerHost: 10,
 		// DisableKeepAlives:  true,
 		TLSNextProto: make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
 	}
@@ -117,11 +117,8 @@ func NewTokopediaApiPublic() (*TokopediaApiPublic, error) {
 
 		Client: &http.Client{
 			Transport: transport,
-			// Transport: &http.Transport{
-			// 	MaxIdleConnsPerHost: 10,
-			// },
-			// Jar:     jar,
-			Timeout: 60 * time.Second,
+			Jar:       jar,
+			Timeout:   60 * time.Second,
 		},
 	}, nil
 }

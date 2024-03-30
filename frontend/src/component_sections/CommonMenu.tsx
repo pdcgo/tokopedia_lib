@@ -2,6 +2,7 @@ import {
     ContainerOutlined,
     IdcardOutlined,
     RobotOutlined,
+    ShopOutlined,
     UsergroupAddOutlined,
 } from "@ant-design/icons"
 import { Alert, Button, Card, Input, message } from "antd"
@@ -16,7 +17,8 @@ import {
 } from "../client/sdk_types"
 import { Flex, FlexColumn } from "../styled_components"
 import { accountPayloadChecker } from "../utils/accountPayloadChecker"
-import { CheckOrderAkunItem } from "../client/newapisdk"
+import { AkunTokoLibur, CheckOrderAkunItem, TokopediaTokoLiburQueryCli } from "../client/newapisdk"
+import TokoLiburAsk from "../components/TokoLiburAsk"
 
 const CheckBotAsk = React.lazy(() => import("../components/CheckBotAsk"))
 const CheckSubmitAsk = React.lazy(() => import("../components/CheckSubmitAsk"))
@@ -26,6 +28,7 @@ export default function CommonMenu() {
     const [showAsk, setShowAsk] = useState(false)
     const [showAskOrder, setShowAskOrder] = useState(false)
     const [showAskKtp, setShowAskKtp] = useState(false)
+    const [showTokoLibur, setShowTokoLibur] = useState(false)
     const { sender } = useRequest("PostTokopediaAkunBulkAdd", {
         onError: (e) => message.error(`Error: ${e.msg}`),
         onSuccess: () => {
@@ -36,6 +39,7 @@ export default function CommonMenu() {
     const { sender: verifKtp } = useRequest("PutTokopediaCheckVerifRun")
     const { mutate: checkorder } = useMutation("PutTokopediaCekorderRun")
     const { mutate: checkorderconf } = useMutation("PutTokopediaCekorderSaveConfig")
+    const { mutate: tokolibur } = useMutation("PostTokopediaTokoLiburRunTokoLibur")
 
     const [accountString, setAccountString] = useState("")
     const textarea = React.createRef<TextAreaRef>()
@@ -126,6 +130,20 @@ export default function CommonMenu() {
         )
     }
 
+    function tokoLiburAction(query: TokopediaTokoLiburQueryCli) {
+        accountPayloadChecker(
+            accountString,
+            textarea,
+            (warn) => {
+                message.warning({ content: warn, key: "tokolibur" })
+            },
+            (data) => {
+                const payload = data.filter(Boolean) as AkunTokoLibur[]
+                tokolibur({ query }, payload)
+            }
+        )
+    }
+
     return (
         <Card size="small" title="Bulk Add Tokopedia Account">
             <FlexColumn>
@@ -157,13 +175,23 @@ export default function CommonMenu() {
                                 onSuccess() {
                                     checkOrderAction(name)
                                 },
-                                onError(e){
+                                onError(e) {
                                     message.error(`Error: ${e.message}`)
                                 },
                             }, config)
                         }}
                         open={showAskOrder}
                         onCancel={() => setShowAskOrder(false)}
+                    />
+                </Suspense>
+                <Suspense fallback={<></>}>
+                    <TokoLiburAsk
+                        onFinish={(config) => {
+                            setShowAskOrder(false)
+                            tokoLiburAction(config)
+                        }}
+                        open={showTokoLibur}
+                        onCancel={() => setShowTokoLibur(false)}
                     />
                 </Suspense>
                 <Alert
@@ -188,6 +216,18 @@ export default function CommonMenu() {
                         Add Account
                     </Button>
                     <div style={{ flex: 1 }}></div>
+                    <Button
+                        style={{
+                            backgroundColor: "#531dab",
+                            boxShadow: "none",
+                            color: "#fff",
+                        }}
+                        type="primary"
+                        icon={<ShopOutlined rev="toko-libur" />}
+                        onClick={() => setShowTokoLibur(true)}
+                    >
+                        Toko Libur
+                    </Button>
                     <Button
                         style={{
                             backgroundColor: "#1677ff",

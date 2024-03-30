@@ -108,7 +108,7 @@ export interface ProductPriceRangeAggQuery {
 	pmax: number
 	pmin: number
 	use_empty_city: boolean
-	range_price: number
+	rprice: number
 }
 
 export interface ProductPriceRangeAgg {
@@ -256,6 +256,16 @@ export interface ManifestResponse {
 	public_category_repo: Array<CategoryItem>
 }
 
+export interface CrawlerConfig {
+	username: string
+	password: string
+	email: string
+	email_password: string
+	login_timeout: number
+	email_validate_timeout: number
+	login_reply_attempt: number
+}
+
 export interface PredictWeightPayload {
 	itemid: number
 	shopid: number
@@ -360,13 +370,6 @@ export interface GrabShopeeShipping {
 export interface SettingGrabFilterShopeeExtraResponse {
 	product_created: GrabShopeeProductCreated
 	shippings: Array<GrabShopeeShipping>
-}
-
-export interface CrawlerConfig {
-	username: string
-	password: string
-	email: string
-	email_password: string
 }
 
 export interface GrabTokopediaQuery {
@@ -721,6 +724,13 @@ export interface UpdaterAttributeCli {
 	base: string
 }
 
+export interface TokoLiburQueryCli {
+	base: string
+	libur: boolean
+	report: string
+	akun: string
+}
+
 export interface ExportSupplierQuery {
 	namespace: string
 }
@@ -1046,6 +1056,21 @@ export interface CheckOrderAkunItem {
 	password: string
 	secret: string
 	username: string
+}
+
+export interface TokopediaTokoLiburQueryCli {
+	base: string
+	libur: boolean
+	report: string
+	limit: number
+	closeStart: number
+	closeEnd: number
+}
+
+export interface AkunTokoLibur {
+	username: string
+	password: string
+	secret: string
 }
 
 export interface CategoryNavigation {
@@ -1737,7 +1762,7 @@ export const clients = {
 			pmax: 0,
 			pmin: 0,
 			use_empty_city: false,
-			range_price: 0
+			rprice: 0
 		},
 		body: {},
 		response: [
@@ -2088,6 +2113,40 @@ export const clients = {
 				] as Array<CategorySub>
 			}
 			] as Array<CategoryItem>
+		}
+	},
+	GetLegacyShopeeCrawlerSetting: {
+		url: "legacy/shopee/crawler_setting" as const,
+		method: "GET" as const,
+		query: undefined,
+		body: {},
+		response: {
+			username: ``,
+			password: ``,
+			email: ``,
+			email_password: ``,
+			login_timeout: 0,
+			email_validate_timeout: 0,
+			login_reply_attempt: 0
+		}
+	},
+	PutLegacyShopeeCrawlerSetting: {
+		url: "legacy/shopee/crawler_setting" as const,
+		method: "PUT" as const,
+		query: undefined,
+		body: {
+			username: ``,
+			password: ``,
+			email: ``,
+			email_password: ``,
+			login_timeout: 0,
+			email_validate_timeout: 0,
+			login_reply_attempt: 0
+		},
+		response: {
+			errcode: 0,
+			message: ``,
+			status: ``
 		}
 	},
 	PostLegacyV4ShopeeWeightPredict: {
@@ -2479,7 +2538,10 @@ export const clients = {
 			username: ``,
 			password: ``,
 			email: ``,
-			email_password: ``
+			email_password: ``,
+			login_timeout: 0,
+			email_validate_timeout: 0,
+			login_reply_attempt: 0
 		}
 	},
 	PutLegacyShopeeConfigCrawler: {
@@ -2490,13 +2552,19 @@ export const clients = {
 			username: ``,
 			password: ``,
 			email: ``,
-			email_password: ``
+			email_password: ``,
+			login_timeout: 0,
+			email_validate_timeout: 0,
+			login_reply_attempt: 0
 		},
 		response: {
 			username: ``,
 			password: ``,
 			email: ``,
-			email_password: ``
+			email_password: ``,
+			login_timeout: 0,
+			email_validate_timeout: 0,
+			login_reply_attempt: 0
 		}
 	},
 	GetLegacyApiSettingGrab: {
@@ -3446,6 +3514,18 @@ export const clients = {
 		body: {},
 		response: {} as any
 	},
+	GetShopeeV5RunTokoLibur: {
+		url: "shopee/v5/run_toko_libur" as const,
+		method: "GET" as const,
+		query: {
+				base: ``,
+				libur: false,
+				report: ``,
+				akun: ``
+			} as TokoLiburQueryCli ,
+		body: {},
+		response: {} as any
+	},
 	PutShopeeV5ProductExportSupplier: {
 		url: "shopee/v5/product/export_supplier" as const,
 		method: "PUT" as const,
@@ -4166,6 +4246,26 @@ export const clients = {
 					username: ``
 				} as CheckOrderAkunItem | undefined
 		] as Array<CheckOrderAkunItem | undefined>,
+		response: {} as any
+	},
+	PostTokopediaTokoLiburRunTokoLibur: {
+		url: "tokopedia/toko_libur/run_toko_libur" as const,
+		method: "POST" as const,
+		query: {
+				base: ``,
+				libur: false,
+				report: ``,
+				limit: 0,
+				closeStart: 0,
+				closeEnd: 0
+			} as TokopediaTokoLiburQueryCli ,
+		body: [
+			{
+				username: ``,
+				password: ``,
+				secret: ``
+			}
+		] as Array<AkunTokoLibur>,
 		response: {} as any
 	},
 	GetJakmallCategoryList: {

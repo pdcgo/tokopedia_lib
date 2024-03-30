@@ -14,18 +14,8 @@ func TestShopProducts(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Run("test ShopProduct", func(t *testing.T) {
-		variable := model_public.ShopProductVar{
-			Sid:            1409816,
-			Page:           1,
-			PerPage:        80,
-			EtalaseID:      "etalase",
-			Sort:           1,
-			UserDistrictID: "2274",
-			UserCityID:     "176",
-			UserLat:        "",
-			UserLong:       "",
-		}
-		hasil, err := api.ShopProducts(&variable)
+		variable := model_public.NewShopProductVar(2166807)
+		hasil, err := api.ShopProducts(variable)
 		assert.Nil(t, err)
 		assert.NotEmpty(t, hasil)
 		assert.NotEmpty(t, hasil.Data.GetShopProduct.Data)

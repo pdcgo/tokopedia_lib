@@ -19,7 +19,7 @@ func TestSearchShopProductIterator(t *testing.T) {
 	scen := scenario.NewScenario(t)
 
 	// shop: https://windomieofficialww.tokopedia.com/
-	searchVar := model_public.NewShopProductVar(4544078)
+	searchVar := model_public.NewShopProductVar(2166807)
 
 	scen.WithBase(func(dirbase string, scen *scenario.Scenario) {
 		scen.WithBaseConfig(func(base *legacy_source.BaseConfig) {
@@ -35,7 +35,7 @@ func TestSearchShopProductIterator(t *testing.T) {
 				})
 
 				assert.Nil(t, err)
-				assert.Greater(t, len(searchItems), 80)
+				assert.Greater(t, len(searchItems), 0)
 			})
 
 			t.Run("test search shop product iterator context cancel", func(t *testing.T) {

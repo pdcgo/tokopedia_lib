@@ -98,6 +98,7 @@ type ShopProductVar struct {
 	PerPage        int    `json:"perPage"`
 	EtalaseID      string `json:"etalaseId"`
 	Sort           int    `json:"sort"`
+	Source         string `json:"source"`
 	UserDistrictID string `json:"user_districtId"`
 	UserCityID     string `json:"user_cityId"`
 	UserLat        string `json:"user_lat"`
@@ -110,11 +111,10 @@ func NewShopProductVar(shopId int) *ShopProductVar {
 		PerPage:        100,
 		EtalaseID:      "etalase",
 		Sort:           1,
+		Source:         "shop",
 		Sid:            shopId,
 		UserDistrictID: "176",
 		UserCityID:     "2274",
-		UserLat:        "",
-		UserLong:       "",
 	}
 
 	return params
