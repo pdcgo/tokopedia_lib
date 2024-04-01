@@ -12,16 +12,27 @@ func TestOrderApi(t *testing.T) {
 	tapi, saveSession := scenario.GetTokopediaApiClient()
 	defer saveSession()
 
-	payload := query.NewOrderListQuery()
-	payload.SetYear(2023)
+	var orderid int
 
-	hasil, err := tapi.OrderList(payload)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, hasil)
-	assert.NotEmpty(t, hasil.Data.OrderList.List)
+	t.Run("test order list", func(t *testing.T) {
+		payload := query.NewOrderListQuery()
+		payload.SetYear(2023)
+
+		hasil, err := tapi.OrderList(payload)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil)
+		assert.NotEmpty(t, hasil.Data.OrderList.List)
+		orderid = hasil.Data.OrderList.List[0].ID
+	})
+
+	t.Run("test order pending list", func(t *testing.T) {
+		payload := query.NewOrderPendingListQuery()
+		hasil, err := tapi.OrderPendingList(payload)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, hasil)
+	})
 
 	t.Run("test order income detail", func(t *testing.T) {
-		orderid := hasil.Data.OrderList.List[0].ID
 		hasil, err := tapi.OrderIncomeDetail(orderid)
 		assert.Nil(t, err)
 		assert.NotEmpty(t, hasil)

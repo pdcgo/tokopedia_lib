@@ -19,7 +19,7 @@ func (api *AccountApi) reconnect(ctx *gin.Context) {
 		return
 	}
 
-	err = api.accountService.Reconnect(shopid)
+	err = api.chatGroup.Reconnect(shopid)
 	if err != nil {
 		ctx.JSON(api.BaseResponseBadRequest(err))
 		return
@@ -36,10 +36,7 @@ func (api *AccountApi) togglePin(ctx *gin.Context) {
 		return
 	}
 
-	err = api.accountService.UpdateAccount(shopid, func(account *model.Account) error {
-		account.AccountData.Pinned = !account.AccountData.Pinned
-		return nil
-	})
+	err = api.accountService.TogglePinned(shopid)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return
@@ -56,7 +53,7 @@ func (api *AccountApi) withdraw(ctx *gin.Context) {
 		return
 	}
 
-	err = api.accountService.WithAccount(api.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
+	err = api.accountRepo.WithAccount(api.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
 		username := account.GetUsername()
 		report := report.NewWitdrawReport(fmt.Sprintf("withdraw_%s_report.csv", username))
 		return api.accountService.Withdraw(username, account.AccountData.Pin, report)
@@ -71,7 +68,7 @@ func (api *AccountApi) withdraw(ctx *gin.Context) {
 
 func (api *AccountApi) autoWithdraw(ctx *gin.Context) {
 
-	accounts, err := api.accountService.List(&repo.ListAccountFilter{
+	accounts, err := api.accountRepo.List(&repo.ListAccountFilter{
 		GroupName: api.initConfig.ActiveGroup,
 	})
 	if err != nil {
@@ -101,17 +98,13 @@ func (api *AccountApi) autoWithdraw(ctx *gin.Context) {
 	}
 }
 
-type SetpinQuery struct {
-	Shopid int `json:"shopid" form:"shopid"`
-}
-
 type Setpinpayload struct {
 	Pin string `json:"pin"`
 }
 
 func (api *AccountApi) setPin(ctx *gin.Context) {
 
-	query := SetpinQuery{}
+	query := BaseQuery{}
 	err := ctx.BindQuery(&query)
 	if err != nil {
 		ctx.JSON(api.BaseResponseBadRequest(err))
@@ -125,10 +118,7 @@ func (api *AccountApi) setPin(ctx *gin.Context) {
 		return
 	}
 
-	err = api.accountService.UpdateAccount(query.Shopid, func(account *model.Account) error {
-		account.AccountData.Pin = payload.Pin
-		return nil
-	})
+	err = api.accountService.SetPin(query.Shopid, payload.Pin)
 	if err != nil {
 		ctx.JSON(api.BaseResponseBadRequest(err))
 		return

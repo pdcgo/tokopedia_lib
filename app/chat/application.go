@@ -30,6 +30,7 @@ type Application struct {
 	productApi   *api.ProductApi
 	stickerApi   *api.StickerApi
 	autoreplyApi *api.AutoReplyApi
+	orderApi     *api.OrderApi
 }
 
 func NewApplication(
@@ -44,6 +45,7 @@ func NewApplication(
 	productApi *api.ProductApi,
 	stickerApi *api.StickerApi,
 	autoreplyApi *api.AutoReplyApi,
+	orderApi *api.OrderApi,
 ) *Application {
 
 	return &Application{
@@ -58,6 +60,7 @@ func NewApplication(
 		productApi:   productApi,
 		stickerApi:   stickerApi,
 		autoreplyApi: autoreplyApi,
+		orderApi:     orderApi,
 	}
 }
 
@@ -98,6 +101,7 @@ func (app *Application) Run() error {
 	app.productApi.Register(apiGr.Group("product"))
 	app.stickerApi.Register(apiGr.Group("sticker"))
 	app.autoreplyApi.Register(apiGr.Group("autoreply"))
+	app.orderApi.Register(apiGr.Group("order"))
 
 	err := app.sdk.R.Run(app.config.Host + ":" + app.config.Port)
 	return err

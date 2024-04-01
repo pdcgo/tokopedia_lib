@@ -96,7 +96,7 @@ type OnlineBooking struct {
 }
 
 type OrderProduct struct {
-	ProductID    string `json:"productId"`
+	ProductID    int    `json:"productId,string"`
 	SnapshotURL  string `json:"snapshotUrl"`
 	ProductName  string `json:"productName"`
 	OrderNote    string `json:"orderNote"`
@@ -271,8 +271,76 @@ type OrderList struct {
 	Typename             string              `json:"__typename"`
 }
 
+type OrderListData struct {
+	OrderList OrderList `json:"orderList"`
+}
+
 type OrderListResp struct {
-	Data struct {
-		OrderList OrderList `json:"orderList"`
-	} `json:"data"`
+	Data *OrderListData `json:"data"`
+}
+
+type OrderListWaitingPaymentPaging struct {
+	CurrentBatch       int   `json:"currentBatch"`
+	CurrentPageOverall int   `json:"currentPageOverall"`
+	Pages              []int `json:"pages"`
+	PagesOverall       []int `json:"pagesOverall"`
+	ShowBackButton     bool  `json:"showBackButton"`
+	ShowNextButton     bool  `json:"showNextButton"`
+}
+
+type OrderPaymentItemProduct struct {
+	BundleId        int    `json:"bundleId"`
+	BundleVariantId string `json:"bundleVariantId"`
+	Picture         string `json:"picture"`
+	ProductId       int    `json:"productId"`
+	ProductName     string `json:"productName"`
+	ProductPrice    string `json:"productPrice"`
+	ProductQty      int    `json:"productQty"`
+}
+
+type OrderPaymentItem struct {
+	BundleDetail     any    `json:"bundle_detail"`
+	BuyerName        string `json:"buyerName"`
+	HasProductBundle bool   `json:"hasProductBundle"`
+	OrderId          int    `json:"orderId"`
+	PaymentDeadline  string `json:"paymentDeadline"`
+	Products         []*OrderPaymentItemProduct
+}
+
+func (s *OrderPaymentItem) GetDiprosesSebelum() (dtime time.Time, err error) {
+	if s.PaymentDeadline != "" {
+
+		now := time.Now()
+		dtime, err = time.Parse("2 Jan; 15:04", s.PaymentDeadline)
+		if err != nil {
+			return time.Time{}, err
+		}
+
+		// handle tahun baru
+		_, dmonth, _ := dtime.Date()
+		year, ordmonth, _ := now.Date()
+		if ordmonth > dmonth {
+			year += 1
+		}
+
+		dtime = dtime.AddDate(year, 0, 0)
+		return
+	}
+
+	return
+}
+
+type OrderListWaitingPaymentDataRes struct {
+	CursorPaymentDeadline int                            `json:"cursorPaymentDeadline"`
+	TotalPagePerBatch     int                            `json:"totalPagePerBatch"`
+	Paging                *OrderListWaitingPaymentPaging `json:"paging"`
+	List                  []*OrderPaymentItem            `json:"list"`
+}
+
+type OrderListWaitingPaymentData struct {
+	OrderListWaitingPayment *OrderListWaitingPaymentDataRes `json:"orderListWaitingPayment"`
+}
+
+type OrderListWaitingPaymentRes struct {
+	Data *OrderListWaitingPaymentData `json:"data"`
 }

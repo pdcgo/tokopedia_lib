@@ -22,13 +22,9 @@ func NewProductApi(publicApi *api_public.TokopediaApiPublic) *ProductApi {
 	}
 }
 
-type ProductQuery struct {
-	Shopid int `json:"shopid" schema:"shopid" form:"shopid"`
-}
-
 func (api *ProductApi) chatSearch(ctx *gin.Context) {
 
-	query := ProductQuery{}
+	query := BaseQuery{}
 	err := ctx.BindQuery(&query)
 	if err != nil {
 		ctx.JSON(api.BaseResponseBadRequest(err))
@@ -59,7 +55,7 @@ func (api *ProductApi) Register(group *v2_gots_sdk.SdkGroup) {
 	group.Register(&pdc_api.Api{
 		Method:       http.MethodPost,
 		RelativePath: "chat_search",
-		Query:        ProductQuery{},
+		Query:        BaseQuery{},
 		Payload:      model_public.SearchProductVar{},
 		Response:     model_public.SearchProductQueryV4Resp{},
 	}, api.chatSearch)

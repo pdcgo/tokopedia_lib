@@ -21,6 +21,7 @@ type AppConfig struct {
 }
 
 func (c *AppConfig) GetSync() time.Duration {
+	rand.Seed(time.Now().Unix())
 	min := c.SyncCommandInterval[0]
 	max := c.SyncCommandInterval[1]
 	r := min + rand.Float32()*(max-min)

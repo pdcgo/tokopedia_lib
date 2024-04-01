@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
+	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/tokopedia_lib/app/chat/service"
@@ -20,18 +21,24 @@ type AccountApi struct {
 	sio            *socketio.Server
 	accountService *service.AccountService
 	initConfig     *config.InitConfig
+	accountRepo    *repo.AccountRepo
+	chatGroup      *group.ChatGroup
 }
 
 func NewAccountApi(
 	sio *socketio.Server,
 	accountService *service.AccountService,
 	initConfig *config.InitConfig,
+	accountRepo *repo.AccountRepo,
+	chatGroup *group.ChatGroup,
 ) *AccountApi {
 
 	return &AccountApi{
 		sio:            sio,
 		accountService: accountService,
 		initConfig:     initConfig,
+		accountRepo:    accountRepo,
+		chatGroup:      chatGroup,
 	}
 }
 
@@ -44,7 +51,7 @@ func (api *AccountApi) list(ctx *gin.Context) {
 		return
 	}
 
-	accounts, err := api.accountService.List(&query)
+	accounts, err := api.accountRepo.List(&query)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return
@@ -66,15 +73,10 @@ func (api *AccountApi) get(ctx *gin.Context) {
 		return
 	}
 
-	res := AccountRes{}
-	err = api.accountService.WithAccount(api.initConfig.ActiveGroup, shopid, func(account *model.Account) (err error) {
-		res.Akun = account
-		username := account.GetUsername()
-		go api.accountService.OpenBrowser(username)
+	go api.accountService.OpenBrowser(shopid)
 
-		res.Address, err = api.accountService.GetLocations(username)
-		return
-	})
+	res := AccountRes{}
+	res.Address, err = api.accountService.GetLocations(shopid)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return
@@ -116,7 +118,7 @@ func (api *AccountApi) edit(ctx *gin.Context) {
 		return
 	}
 
-	err = api.accountService.RemoveAccount(payload.Akun.Username)
+	err = api.accountRepo.RemoveAccount(payload.Akun.Username)
 	if err != nil {
 		ctx.JSON(api.BaseResponseBadRequest(err))
 		return
@@ -134,7 +136,7 @@ func (api *AccountApi) edit(ctx *gin.Context) {
 func (api *AccountApi) remove(ctx *gin.Context) {
 
 	username := ctx.Param("username")
-	err := api.accountService.RemoveAccount(username)
+	err := api.accountRepo.RemoveAccount(username)
 	if err != nil {
 		ctx.JSON(api.BaseResponseBadRequest(err))
 		return
@@ -205,7 +207,7 @@ func (api *AccountApi) Register(group *v2_gots_sdk.SdkGroup) {
 	group.Register(&pdc_api.Api{
 		Method:       http.MethodPut,
 		RelativePath: "/set_pin",
-		Query:        SetpinQuery{},
+		Query:        BaseQuery{},
 		Payload:      Setpinpayload{},
 		Response:     BaseResponse{},
 	}, api.setPin)

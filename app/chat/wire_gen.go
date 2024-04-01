@@ -30,25 +30,27 @@ func InitApplication(cfg *config.AppConfig) (*Application, error) {
 	db := CreateSqliteDatabase(cfg)
 	accountRepo := repo.NewAccountRepo(db)
 	driverGroup := group.NewDriverGroup()
+	accountService := service.NewAccountService(initConfig, coreEvent, accountRepo, driverGroup)
 	socketGroup := group.NewSocketGroup(cfg, coreEvent, server)
 	chatGroup := group.NewChatGroup(server, initConfig, accountRepo, driverGroup, socketGroup)
-	accountService := service.NewAccountService(initConfig, coreEvent, accountRepo, driverGroup, chatGroup)
-	accountApi := api.NewAccountApi(server, accountService, initConfig)
+	accountApi := api.NewAccountApi(server, accountService, initConfig, accountRepo, chatGroup)
 	groupRepo := repo.NewGroupRepo(db)
 	groupApi := api.NewGroupApi(db, initConfig, accountRepo, groupRepo, chatGroup)
-	baseDriverApi := api.NewBaseDriverApi(initConfig, accountRepo, driverGroup)
 	soundPlayer := helper.NewSoundPlayer(cfg)
 	autoReplyConfig := config.NewAutoReplyConfig(cfg)
 	chatService := service.NewChatService(coreEvent, initConfig, autoReplyConfig, accountRepo, socketGroup, soundPlayer)
 	notificationService := service.NewNotificationService(coreEvent, initConfig, server, accountRepo, driverGroup, accountService)
-	chatApi := api.NewChatApi(baseDriverApi, soundPlayer, chatService, notificationService)
+	chatApi := api.NewChatApi(initConfig, accountRepo, driverGroup, soundPlayer, chatService, notificationService)
 	tokopediaApiPublic, err := api_public.NewTokopediaApiPublic()
 	if err != nil {
 		return nil, err
 	}
 	productApi := api.NewProductApi(tokopediaApiPublic)
-	stickerApi := api.NewStickerApi(baseDriverApi)
+	stickerApi := api.NewStickerApi(driverGroup)
 	autoReplyApi := api.NewAutoReplyApi(autoReplyConfig)
-	application := NewApplication(cfg, apiSdk, coreEvent, server, mainApi, accountApi, groupApi, chatApi, productApi, stickerApi, autoReplyApi)
+	orderRepo := repo.NewOrderRepo(db)
+	orderService := service.NewOrderService(coreEvent, initConfig, accountRepo, orderRepo, driverGroup)
+	orderApi := api.NewOrderApi(orderRepo, orderService)
+	application := NewApplication(cfg, apiSdk, coreEvent, server, mainApi, accountApi, groupApi, chatApi, productApi, stickerApi, autoReplyApi, orderApi)
 	return application, nil
 }

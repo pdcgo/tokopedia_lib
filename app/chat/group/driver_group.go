@@ -11,29 +11,47 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 )
 
+type DriverApi struct {
+	Api    *api.TokopediaApi
+	Driver *tokopedia_lib.DriverAccount
+}
+
 type DriverGroup struct {
 	sync.RWMutex
-	data     map[string]*tokopedia_lib.DriverAccount
-	apicache map[string]*api.TokopediaApi
+	driverLock  sync.Mutex
+	data        map[string]*DriverApi
+	usernamemap map[int]string
 }
 
 func NewDriverGroup() *DriverGroup {
 	return &DriverGroup{
-		data:     map[string]*tokopedia_lib.DriverAccount{},
-		apicache: map[string]*api.TokopediaApi{},
+		driverLock:  sync.Mutex{},
+		data:        map[string]*DriverApi{},
+		usernamemap: map[int]string{},
 	}
 }
 
-func (g *DriverGroup) AddDriver(username string, password string, secret string) error {
-	g.Lock()
-	defer g.Unlock()
+func (g *DriverGroup) AddDriverApi(username string, password string, secret string) error {
+	g.driverLock.Lock()
+	defer g.driverLock.Unlock()
 
 	driver, err := tokopedia_lib.NewDriverAccount(username, password, secret)
 	if err != nil {
 		return err
 	}
 
-	g.data[username] = driver
+	acapi, saveSession, err := driver.CreateApi()
+	if err != nil {
+		return err
+	}
+	defer saveSession()
+
+	shopid := acapi.AuthenticatedData.UserShopInfo.Info.ShopID
+	g.usernamemap[int(shopid)] = username
+	g.data[username] = &DriverApi{
+		Api:    acapi,
+		Driver: driver,
+	}
 	return nil
 }
 
@@ -41,34 +59,30 @@ var ErrNoDriver = errors.New("driver not found")
 
 type DriverApiHandler func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error
 
-func (g *DriverGroup) WithDriverApi(username string, handler DriverApiHandler) (err error) {
+func (g *DriverGroup) WithDriverApi(username string, handler func(dapi *DriverApi) error) (err error) {
 	g.RLock()
 	defer g.RUnlock()
 
-	driver := g.data[username]
-	if driver == nil {
+	dapi := g.data[username]
+	if dapi == nil {
 		return ErrNoDriver
 	}
 
-	acapi := g.apicache[username]
-	if acapi == nil {
-		acapi, _, err = driver.CreateApi()
-		if err != nil {
-			return err
-		}
+	return handler(dapi)
+}
 
-		g.apicache[username] = acapi
-	}
-
-	err = handler(driver, acapi)
-	return err
+func (g *DriverGroup) WithDriverApiByShopid(shopid int, handler func(username string, dapi *DriverApi) error) error {
+	username := g.usernamemap[shopid]
+	return g.WithDriverApi(username, func(dapi *DriverApi) error {
+		return handler(username, dapi)
+	})
 }
 
 func (g *DriverGroup) Reset() {
 	g.Lock()
 	defer g.Unlock()
 
-	g.data = map[string]*tokopedia_lib.DriverAccount{}
+	g.data = map[string]*DriverApi{}
 }
 
 func (g *DriverGroup) reqSaldoSuccess(session tokopedia_lib.DriverSession) (success bool) {
@@ -97,41 +111,36 @@ func (g *DriverGroup) reqSaldoSuccess(session tokopedia_lib.DriverSession) (succ
 	return
 }
 
-func (g *DriverGroup) OpenDriver(username string) (context.CancelFunc, error) {
+func (g *DriverGroup) OpenDriver(shopid int) (context.CancelFunc, error) {
 	g.RLock()
 	defer g.RUnlock()
 
-	driver := g.data[username]
-	if driver == nil {
+	username := g.usernamemap[shopid]
+	dapi := g.data[username]
+	if dapi == nil {
 		return func() {}, ErrNoDriver
 	}
 
-	acapi, saveSession, err := driver.CreateApi()
-	if err != nil {
-		return func() {}, err
-	}
-	defer saveSession()
-
 	ctx, cancel := context.WithCancel(context.Background())
-	driver.ParentCtx = ctx
+	dapi.Driver.ParentCtx = ctx
 
-	_, err = acapi.IsAutheticated()
+	_, err := dapi.Api.IsAutheticated()
 	if errors.Is(err, api.ErrNoShopid) {
-		driver.Session.DeleteSession()
+		dapi.Driver.Session.DeleteSession()
 	}
 
-	_, err = acapi.ShopInfoByID()
+	_, err = dapi.Api.ShopInfoByID()
 	if errors.Is(err, api.ErrIsNotAuthorized) {
-		driver.Session.DeleteSession()
+		dapi.Driver.Session.DeleteSession()
 	}
 
-	saldoSuccess := g.reqSaldoSuccess(driver.Session)
+	saldoSuccess := g.reqSaldoSuccess(dapi.Driver.Session)
 	if !saldoSuccess {
-		driver.Session.DeleteSession()
+		dapi.Driver.Session.DeleteSession()
 	}
 
-	go driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
-		driver.SellerLogin(dctx)
+	go dapi.Driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
+		dapi.Driver.SellerLogin(dctx)
 		<-ctx.Done()
 		return nil
 	})

@@ -25,8 +25,8 @@ import (
 
 type AccountService struct {
 	sync.Mutex
-	*group.ChatGroup
-	*repo.AccountRepo
+
+	accountRepo   *repo.AccountRepo
 	initConfig    *config.InitConfig
 	event         *common_concept.CoreEvent
 	driverGroup   *group.DriverGroup
@@ -38,14 +38,12 @@ func NewAccountService(
 	event *common_concept.CoreEvent,
 	accountRepo *repo.AccountRepo,
 	driverGroup *group.DriverGroup,
-	chatGroup *group.ChatGroup,
 ) *AccountService {
 
 	accountService := AccountService{
 		initConfig:  initConfig,
 		event:       event,
-		ChatGroup:   chatGroup,
-		AccountRepo: accountRepo,
+		accountRepo: accountRepo,
 		driverGroup: driverGroup,
 	}
 
@@ -111,19 +109,18 @@ func (s *AccountService) AddAccount(account AccountPayload, groupName string) er
 	s.Lock()
 	defer s.Unlock()
 
-	err := s.driverGroup.AddDriver(account.Username, account.Password, account.OtpPassword)
+	err := s.driverGroup.AddDriverApi(account.Username, account.Password, account.OtpPassword)
 	if err != nil {
 		return err
 	}
 
-	return s.driverGroup.WithDriverApi(account.Username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
-
-		accountData, err := s.createAccount(account, api)
+	return s.driverGroup.WithDriverApi(account.Username, func(dapi *group.DriverApi) error {
+		accountData, err := s.createAccount(account, dapi.Api)
 		if err != nil {
 			return err
 		}
 
-		err = s.AddAccountData(groupName, accountData)
+		err = s.accountRepo.AddAccountData(groupName, accountData)
 		return err
 	})
 }
@@ -134,7 +131,7 @@ func (s *AccountService) SyncAccount(shopid int, notifHash string, notif *api.No
 	defer s.Unlock()
 
 	notifData := notif.Data.Notifications
-	err = s.UpdateAccount(shopid, func(account *model.Account) error {
+	err = s.accountRepo.UpdateAccount(shopid, func(account *model.Account) error {
 		account.UnreadChat = notifData.Chat.UnreadsSeller
 		account.NewOrder = notifData.SellerOrderStatus.NewOrder
 		account.Diskusi = notifData.Inbox.TalkSeller
@@ -145,7 +142,7 @@ func (s *AccountService) SyncAccount(shopid int, notifHash string, notif *api.No
 	return err
 }
 
-func (s *AccountService) OpenBrowser(username string) {
+func (s *AccountService) OpenBrowser(shopid int) {
 
 	s.Lock()
 	defer s.Unlock()
@@ -154,7 +151,7 @@ func (s *AccountService) OpenBrowser(username string) {
 		s.browserCancel()
 	}
 
-	cancel, err := s.driverGroup.OpenDriver(username)
+	cancel, err := s.driverGroup.OpenDriver(shopid)
 	s.browserCancel = cancel
 	if err != nil {
 		pdc_common.ReportError(err)
@@ -181,9 +178,8 @@ func (s *AccountService) Withdraw(username string, pin string, report *report.Wi
 		defer report.Save()
 	}
 
-	return s.driverGroup.WithDriverApi(username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
-
-		items, err := withdraw.GetUnwithdrawTransaction(api)
+	return s.driverGroup.WithDriverApi(username, func(dapi *group.DriverApi) error {
+		items, err := withdraw.GetUnwithdrawTransaction(dapi.Api)
 		if err != nil {
 			return err
 		}
@@ -196,8 +192,8 @@ func (s *AccountService) Withdraw(username string, pin string, report *report.Wi
 			return ErrPinKosong
 		}
 
-		return driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
-			wd := withdraw.NewWithdraw(api)
+		return dapi.Driver.Run(false, func(dctx *tokopedia_lib.DriverContext) error {
+			wd := withdraw.NewWithdraw(dapi.Api)
 			err := wd.Run(dctx, pin, item)
 			if err != nil {
 				item.Keterangan = err.Error()
@@ -207,13 +203,26 @@ func (s *AccountService) Withdraw(username string, pin string, report *report.Wi
 	})
 }
 
-func (s *AccountService) GetLocations(username string) ([]apimodel.ShopLocationLegacy, error) {
+func (s *AccountService) TogglePinned(shopid int) error {
+	return s.accountRepo.UpdateAccount(shopid, func(account *model.Account) error {
+		account.AccountData.Pinned = !account.AccountData.Pinned
+		return nil
+	})
+}
+
+func (s *AccountService) SetPin(shopid int, pin string) error {
+	return s.accountRepo.UpdateAccount(shopid, func(account *model.Account) error {
+		account.AccountData.Pin = pin
+		return nil
+	})
+}
+
+func (s *AccountService) GetLocations(shopid int) ([]apimodel.ShopLocationLegacy, error) {
 
 	var locations []apimodel.ShopLocationLegacy
-	err := s.driverGroup.WithDriverApi(username, func(driver *tokopedia_lib.DriverAccount, tapi *api.TokopediaApi) error {
-
-		shopid := int(tapi.AuthenticatedData.UserShopInfo.Info.ShopID)
-		locationAll, err := tapi.GetShopLocationAll(shopid)
+	err := s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+		shopid := int(dapi.Api.AuthenticatedData.UserShopInfo.Info.ShopID)
+		locationAll, err := dapi.Api.GetShopLocationAll(shopid)
 		if err != nil {
 			return err
 		}
@@ -226,27 +235,23 @@ func (s *AccountService) GetLocations(username string) ([]apimodel.ShopLocationL
 }
 
 func (s *AccountService) updateActive(shopid int) error {
-	return s.WithAccount(s.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
-		log.Printf("[ %s ] set active", account.AccountData.Username)
-		return s.driverGroup.WithDriverApi(account.AccountData.Username, func(driver *tokopedia_lib.DriverAccount, tapi *api.TokopediaApi) error {
-			_, err := tapi.SetShopActive()
-			return err
-		})
+	return s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+		log.Printf("[ %s ] set active", username)
+		_, err := dapi.Api.SetShopActive()
+		return err
 	})
 }
 
 func (s *AccountService) updateSaldo(shopid int) error {
-	return s.WithAccount(s.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
-		log.Printf("[ %s ] getting saldo", account.AccountData.Username)
-		return s.driverGroup.WithDriverApi(account.AccountData.Username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
-			balance, err := api.GetBalance()
-			if err != nil {
-				return err
-			}
-			return s.UpdateAccount(shopid, func(account *model.Account) error {
-				account.Saldo = balance.Data.Balance.SellerAll
-				return nil
-			})
+	return s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+		log.Printf("[ %s ] getting saldo", username)
+		balance, err := dapi.Api.GetBalance()
+		if err != nil {
+			return err
+		}
+		return s.accountRepo.UpdateAccount(shopid, func(account *model.Account) error {
+			account.Saldo = balance.Data.Balance.SellerAll
+			return nil
 		})
 	})
 }

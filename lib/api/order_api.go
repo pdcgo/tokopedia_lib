@@ -387,6 +387,84 @@ func (api *TokopediaApi) IterateOrder(payload *query.OrderListQuery, handler fun
 	return nil
 }
 
+func (api *TokopediaApi) OrderPendingList(payload *query.OrderPendingListQuery) (*model.OrderListWaitingPaymentRes, error) {
+
+	gqlQuery := GraphqlPayload{
+		OperationName: "OrderListWaitingPayment",
+		Variables:     payload,
+		Query: `fragment Product on OrderListWaitingPaymentProduct {
+			productId: product_id
+			productName: product_name
+			picture: product_picture
+			productQty: product_qty
+			productPrice: product_price
+			bundleId: bundle_id
+			bundleVariantId: bundle_variant_id
+			__typename
+		  }
+		  
+		  fragment GetProductBundling on OrderListWaitingPaymentOrder {
+			hasProductBundle: have_product_bundle
+			bundle_detail {
+			  total_product
+			  bundleIcon: product_bundling_icon
+			  bundle {
+				bundleId: bundle_id
+				bundleVariantId: bundle_variant_id
+				bundleName: bundle_name
+				bundlePrice: bundle_price
+				bundleQty: bundle_quantity
+				bundleItems: order_detail {
+				  ...Product
+				  __typename
+				}
+				__typename
+			  }
+			  non_bundle {
+				...Product
+				__typename
+			  }
+			  __typename
+			}
+			__typename
+		  }
+		  
+		  query OrderListWaitingPayment($page: Int!, $batchPage: Int!, $showPage: Int!, $nextPaymentDeadline: Int!) {
+			orderListWaitingPayment(input: {page: $page, batch_page: $batchPage, show_page: $showPage, lang: "id", next_payment_deadline: $nextPaymentDeadline, is_mobile: false}) {
+			  list {
+				orderId: order_id
+				buyerName: buyer_name
+				paymentDeadline: payment_deadline
+				...GetProductBundling
+				products {
+				  ...Product
+				  __typename
+				}
+				__typename
+			  }
+			  paging {
+				showBackButton: ShowBackButton
+				showNextButton: ShowNextButton
+				currentBatch: CurrentBatchPage
+				currentPageOverall: CurrentPage
+				pagesOverall: PagesShowValueList
+				pages: PagesRealValueList
+				__typename
+			  }
+			  cursorPaymentDeadline: cursor_payment_deadline
+			  totalPagePerBatch: total_data_per_batch
+			  __typename
+			}
+		}`,
+	}
+
+	req := api.NewGraphqlReq(&gqlQuery)
+
+	var hasil *model.OrderListWaitingPaymentRes
+	err := api.SendRequest(req, &hasil)
+	return hasil, err
+}
+
 func (api *TokopediaApi) OrderIncomeDetail(orderid int) (*model.SOMIncomeDetailRes, error) {
 	payload := query.OrderIncomeDetailQuery{
 		Input: &query.OrderIncomeDetailInput{

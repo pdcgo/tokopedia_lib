@@ -30,8 +30,8 @@ func TestOrderModel(t *testing.T) {
 				order := model.Order{
 					ID:         2728,
 					ShopID:     9800,
-					Account:    account,
-					OrderItems: []model.OrderItem{orderItem},
+					Account:    &account,
+					OrderItems: []*model.OrderItem{&orderItem},
 					OrderSheet: &orderSheet,
 				}
 				db.Create(&order)

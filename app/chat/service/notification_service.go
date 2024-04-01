@@ -6,13 +6,11 @@ import (
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/common_conf/pdc_common"
-	"github.com/pdcgo/tokopedia_lib"
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
-	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/rs/zerolog"
 )
 
@@ -50,9 +48,9 @@ func NewNotificationService(
 func (s *NotificationService) SendSyncAccountNotification(account *model.Account) error {
 
 	username := account.GetUsername()
-	return s.driverGroup.WithDriverApi(username, func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error {
+	return s.driverGroup.WithDriverApi(username, func(dapi *group.DriverApi) error {
 
-		notif, err := api.NotificationCounter()
+		notif, err := dapi.Api.NotificationCounter()
 		if err != nil {
 			return err
 		}
@@ -70,7 +68,7 @@ func (s *NotificationService) SendSyncAccountNotification(account *model.Account
 
 		log.Printf("[ %s ] send notification %s", username, hash)
 
-		s.event.Emit(&syncAccountEvent)
+		s.event.Emit(syncAccountEvent)
 		s.sio.BroadcastToNamespace("", "notification", &sio_event.NotificationEvent{
 			Shopid: account.ID,
 			Event:  notif,

@@ -1,0 +1,6 @@
+debug_mode: false
+open_browser: true
+google_sheet_url: ""
+sync_command_interval:
+    - 5
+    - 30

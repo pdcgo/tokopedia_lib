@@ -78,3 +78,24 @@ type OrderIncomeDetailInput struct {
 type OrderIncomeDetailQuery struct {
 	Input *OrderIncomeDetailInput `json:"input"`
 }
+
+type OrderPendingListInput struct {
+	BatchPage           int `json:"batchPage"`
+	NextPaymentDeadline int `json:"nextPaymentDeadline"`
+	Page                int `json:"page"`
+	ShowPage            int `json:"showPage"`
+}
+
+type OrderPendingListQuery struct {
+	Input *OrderPendingListInput `json:"input"`
+}
+
+func NewOrderPendingListQuery() *OrderPendingListQuery {
+	return &OrderPendingListQuery{
+		Input: &OrderPendingListInput{
+			BatchPage: 1,
+			Page:      1,
+			ShowPage:  1,
+		},
+	}
+}

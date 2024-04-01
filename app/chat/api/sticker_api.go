@@ -4,45 +4,38 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pdcgo/tokopedia_lib/app/chat/model"
-	tokpedapi "github.com/pdcgo/tokopedia_lib/lib/api"
+	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	apimodel "github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/v2_gots_sdk"
 	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
 
 type StickerApi struct {
-	*BaseDriverApi
+	BaseApi
+	driverGroup *group.DriverGroup
 }
 
-func NewStickerApi(driverApi *BaseDriverApi) *StickerApi {
+func NewStickerApi(driverGroup *group.DriverGroup) *StickerApi {
 	return &StickerApi{
-		BaseDriverApi: driverApi,
+		driverGroup: driverGroup,
 	}
-}
-
-type StickerQuery struct {
-	Shopid int `json:"shopid" schema:"shopid" form:"shopid"`
 }
 
 func (api *StickerApi) group(ctx *gin.Context) {
 
-	query := StickerQuery{}
+	query := BaseQuery{}
 	err := ctx.BindQuery(&query)
 	if err != nil {
 		ctx.JSON(api.BaseResponseBadRequest(err))
 		return
 	}
 
-	err = api.WithDriverApi(query.Shopid, func(account *model.Account, driverApi *tokpedapi.TokopediaApi) error {
-
-		res, err := driverApi.ChatGetGroupSticker(1)
-		if err != nil {
-			return err
+	err = api.driverGroup.WithDriverApiByShopid(query.Shopid, func(username string, dapi *group.DriverApi) error {
+		res, err := dapi.Api.ChatGetGroupSticker(1)
+		if err == nil {
+			ctx.JSON(http.StatusOK, res)
 		}
-
-		ctx.JSON(http.StatusOK, res)
-		return nil
+		return err
 	})
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
@@ -50,8 +43,8 @@ func (api *StickerApi) group(ctx *gin.Context) {
 }
 
 type StickerBundleQuery struct {
-	Shopid int    `json:"shopid" schema:"shopid" form:"shopid"`
-	Id     string `json:"id" schema:"id" form:"id"`
+	*BaseQuery
+	Id string `json:"id" schema:"id" form:"id"`
 }
 
 func (api *StickerApi) bundle(ctx *gin.Context) {
@@ -63,18 +56,15 @@ func (api *StickerApi) bundle(ctx *gin.Context) {
 		return
 	}
 
-	err = api.WithDriverApi(query.Shopid, func(account *model.Account, driverApi *tokpedapi.TokopediaApi) error {
-
-		res, err := driverApi.ChatGetBundleSticker(&apimodel.ChatGetBundleStickerVar{
+	err = api.driverGroup.WithDriverApiByShopid(query.Shopid, func(username string, dapi *group.DriverApi) error {
+		res, err := dapi.Api.ChatGetBundleSticker(&apimodel.ChatGetBundleStickerVar{
 			ID:    query.Id,
 			Limit: 8,
 		})
-		if err != nil {
-			return err
+		if err == nil {
+			ctx.JSON(http.StatusOK, res)
 		}
-
-		ctx.JSON(http.StatusOK, res)
-		return nil
+		return err
 	})
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
@@ -86,7 +76,7 @@ func (api *StickerApi) Register(group *v2_gots_sdk.SdkGroup) {
 	group.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: "group",
-		Query:        StickerQuery{},
+		Query:        BaseQuery{},
 		Response:     apimodel.ChatGetGroupStickerResp{},
 	}, api.group)
 

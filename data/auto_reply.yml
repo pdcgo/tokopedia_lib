@@ -1,0 +1,7 @@
+data:
+    active: true
+    replies:
+        - delay: 4
+          is_regex: false
+          pola: ayam test
+          reply: ayam mantab
