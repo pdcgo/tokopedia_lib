@@ -1,7 +1,9 @@
 package repo_test
 
 import (
+	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
@@ -16,6 +18,7 @@ func TestOrderRepo(t *testing.T) {
 	scen.WithBase(func(dirbase string, scen *scenario.Scenario) {
 		scen.WithChatSqliteDatabase(func(db *gorm.DB) {
 			orderRepo := repo.NewOrderRepo(db)
+			now := time.Now()
 
 			t.Run("test create order", func(t *testing.T) {
 				orderid := 6669
@@ -24,6 +27,11 @@ func TestOrderRepo(t *testing.T) {
 					order.ShopID = 6999
 					order.StatusID = 220
 					order.Status = "status"
+					order.BuyerName = "test"
+					order.Created = sql.NullTime{
+						Valid: true,
+						Time:  now,
+					}
 					return nil
 				})
 				assert.Nil(t, err)
@@ -149,6 +157,70 @@ func TestOrderRepo(t *testing.T) {
 							Page:     1,
 							Size:     10,
 							PriceMax: 40000,
+						})
+						assert.Nil(t, err)
+						assert.Empty(t, res.Items)
+					})
+				})
+
+				t.Run("test filter buyer name", func(t *testing.T) {
+					t.Run("test filter ok", func(t *testing.T) {
+						res, err := orderRepo.Paginate(&repo.ListOrderFilter{
+							Page:      1,
+							Size:      10,
+							BuyerName: "test",
+						})
+						assert.Nil(t, err)
+						assert.NotEmpty(t, res.Items)
+					})
+
+					t.Run("test filter not ok", func(t *testing.T) {
+						res, err := orderRepo.Paginate(&repo.ListOrderFilter{
+							Page:      1,
+							Size:      10,
+							BuyerName: "notfound",
+						})
+						assert.Nil(t, err)
+						assert.Empty(t, res.Items)
+					})
+				})
+
+				t.Run("test filter date", func(t *testing.T) {
+					t.Run("test filter ok", func(t *testing.T) {
+						res, err := orderRepo.Paginate(&repo.ListOrderFilter{
+							Page:     1,
+							Size:     10,
+							TypeDate: "created",
+							DateMin:  now.AddDate(0, 0, -2),
+						})
+						assert.Nil(t, err)
+						assert.NotEmpty(t, res.Items)
+
+						res, err = orderRepo.Paginate(&repo.ListOrderFilter{
+							Page:     1,
+							Size:     10,
+							TypeDate: "created",
+							DateMax:  now.AddDate(0, 0, 2),
+						})
+						assert.Nil(t, err)
+						assert.NotEmpty(t, res.Items)
+					})
+
+					t.Run("test filter not ok", func(t *testing.T) {
+						res, err := orderRepo.Paginate(&repo.ListOrderFilter{
+							Page:     1,
+							Size:     10,
+							TypeDate: "created",
+							DateMin:  now.AddDate(0, 0, 2),
+						})
+						assert.Nil(t, err)
+						assert.Empty(t, res.Items)
+
+						res, err = orderRepo.Paginate(&repo.ListOrderFilter{
+							Page:     1,
+							Size:     10,
+							TypeDate: "created",
+							DateMax:  now.AddDate(0, 0, -2),
 						})
 						assert.Nil(t, err)
 						assert.Empty(t, res.Items)

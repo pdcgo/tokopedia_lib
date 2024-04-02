@@ -8,7 +8,6 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/tokopedia_lib/app/chat/report"
-	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
 )
 
 func (api *AccountApi) reconnect(ctx *gin.Context) {
@@ -54,9 +53,8 @@ func (api *AccountApi) withdraw(ctx *gin.Context) {
 	}
 
 	err = api.accountRepo.WithAccount(api.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
-		username := account.GetUsername()
-		report := report.NewWitdrawReport(fmt.Sprintf("withdraw_%s_report.csv", username))
-		return api.accountService.Withdraw(username, account.AccountData.Pin, report)
+		report := report.NewWitdrawReport(fmt.Sprintf("withdraw_%s_report.csv", account.GetUsername()))
+		return api.accountService.Withdraw(account, account.AccountData.Pin, report)
 	})
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
@@ -78,23 +76,7 @@ func (api *AccountApi) autoWithdraw(ctx *gin.Context) {
 
 	report := report.NewWitdrawReport("withdraw_report.csv")
 	for _, account := range accounts {
-		username := account.GetUsername()
-		event := sio_event.WithdrawEvent{
-			Name:    username,
-			Type:    "success",
-			Message: "success",
-		}
-
-		err = api.accountService.Withdraw(username, account.AccountData.Pin, report)
-		if err != nil {
-			event.Type = "error"
-			event.Message = err.Error()
-		}
-
-		api.sio.BroadcastToNamespace("", "withdraw", &sio_event.AccountWithdrawEvent{
-			Shopid: account.AccountData.ShopID,
-			Event:  &event,
-		})
+		api.accountService.Withdraw(account, account.AccountData.Pin, report)
 	}
 }
 

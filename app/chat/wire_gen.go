@@ -30,7 +30,7 @@ func InitApplication(cfg *config.AppConfig) (*Application, error) {
 	db := CreateSqliteDatabase(cfg)
 	accountRepo := repo.NewAccountRepo(db)
 	driverGroup := group.NewDriverGroup()
-	accountService := service.NewAccountService(initConfig, coreEvent, accountRepo, driverGroup)
+	accountService := service.NewAccountService(initConfig, coreEvent, accountRepo, driverGroup, server)
 	socketGroup := group.NewSocketGroup(cfg, coreEvent, server)
 	chatGroup := group.NewChatGroup(server, initConfig, accountRepo, driverGroup, socketGroup)
 	accountApi := api.NewAccountApi(server, accountService, initConfig, accountRepo, chatGroup)

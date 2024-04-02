@@ -11,7 +11,6 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/tokopedia_lib/app/chat/service"
-	apimodel "github.com/pdcgo/tokopedia_lib/lib/model"
 	"github.com/pdcgo/v2_gots_sdk"
 	"github.com/pdcgo/v2_gots_sdk/pdc_api"
 )
@@ -45,8 +44,7 @@ func NewAccountApi(
 func (api *AccountApi) list(ctx *gin.Context) {
 
 	query := repo.ListAccountFilter{}
-	err := ctx.BindQuery(&query)
-	if err != nil {
+	if err := ctx.BindQuery(&query); err != nil {
 		ctx.JSON(api.BaseResponseBadRequest(err))
 		return
 	}
@@ -60,11 +58,6 @@ func (api *AccountApi) list(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, accounts)
 }
 
-type AccountRes struct {
-	Address []apimodel.ShopLocationLegacy `json:"address"`
-	Akun    *model.Account                `json:"akun"`
-}
-
 func (api *AccountApi) get(ctx *gin.Context) {
 
 	shopid, err := strconv.Atoi(ctx.Param("shopid"))
@@ -75,8 +68,7 @@ func (api *AccountApi) get(ctx *gin.Context) {
 
 	go api.accountService.OpenBrowser(shopid)
 
-	res := AccountRes{}
-	res.Address, err = api.accountService.GetLocations(shopid)
+	res, err := api.accountService.GetAccountAddress(shopid)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return
@@ -157,7 +149,7 @@ func (api *AccountApi) Register(group *v2_gots_sdk.SdkGroup) {
 	group.Register(&pdc_api.Api{
 		Method:       http.MethodGet,
 		RelativePath: ":shopid",
-		Response:     []AccountRes{},
+		Response:     service.AccountAddress{},
 	}, api.get)
 
 	group.Register(&pdc_api.Api{

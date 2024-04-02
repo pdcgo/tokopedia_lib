@@ -35,33 +35,3 @@ func (a *BaseApi) BaseResponseInternalServerError(err error) (int, BaseResponse)
 		Detail: err.Error(),
 	}
 }
-
-// type BaseDriverApi struct {
-// 	BaseApi
-// 	initConfig  *config.InitConfig
-// 	accountRepo *repo.AccountRepo
-// 	driverGroup *group.DriverGroup
-// }
-
-// func NewBaseDriverApi(
-// 	initConfig *config.InitConfig,
-// 	accountRepo *repo.AccountRepo,
-// 	driverGroup *group.DriverGroup,
-// ) *BaseDriverApi {
-
-// 	return &BaseDriverApi{
-// 		initConfig:  initConfig,
-// 		accountRepo: accountRepo,
-// 		driverGroup: driverGroup,
-// 	}
-// }
-
-// type DriverApiHandler func(account *model.Account, driverApi *tokpedapi.TokopediaApi) error
-
-// func (api *BaseDriverApi) WithDriverApi(shopid int, handler DriverApiHandler) error {
-// 	return api.accountRepo.WithAccount(api.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
-// 		return api.driverGroup.WithDriverApi(account.GetUsername(), func(dapi *group.DriverApi) error {
-// 			return handler(account, dapi.Api)
-// 		})
-// 	})
-// }

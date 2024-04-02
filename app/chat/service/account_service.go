@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	socketio "github.com/googollee/go-socket.io"
 	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib"
@@ -26,6 +27,7 @@ import (
 type AccountService struct {
 	sync.Mutex
 
+	sio           *socketio.Server
 	accountRepo   *repo.AccountRepo
 	initConfig    *config.InitConfig
 	event         *common_concept.CoreEvent
@@ -38,6 +40,7 @@ func NewAccountService(
 	event *common_concept.CoreEvent,
 	accountRepo *repo.AccountRepo,
 	driverGroup *group.DriverGroup,
+	sio *socketio.Server,
 ) *AccountService {
 
 	accountService := AccountService{
@@ -45,6 +48,7 @@ func NewAccountService(
 		event:       event,
 		accountRepo: accountRepo,
 		driverGroup: driverGroup,
+		sio:         sio,
 	}
 
 	go accountService.handleEvent()
@@ -161,14 +165,7 @@ func (s *AccountService) OpenBrowser(shopid int) {
 var ErrPinKosong = errors.New("pin kosong")
 var WdLock sync.Mutex
 
-func (s *AccountService) Withdraw(username string, pin string, report *report.WitdrawReport) (err error) {
-
-	WdLock.Lock()
-	defer func() {
-		time.Sleep(time.Second)
-		WdLock.Unlock()
-	}()
-
+func (s *AccountService) applyWithdraw(username string, pin string, report *report.WitdrawReport) error {
 	item := &withdraw.WithdrawReport{
 		Jumlah:    "Rp0",
 		SisaSaldo: "Rp0",
@@ -203,6 +200,28 @@ func (s *AccountService) Withdraw(username string, pin string, report *report.Wi
 	})
 }
 
+func (s *AccountService) Withdraw(account *model.Account, pin string, report *report.WitdrawReport) error {
+
+	WdLock.Lock()
+	defer func() {
+		time.Sleep(time.Second)
+		WdLock.Unlock()
+	}()
+
+	username := account.GetUsername()
+	event := sio_event.NewWithdrawEvent(username)
+	defer s.sio.BroadcastToNamespace("", "withdraw", &sio_event.AccountWithdrawEvent{
+		Shopid: account.AccountData.ShopID,
+		Event:  event,
+	})
+
+	err := s.applyWithdraw(username, pin, report)
+	if err != nil {
+		event.SetError(err)
+	}
+	return err
+}
+
 func (s *AccountService) TogglePinned(shopid int) error {
 	return s.accountRepo.UpdateAccount(shopid, func(account *model.Account) error {
 		account.AccountData.Pinned = !account.AccountData.Pinned
@@ -217,21 +236,30 @@ func (s *AccountService) SetPin(shopid int, pin string) error {
 	})
 }
 
-func (s *AccountService) GetLocations(shopid int) ([]apimodel.ShopLocationLegacy, error) {
+type AccountAddress struct {
+	Address []apimodel.ShopLocationLegacy `json:"address"`
+	Akun    *model.Account                `json:"akun"`
+}
 
-	var locations []apimodel.ShopLocationLegacy
-	err := s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+func (s *AccountService) GetAccountAddress(shopid int) (res *AccountAddress, err error) {
+
+	res = &AccountAddress{}
+	res.Akun, err = s.accountRepo.GetAccount(s.initConfig.ActiveGroup, shopid)
+	if err != nil {
+		return
+	}
+
+	err = s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
 		shopid := int(dapi.Api.AuthenticatedData.UserShopInfo.Info.ShopID)
 		locationAll, err := dapi.Api.GetShopLocationAll(shopid)
 		if err != nil {
 			return err
 		}
 
-		locations = locationAll.Data.ShopLocGetAllLocations.Data.Warehouses.GetLocations()
+		res.Address = locationAll.Data.ShopLocGetAllLocations.Data.Warehouses.GetLocations()
 		return nil
 	})
-
-	return locations, err
+	return
 }
 
 func (s *AccountService) updateActive(shopid int) error {

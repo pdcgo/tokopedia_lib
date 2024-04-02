@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"fmt"
 	"log"
 	"math"
 
@@ -13,11 +14,13 @@ var (
 )
 
 type PaginationResult[T any] struct {
-	Size  int `json:"size"`
-	Page  int `json:"page"`
-	Pages int `json:"pages"`
-	Items []T `json:"items"`
-	Total int `json:"total"`
+	SortBy   string `json:"-"`
+	SortType string `json:"-"`
+	Size     int    `json:"size"`
+	Page     int    `json:"page"`
+	Pages    int    `json:"pages"`
+	Items    []T    `json:"items"`
+	Total    int    `json:"total"`
 }
 
 func (p *PaginationResult[T]) GetOffset() int {
@@ -38,10 +41,17 @@ func (p *PaginationResult[T]) GetPage() int {
 	return p.Page
 }
 
-func (p *PaginationResult[T]) Paginate(value any, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
+func (p *PaginationResult[T]) GetSort() string {
+	if p.SortBy == "" && p.SortType != "" {
+		p.SortBy = fmt.Sprintf("%s %s", p.SortBy, p.SortType)
+	}
+	return p.SortBy
+}
+
+func (p *PaginationResult[T]) Paginate(db *gorm.DB) func(db *gorm.DB) *gorm.DB {
 
 	var totalRows int64
-	db.Model(value).Count(&totalRows)
+	db.Model(p.Items).Count(&totalRows)
 
 	log.Println(float64(totalRows), float64(p.Size))
 
@@ -51,6 +61,7 @@ func (p *PaginationResult[T]) Paginate(value any, db *gorm.DB) func(db *gorm.DB)
 	return func(db *gorm.DB) *gorm.DB {
 		return db.
 			Offset(p.GetOffset()).
-			Limit(p.GetLimit())
+			Limit(p.GetLimit()).
+			Order(p.GetSort())
 	}
 }

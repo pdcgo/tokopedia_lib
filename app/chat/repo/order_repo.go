@@ -2,6 +2,7 @@ package repo
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
@@ -33,12 +34,8 @@ type ListOrderFilter struct {
 	TypeDate    string            `form:"type_date" schema:"type_date" json:"type_date"`
 }
 
-func (repo *OrderRepo) Paginate(filter *ListOrderFilter) (res *PaginationResult[*model.Order], err error) {
+func (repo *OrderRepo) Paginate(filter *ListOrderFilter) (*PaginationResult[*model.Order], error) {
 
-	res = &PaginationResult[*model.Order]{
-		Page: filter.Page,
-		Size: filter.Size,
-	}
 	tx := repo.db.
 		Preload("Account").
 		Preload("OrderItems").
@@ -64,6 +61,17 @@ func (repo *OrderRepo) Paginate(filter *ListOrderFilter) (res *PaginationResult[
 		)
 	}
 
+	if filter.BuyerName != "" {
+		tx = tx.Where("buyer_name LIKE ?", "%"+filter.BuyerName+"%")
+	}
+
+	if !filter.DateMin.IsZero() {
+		tx = tx.Where(fmt.Sprintf("%s >= ?", filter.TypeDate), filter.DateMin)
+	}
+	if !filter.DateMax.IsZero() {
+		tx = tx.Where(fmt.Sprintf("%s <= ?", filter.TypeDate), filter.DateMax)
+	}
+
 	statuses := model.OrderStatuses.Batch(
 		model.NewOrder,
 		model.ConfirmShipping,
@@ -73,16 +81,18 @@ func (repo *OrderRepo) Paginate(filter *ListOrderFilter) (res *PaginationResult[
 	if filter.Status != "" {
 		statuses = model.OrderStatuses[filter.Status]
 	}
-	tx = tx.Where(`status_id IN ?`, statuses)
+	tx = tx.Where("status_id IN ?", statuses)
 
-	items := []*model.Order{}
-	tx = tx.Scopes(res.Paginate(items, tx)).Find(&items)
-	if err = tx.Error; err != nil {
-		return
+	res := &PaginationResult[*model.Order]{
+		Page:     filter.Page,
+		Size:     filter.Size,
+		SortBy:   filter.SortBy,
+		SortType: filter.SortType,
+		Items:    []*model.Order{},
 	}
+	err := tx.Scopes(res.Paginate(tx)).Find(&res.Items).Error
 
-	res.Items = items
-	return
+	return res, err
 }
 
 func (repo *OrderRepo) GetOrder(orderid int) (*model.Order, error) {

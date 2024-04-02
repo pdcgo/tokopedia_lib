@@ -30,6 +30,8 @@ func NewOrderApi(orderRepo *repo.OrderRepo, orderService *service.OrderService) 
 func (api *OrderApi) list(ctx *gin.Context) {
 
 	query := repo.ListOrderFilter{
+		SortType: "desc",
+		SortBy:   "created",
 		TypeDate: "created",
 	}
 	err := ctx.BindQuery(&query)

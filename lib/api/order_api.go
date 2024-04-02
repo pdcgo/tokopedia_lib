@@ -371,6 +371,10 @@ func (api *TokopediaApi) IterateOrder(payload *query.OrderListQuery, handler fun
 			return err
 		}
 
+		if res.Data == nil {
+			break
+		}
+
 		for _, order := range res.Data.OrderList.List {
 			err := handler(order)
 			if err != nil {
