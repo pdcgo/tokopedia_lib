@@ -15,11 +15,11 @@ import { useState } from "react"
 import { FlexColumn } from "../styled_components"
 // import CheckOrderDateRange from "./CheckOrderDateRange"
 // import CheckOrderSelectStatus from "./CheckOrderSelectStatus"
-import { TokopediaTokoLiburQueryCli } from "../client/newapisdk"
+import { TokopediaTokoLiburConfig } from "../client/newapisdk"
 import dayjs from "dayjs"
 
 export type TokoLiburProps = {
-    onFinish: (query: TokopediaTokoLiburQueryCli) => void
+    onFinish: (config: TokopediaTokoLiburConfig) => void
     onCancel: () => void
 }
 
@@ -35,8 +35,7 @@ const rangePresets: TimeRangePickerProps["presets"] = [
 ]
 
 export default function TokoLiburAsk(props: TokoLiburProps & ModalProps) {
-    const [query, setQuery] = useState<TokopediaTokoLiburQueryCli>({
-        base: "./",
+    const [query, setQuery] = useState<TokopediaTokoLiburConfig>({
         libur: true,
         report: "tokopedia_toko_libur",
         limit: 3,

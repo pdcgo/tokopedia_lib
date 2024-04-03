@@ -7,13 +7,13 @@
 package toko_libur
 
 import (
-	"github.com/urfave/cli/v2"
+	"github.com/pdcgo/common_conf/pdc_application"
 )
 
 // Injectors from wire.go:
 
-func InitApplication(cCtx *cli.Context) (*Application, error) {
-	appConfig := NewApplicationConfig(cCtx)
+func InitApplication(base pdc_application.BaseApplication) (*Application, error) {
+	appConfig := NewApplicationConfig(base)
 	report, err := NewReport(appConfig)
 	if err != nil {
 		return nil, err

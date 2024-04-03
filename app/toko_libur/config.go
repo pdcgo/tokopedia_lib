@@ -1,26 +1,27 @@
 package toko_libur
 
 import (
+	"encoding/json"
+	"os"
+
 	"github.com/pdcgo/common_conf/pdc_application"
-	"github.com/pdcgo/go_v2_shopeelib/app/upload_app/legacy_source"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
-	"github.com/urfave/cli/v2"
 )
 
-type AppConfig struct {
-	BaseConfig pdc_application.BaseApplication
-	Libur      bool
-	Report     string
-	Limit      int
-	CloseStart int
-	CloseEnd   int
+type TokopediaTokoLiburConfig struct {
+	BaseConfig pdc_application.BaseApplication `json:"-"`
+	Libur      bool                            `json:"libur"`
+	Report     string                          `json:"report"`
+	Limit      int                             `json:"limit"`
+	CloseStart int                             `json:"closeStart"`
+	CloseEnd   int                             `json:"closeEnd"`
 }
 
-func (c *AppConfig) GetReportPath() string {
+func (c *TokopediaTokoLiburConfig) GetReportPath() string {
 	return c.BaseConfig.Path(c.Report)
 }
 
-func (c *AppConfig) CreateCloseShopInput() *api.CloseShopScheduleInput {
+func (c *TokopediaTokoLiburConfig) CreateCloseShopInput() *api.CloseShopScheduleInput {
 
 	input := api.CloseShopScheduleInput{
 		Action: 1,
@@ -34,15 +35,36 @@ func (c *AppConfig) CreateCloseShopInput() *api.CloseShopScheduleInput {
 	return &input
 }
 
-func NewApplicationConfig(cCtx *cli.Context) *AppConfig {
-	return &AppConfig{
-		BaseConfig: &legacy_source.BaseConfig{
-			BaseData: cCtx.String("base"),
-		},
-		Libur:      cCtx.Bool("libur"),
-		Report:     cCtx.String("report"),
-		Limit:      cCtx.Int("limit"),
-		CloseStart: cCtx.Int("closeStart"),
-		CloseEnd:   cCtx.Int("closeEnd"),
+func NewApplicationConfig(base pdc_application.BaseApplication) *TokopediaTokoLiburConfig {
+
+	config := TokopediaTokoLiburConfig{
+		BaseConfig: base,
+		Report:     "tokopedia_toko_libur.csv",
+		Limit:      3,
 	}
+
+	fname := base.Path("data", "tokopedia_libur_config")
+	file, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE, os.ModePerm)
+	if err != nil {
+		return &config
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	decoder.Decode(&config)
+
+	return &config
+}
+
+func SaveApplicationConfig(base pdc_application.BaseApplication, config *TokopediaTokoLiburConfig) error {
+
+	fname := base.Path("data", "tokopedia_libur_config")
+	file, err := os.Create(fname)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	decoder := json.NewEncoder(file)
+	return decoder.Encode(&config)
 }

@@ -14,7 +14,7 @@ func TestReport(t *testing.T) {
 	scen := scenario.NewScenario(t)
 	scen.WithBase(func(dirbase string, scen *scenario.Scenario) {
 
-		config := toko_libur.AppConfig{
+		config := toko_libur.TokopediaTokoLiburConfig{
 			BaseConfig: scen,
 			Report:     "toko_libur.csv",
 		}

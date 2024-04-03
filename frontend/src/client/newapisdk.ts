@@ -1060,6 +1060,15 @@ export interface CheckOrderAkunItem {
 
 export interface TokopediaTokoLiburQueryCli {
 	base: string
+}
+
+export interface AkunTokoLibur {
+	username: string
+	password: string
+	secret: string
+}
+
+export interface TokopediaTokoLiburConfig {
 	libur: boolean
 	report: string
 	limit: number
@@ -1067,10 +1076,9 @@ export interface TokopediaTokoLiburQueryCli {
 	closeEnd: number
 }
 
-export interface AkunTokoLibur {
-	username: string
-	password: string
-	secret: string
+export interface TokopediaTokoLiburPayload {
+	akuns: Array<AkunTokoLibur | undefined>
+	config: TokopediaTokoLiburConfig | undefined
 }
 
 export interface CategoryNavigation {
@@ -4252,20 +4260,24 @@ export const clients = {
 		url: "tokopedia/toko_libur/run_toko_libur" as const,
 		method: "POST" as const,
 		query: {
-				base: ``,
+				base: ``
+			} as TokopediaTokoLiburQueryCli ,
+		body: {
+			akuns: [
+			{
+					username: ``,
+					password: ``,
+					secret: ``
+				} as AkunTokoLibur | undefined
+			] as Array<AkunTokoLibur | undefined>,
+			config: {
 				libur: false,
 				report: ``,
 				limit: 0,
 				closeStart: 0,
 				closeEnd: 0
-			} as TokopediaTokoLiburQueryCli ,
-		body: [
-			{
-				username: ``,
-				password: ``,
-				secret: ``
-			}
-		] as Array<AkunTokoLibur>,
+			} as TokopediaTokoLiburConfig | undefined
+		},
 		response: {} as any
 	},
 	GetJakmallCategoryList: {

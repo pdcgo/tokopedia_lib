@@ -5,10 +5,10 @@ package toko_libur
 
 import (
 	"github.com/google/wire"
-	"github.com/urfave/cli/v2"
+	"github.com/pdcgo/common_conf/pdc_application"
 )
 
-func InitApplication(cCtx *cli.Context) (*Application, error) {
+func InitApplication(base pdc_application.BaseApplication) (*Application, error) {
 
 	wire.Build(
 		NewApplicationConfig,

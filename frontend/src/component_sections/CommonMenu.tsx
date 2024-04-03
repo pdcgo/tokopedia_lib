@@ -17,7 +17,7 @@ import {
 } from "../client/sdk_types"
 import { Flex, FlexColumn } from "../styled_components"
 import { accountPayloadChecker } from "../utils/accountPayloadChecker"
-import { AkunTokoLibur, CheckOrderAkunItem, TokopediaTokoLiburQueryCli } from "../client/newapisdk"
+import { AkunTokoLibur, CheckOrderAkunItem, TokopediaTokoLiburConfig } from "../client/newapisdk"
 import TokoLiburAsk from "../components/TokoLiburAsk"
 
 const CheckBotAsk = React.lazy(() => import("../components/CheckBotAsk"))
@@ -130,7 +130,7 @@ export default function CommonMenu() {
         )
     }
 
-    function tokoLiburAction(query: TokopediaTokoLiburQueryCli) {
+    function tokoLiburAction(config: TokopediaTokoLiburConfig) {
         accountPayloadChecker(
             accountString,
             textarea,
@@ -138,8 +138,11 @@ export default function CommonMenu() {
                 message.warning({ content: warn, key: "tokolibur" })
             },
             (data) => {
-                const payload = data.filter(Boolean) as AkunTokoLibur[]
-                tokolibur({ query }, payload)
+                const akuns = data.filter(Boolean) as AkunTokoLibur[]
+                tokolibur({}, {
+                    akuns,
+                    config
+                })
             }
         )
     }

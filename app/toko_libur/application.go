@@ -9,11 +9,11 @@ import (
 )
 
 type Application struct {
-	Config *AppConfig
+	Config *TokopediaTokoLiburConfig
 	Report *Report
 }
 
-func NewApplication(config *AppConfig, report *Report) *Application {
+func NewApplication(config *TokopediaTokoLiburConfig, report *Report) *Application {
 	return &Application{
 		Config: config,
 		Report: report,

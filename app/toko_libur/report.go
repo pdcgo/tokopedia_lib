@@ -51,7 +51,7 @@ type Report struct {
 	Data  []*ReportItem
 }
 
-func NewReport(config *AppConfig) (*Report, error) {
+func NewReport(config *TokopediaTokoLiburConfig) (*Report, error) {
 
 	fname := config.GetReportPath()
 	file, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE, os.ModePerm)
