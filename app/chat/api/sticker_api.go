@@ -30,7 +30,7 @@ func (api *StickerApi) group(ctx *gin.Context) {
 		return
 	}
 
-	err = api.driverGroup.WithDriverApiByShopid(query.Shopid, func(username string, dapi *group.DriverApi) error {
+	err = api.driverGroup.WithDriverApi(query.Shopid, func(dapi *group.DriverApi) error {
 		res, err := dapi.Api.ChatGetGroupSticker(1)
 		if err == nil {
 			ctx.JSON(http.StatusOK, res)
@@ -56,7 +56,7 @@ func (api *StickerApi) bundle(ctx *gin.Context) {
 		return
 	}
 
-	err = api.driverGroup.WithDriverApiByShopid(query.Shopid, func(username string, dapi *group.DriverApi) error {
+	err = api.driverGroup.WithDriverApi(query.Shopid, func(dapi *group.DriverApi) error {
 		res, err := dapi.Api.ChatGetBundleSticker(&apimodel.ChatGetBundleStickerVar{
 			ID:    query.Id,
 			Limit: 8,

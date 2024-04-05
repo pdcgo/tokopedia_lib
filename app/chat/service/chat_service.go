@@ -59,14 +59,15 @@ func (s *ChatService) ReadChat(shopid int, msgId uint) error {
 		},
 	}
 
-	return s.socketGroup.WithSocketByShopid(shopid, func(username string, sc *chat.SocketClient) error {
+	return s.socketGroup.WithSocket(shopid, func(sc *group.Socket) error {
 		return sc.SendEvent(readEvent)
 	})
 }
 
 func (s *ChatService) SendChat(shopid int, payload chat.SendChatPayload) error {
-	return s.socketGroup.WithSocketByShopid(shopid, func(username string, sc *chat.SocketClient) error {
+	return s.socketGroup.WithSocket(shopid, func(sc *group.Socket) error {
 
+		username := sc.Account.Username
 		data := payload.CreateEventData(username)
 
 		log.Printf("[ %s ] send message attach:%d", username, data.AttachmentType)
@@ -81,7 +82,7 @@ func (s *ChatService) SendChat(shopid int, payload chat.SendChatPayload) error {
 
 func (s *ChatService) Pin(shopid int, pin bool, msgid int64) (any, error) {
 	var res any
-	err := s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) (err error) {
+	err := s.driverGroup.WithDriverApi(shopid, func(dapi *group.DriverApi) (err error) {
 		if pin {
 			res, err = dapi.Api.ChatPin(msgid)
 		} else {
@@ -94,7 +95,7 @@ func (s *ChatService) Pin(shopid int, pin bool, msgid int64) (any, error) {
 }
 
 func (s *ChatService) GetChatSearch(shopid int, payload api.ChatSearchVar) (res *api.ChatSearchRes, err error) {
-	err = s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+	err = s.driverGroup.WithDriverApi(shopid, func(dapi *group.DriverApi) error {
 		res, err = dapi.Api.GetChatSearch(payload)
 		return err
 	})
@@ -103,7 +104,7 @@ func (s *ChatService) GetChatSearch(shopid int, payload api.ChatSearchVar) (res 
 }
 
 func (s *ChatService) GetChatList(shopid int, payload api.ChatListVar) (res *api.ChatListRes, err error) {
-	err = s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+	err = s.driverGroup.WithDriverApi(shopid, func(dapi *group.DriverApi) error {
 		res, err = dapi.Api.GetChatList(payload)
 		return err
 	})
@@ -112,7 +113,7 @@ func (s *ChatService) GetChatList(shopid int, payload api.ChatListVar) (res *api
 }
 
 func (s *ChatService) GetChatRoom(shopid int, payload api.ChatRoomVar) (res *api.ChatRoomRes, err error) {
-	err = s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+	err = s.driverGroup.WithDriverApi(shopid, func(dapi *group.DriverApi) error {
 		res, err = dapi.Api.GetChatRoom(payload)
 		return err
 	})
@@ -121,7 +122,7 @@ func (s *ChatService) GetChatRoom(shopid int, payload api.ChatRoomVar) (res *api
 }
 
 func (s *ChatService) GetChatAttachments(shopid int, payload api.ChatAttachmentVar) (res *api.ChatAttachmentRes, err error) {
-	err = s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+	err = s.driverGroup.WithDriverApi(shopid, func(dapi *group.DriverApi) error {
 		res, err = dapi.Api.GetChatAttachments(payload)
 		return err
 	})

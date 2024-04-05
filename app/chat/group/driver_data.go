@@ -4,7 +4,9 @@ import (
 	"errors"
 	"sync"
 
+	socketio "github.com/googollee/go-socket.io"
 	"github.com/pdcgo/tokopedia_lib"
+	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 )
 
@@ -15,53 +17,47 @@ type DriverApi struct {
 	Driver *tokopedia_lib.DriverAccount
 }
 
-type DriverApiData struct {
-	sync.RWMutex
-	data        map[string]*DriverApi
-	usernamemap map[int]string
+func (d *DriverApi) GetUsername() string {
+	return d.Api.AuthenticatedData.UserShopInfo.Info.ShopDomain
 }
 
-func NewDriverApiData() *DriverApiData {
+type DriverApiData struct {
+	sync.RWMutex
+	data map[int]*DriverApi
+	sio  *socketio.Server
+}
+
+func NewDriverApiData(sio *socketio.Server) *DriverApiData {
 	return &DriverApiData{
-		data:        map[string]*DriverApi{},
-		usernamemap: map[int]string{},
+		data: map[int]*DriverApi{},
+		sio:  sio,
 	}
 }
 
-func (s *DriverApiData) Add(
-	shopid int,
-	username string,
-	driver *tokopedia_lib.DriverAccount,
-	dapi *api.TokopediaApi,
-) {
+func (s *DriverApiData) Add(driver *tokopedia_lib.DriverAccount, tapi *api.TokopediaApi) *DriverApi {
 
 	s.Lock()
 	defer s.Unlock()
 
-	s.usernamemap[shopid] = username
-	s.data[username] = &DriverApi{
-		Api:    dapi,
+	dapi := DriverApi{
+		Api:    tapi,
 		Driver: driver,
 	}
+
+	shopid := tapi.AuthenticatedData.UserShopInfo.Info.ShopID
+	s.data[int(shopid)] = &dapi
+	return &dapi
 }
 
-func (s *DriverApiData) Get(username string) (*DriverApi, error) {
+func (s *DriverApiData) Get(shopid int) (*DriverApi, error) {
 	s.RLock()
 	defer s.RUnlock()
 
-	if dapi := s.data[username]; dapi != nil {
+	if dapi := s.data[shopid]; dapi != nil {
 		return dapi, nil
 	}
+
+	event := sio_event.NewSocketDisconnectedEvent(shopid)
+	s.sio.BroadcastToNamespace("", "disconnected_event", event)
 	return nil, ErrNoDriver
-}
-
-func (s *DriverApiData) GetByShopid(shopid int) (string, *DriverApi, error) {
-	s.RLock()
-	defer s.RUnlock()
-
-	username := s.usernamemap[shopid]
-	if dapi := s.data[username]; dapi != nil {
-		return username, dapi, nil
-	}
-	return username, nil, ErrNoDriver
 }

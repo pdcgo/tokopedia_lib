@@ -121,7 +121,8 @@ func (s *OrderService) syncUpdateOrder(shopid int, order *apimodel.OrderItem) fu
 }
 
 func (s *OrderService) syncOrder(ev *sio_event.SyncAccountNotificationEvent) {
-	err := s.driverGroup.WithDriverApiByShopid(ev.Shopid, func(username string, dapi *group.DriverApi) error {
+	err := s.driverGroup.WithDriverApi(ev.Shopid, func(dapi *group.DriverApi) error {
+		username := dapi.GetUsername()
 		log.Printf("[ %s ] syncronize order", username)
 
 		err := s.updateNotifHash(ev)

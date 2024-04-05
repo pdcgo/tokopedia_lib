@@ -59,7 +59,8 @@ func (s *OrderService) syncUpdateUnpaidOrder(shopid int, order *apimodel.OrderPa
 }
 
 func (s *OrderService) syncUnpaidOrder(ev *sio_event.SocketConnectEvent) {
-	err := s.driverGroup.WithDriverApiByShopid(ev.Shopid, func(username string, dapi *group.DriverApi) error {
+	err := s.driverGroup.WithDriverApi(ev.Shopid, func(dapi *group.DriverApi) error {
+		username := dapi.GetUsername()
 		log.Printf("[ %s ] syncronize unpaid order", username)
 
 		payload := query.NewOrderPendingListQuery()
@@ -85,7 +86,7 @@ func (s *OrderService) syncUnpaidOrder(ev *sio_event.SocketConnectEvent) {
 }
 
 func (s *OrderService) GetUnpaid(shopid int, payload *query.OrderPendingListQuery) (res *apimodel.OrderListWaitingPaymentRes, err error) {
-	err = s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+	err = s.driverGroup.WithDriverApi(shopid, func(dapi *group.DriverApi) error {
 		res, err = dapi.Api.OrderPendingList(payload)
 		return err
 	})

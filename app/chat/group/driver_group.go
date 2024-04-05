@@ -22,48 +22,35 @@ func NewDriverGroup(data *DriverApiData) *DriverGroup {
 	}
 }
 
-func (g *DriverGroup) AddDriverApi(username string, password string, secret string) error {
+func (g *DriverGroup) AddDriverApi(username string, password string, secret string) (dapi *DriverApi, err error) {
 	g.Lock()
 	defer g.Unlock()
 
 	driver, err := tokopedia_lib.NewDriverAccount(username, password, secret)
 	if err != nil {
-		return err
+		return
 	}
 
 	acapi, saveSession, err := driver.CreateApi()
 	if err != nil {
-		return err
+		return
 	}
 	defer saveSession()
 
-	shopid := acapi.AuthenticatedData.UserShopInfo.Info.ShopID
-	g.data.Add(int(shopid), username, driver, acapi)
-	return nil
+	dapi = g.data.Add(driver, acapi)
+	return
 }
 
-func (g *DriverGroup) WithDriverApi(username string, handler func(dapi *DriverApi) error) (err error) {
+func (g *DriverGroup) WithDriverApi(shopid int, handler func(dapi *DriverApi) error) error {
 	g.RLock()
 	defer g.RUnlock()
 
-	dapi, err := g.data.Get(username)
+	dapi, err := g.data.Get(shopid)
 	if err != nil {
 		return err
 	}
 
 	return handler(dapi)
-}
-
-func (g *DriverGroup) WithDriverApiByShopid(shopid int, handler func(username string, dapi *DriverApi) error) error {
-	g.RLock()
-	defer g.RUnlock()
-
-	username, dapi, err := g.data.GetByShopid(shopid)
-	if err != nil {
-		return err
-	}
-
-	return handler(username, dapi)
 }
 
 func (g *DriverGroup) reqSaldoSuccess(session tokopedia_lib.DriverSession) (success bool) {
@@ -96,7 +83,7 @@ func (g *DriverGroup) OpenDriver(shopid int) (context.CancelFunc, error) {
 	g.RLock()
 	defer g.RUnlock()
 
-	_, dapi, err := g.data.GetByShopid(shopid)
+	dapi, err := g.data.Get(shopid)
 	if err != nil {
 		return func() {}, err
 	}

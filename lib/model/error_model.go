@@ -33,6 +33,10 @@ func (head *Header) IsBanned() bool {
 		if strings.Contains(message, "toko ditangguhkan permanen") {
 			return true
 		}
+
+		if strings.Contains(message, "toko ditangguhkan sementara") {
+			return true
+		}
 	}
 
 	return false

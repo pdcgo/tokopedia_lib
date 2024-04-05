@@ -42,9 +42,7 @@ func NewNotificationService(
 }
 
 func (s *NotificationService) SendSyncAccountNotification(shopid int) error {
-
-	// username := account.GetUsername()
-	return s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+	return s.driverGroup.WithDriverApi(shopid, func(dapi *group.DriverApi) error {
 
 		notif, err := dapi.Api.NotificationCounter()
 		if err != nil {
@@ -62,7 +60,7 @@ func (s *NotificationService) SendSyncAccountNotification(shopid int) error {
 			return err
 		}
 
-		log.Printf("[ %s ] send notification %s", username, hash)
+		log.Printf("[ %s ] send notification %s", dapi.GetUsername(), hash)
 
 		s.event.Emit(syncAccountEvent)
 		s.sio.BroadcastToNamespace("", "notification", &sio_event.NotificationEvent{

@@ -128,37 +128,39 @@ func (g *SocketGroup) disconnect(shopid int) {
 	g.sio.BroadcastToNamespace("", "disconnected_event", event)
 }
 
-func (g *SocketGroup) AddSocket(ctx context.Context, adata *model.AccountData, api *api.TokopediaApi) error {
+func (g *SocketGroup) AddSocket(ctx context.Context, account *model.AccountData, api *api.TokopediaApi) error {
 	g.Lock()
 	defer g.Unlock()
 
-	oldSocket, _ := g.data.Get(adata.Username)
+	sctx, cancel := context.WithCancel(ctx)
+
+	oldSocket, _ := g.data.Get(account.ShopID)
 	if oldSocket != nil {
-		g.disconnect(adata.ShopID)
+		g.disconnect(account.ShopID)
 		oldSocket.Con.Close(websocket.StatusNormalClosure, "renew")
 	}
 
 	socket := chat.NewSocketClient(api)
-	g.data.Add(adata, socket)
+	g.data.Add(account, socket, cancel)
 
-	eventHandler := g.socketEventHandler(adata)
-	errorHandler := g.socketErrHandler(adata)
+	eventHandler := g.socketEventHandler(account)
+	errorHandler := g.socketErrHandler(account)
 
-	event := sio_event.NewSocketConnectEvent(adata.ShopID)
+	event := sio_event.NewSocketConnectEvent(account.ShopID)
 	g.event.Emit(event)
 	g.sio.BroadcastToNamespace("", "connected_event", &event)
 
-	go socket.Connect(ctx, eventHandler, errorHandler)
-	go g.syncSocket(ctx, adata.ShopID)
+	go socket.Connect(sctx, eventHandler, errorHandler)
+	go g.syncSocket(sctx, account.ShopID)
 
 	return nil
 }
 
-func (g *SocketGroup) WithSocket(username string, handler func(socket *chat.SocketClient) error) error {
+func (g *SocketGroup) WithSocket(shopid int, handler func(socket *Socket) error) error {
 	g.RLock()
 	defer g.RUnlock()
 
-	socket, err := g.data.Get(username)
+	socket, err := g.data.Get(shopid)
 	if err != nil {
 		return err
 	}
@@ -166,23 +168,11 @@ func (g *SocketGroup) WithSocket(username string, handler func(socket *chat.Sock
 	return handler(socket)
 }
 
-func (g *SocketGroup) WithSocketByShopid(shopid int, handler func(username string, socket *chat.SocketClient) error) error {
-	g.RLock()
-	defer g.RUnlock()
-
-	username, socket, err := g.data.GetByShopid(shopid)
-	if err != nil {
-		return err
-	}
-
-	return handler(username, socket)
-}
-
 func (g *SocketGroup) DisconnectSocket(shopid int, cause string) error {
 	g.RLock()
 	defer g.RUnlock()
 
-	return g.WithSocketByShopid(shopid, func(username string, sc *chat.SocketClient) error {
+	return g.WithSocket(shopid, func(sc *Socket) error {
 		g.disconnect(shopid)
 		sc.Con.Close(websocket.StatusNormalClosure, cause)
 		return nil

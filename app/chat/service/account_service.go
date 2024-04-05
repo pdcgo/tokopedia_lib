@@ -113,20 +113,17 @@ func (s *AccountService) AddAccount(account AccountPayload, groupName string) er
 	s.Lock()
 	defer s.Unlock()
 
-	err := s.driverGroup.AddDriverApi(account.Username, account.Password, account.OtpPassword)
+	dapi, err := s.driverGroup.AddDriverApi(account.Username, account.Password, account.OtpPassword)
 	if err != nil {
 		return err
 	}
 
-	return s.driverGroup.WithDriverApi(account.Username, func(dapi *group.DriverApi) error {
-		accountData, err := s.createAccount(account, dapi.Api)
-		if err != nil {
-			return err
-		}
-
-		err = s.accountRepo.AddAccountData(groupName, accountData)
+	accountData, err := s.createAccount(account, dapi.Api)
+	if err != nil {
 		return err
-	})
+	}
+
+	return s.accountRepo.AddAccountData(groupName, accountData)
 }
 
 func (s *AccountService) SyncAccount(shopid int, notifHash string, notif *api.NotificationCounterRes) (err error) {
@@ -165,7 +162,7 @@ func (s *AccountService) OpenBrowser(shopid int) {
 var ErrPinKosong = errors.New("pin kosong")
 var WdLock sync.Mutex
 
-func (s *AccountService) applyWithdraw(username string, pin string, report *report.WitdrawReport) error {
+func (s *AccountService) applyWithdraw(shopid int, pin string, report *report.WitdrawReport) error {
 	item := &withdraw.WithdrawReport{
 		Jumlah:    "Rp0",
 		SisaSaldo: "Rp0",
@@ -175,7 +172,7 @@ func (s *AccountService) applyWithdraw(username string, pin string, report *repo
 		defer report.Save()
 	}
 
-	return s.driverGroup.WithDriverApi(username, func(dapi *group.DriverApi) error {
+	return s.driverGroup.WithDriverApi(shopid, func(dapi *group.DriverApi) error {
 		items, err := withdraw.GetUnwithdrawTransaction(dapi.Api)
 		if err != nil {
 			return err
@@ -215,7 +212,7 @@ func (s *AccountService) Withdraw(account *model.Account, pin string, report *re
 		Event:  event,
 	})
 
-	err := s.applyWithdraw(username, pin, report)
+	err := s.applyWithdraw(account.AccountData.ShopID, pin, report)
 	if err != nil {
 		event.SetError(err)
 	}
@@ -249,7 +246,7 @@ func (s *AccountService) GetAccountAddress(shopid int) (res *AccountAddress, err
 		return
 	}
 
-	err = s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+	err = s.driverGroup.WithDriverApi(shopid, func(dapi *group.DriverApi) error {
 		shopid := int(dapi.Api.AuthenticatedData.UserShopInfo.Info.ShopID)
 		locationAll, err := dapi.Api.GetShopLocationAll(shopid)
 		if err != nil {
@@ -263,16 +260,16 @@ func (s *AccountService) GetAccountAddress(shopid int) (res *AccountAddress, err
 }
 
 func (s *AccountService) updateActive(shopid int) error {
-	return s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
-		log.Printf("[ %s ] set active", username)
+	return s.driverGroup.WithDriverApi(shopid, func(dapi *group.DriverApi) error {
+		log.Printf("[ %s ] set active", dapi.GetUsername())
 		_, err := dapi.Api.SetShopActive()
 		return err
 	})
 }
 
 func (s *AccountService) updateSaldo(shopid int) error {
-	return s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
-		log.Printf("[ %s ] getting saldo", username)
+	return s.driverGroup.WithDriverApi(shopid, func(dapi *group.DriverApi) error {
+		log.Printf("[ %s ] getting saldo", dapi.GetUsername())
 		balance, err := dapi.Api.GetBalance()
 		if err != nil {
 			return err
