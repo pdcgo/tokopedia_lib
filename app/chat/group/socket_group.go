@@ -22,7 +22,7 @@ import (
 type SocketGroup struct {
 	sync.RWMutex
 	config *config.AppConfig
-	data   map[string]*chat.SocketClient
+	data   *SocketData
 	event  *common_concept.CoreEvent
 	sio    *socketio.Server
 }
@@ -31,48 +31,38 @@ func NewSocketGroup(
 	config *config.AppConfig,
 	event *common_concept.CoreEvent,
 	sio *socketio.Server,
+	data *SocketData,
 ) *SocketGroup {
 
 	return &SocketGroup{
 		config: config,
-		data:   map[string]*chat.SocketClient{},
+		data:   data,
 		event:  event,
 		sio:    sio,
 	}
 }
 
-func (g *SocketGroup) socketEventHandler(accountData *model.AccountData) chat.SocketEventhandler {
+func (g *SocketGroup) socketEventHandler(adata *model.AccountData) chat.SocketEventhandler {
 	return func(socket *chat.SocketClient, event *chat.RcvEventSocket) error {
-
 		switch data := event.Data.(type) {
 
 		case *chat.ReaduserChat:
-			event := sio_event.ReadChatEvent{
-				Shopid: accountData.ShopID,
-				Event:  data,
-			}
-			g.sio.BroadcastToNamespace("", "rcv_read_event", &event)
-			g.event.Emit(&event)
+			event := sio_event.NewReadChatEvent(adata.ShopID, data)
+			g.sio.BroadcastToNamespace("", "rcv_read_event", event)
+			g.event.Emit(event)
 
 		case *chat.RcvChat:
-			event := sio_event.SendChatEvent{
-				Shopid: accountData.ShopID,
-				Event:  data,
-			}
-			g.sio.BroadcastToNamespace("", "rcv_message", &event)
-			g.event.Emit(&event)
+			event := sio_event.NewSendChatEvent(adata.ShopID, data)
+			g.sio.BroadcastToNamespace("", "rcv_message", event)
+			g.event.Emit(event)
 
 		case *chat.RcvStartTyping:
-			g.sio.BroadcastToNamespace("", "rcv_start_typing_event", &sio_event.TypingStartChatEvent{
-				Shopid: accountData.ShopID,
-				Event:  data,
-			})
+			event := sio_event.NewTypingStartChatEvent(adata.ShopID, data)
+			g.sio.BroadcastToNamespace("", "rcv_start_typing_event", event)
 
 		case *chat.RcvEndTyping:
-			g.sio.BroadcastToNamespace("", "rcv_end_typing_event", &sio_event.TypingEndChatEvent{
-				Shopid: accountData.ShopID,
-				Event:  data,
-			})
+			event := sio_event.NewTypingEndChatEvent(adata.ShopID, data)
+			g.sio.BroadcastToNamespace("", "rcv_end_typing_event", event)
 		}
 
 		return nil
@@ -83,26 +73,26 @@ var disconnectErrors = []error{
 	io.EOF,
 }
 
-func (g *SocketGroup) socketErrHandler(accountData *model.AccountData) chat.SocketErrorhandler {
+func (g *SocketGroup) socketErrHandler(adata *model.AccountData) chat.SocketErrorhandler {
 	return func(socket *chat.SocketClient, err error) bool {
 
-		g.sio.BroadcastToNamespace("", "disconnected_event", sio_event.SocketDisconnectedEvent{
-			Shopid: accountData.ShopID,
-		})
+		event := sio_event.NewSocketDisconnectedEvent(adata.ShopID)
+		g.sio.BroadcastToNamespace("", "disconnected_event", event)
 
 		for _, expectErr := range disconnectErrors {
 			if errors.Is(err, expectErr) {
-				log.Printf("[ %s ] socket disconnected - %s", accountData.Username, err)
+				log.Printf("[ %s ] socket disconnected - %s", adata.Username, err)
 				return true
 			}
 		}
 
-		log.Printf("[ %s ] socket unhandle disconnected - %s", accountData.Username, err)
+		log.Printf("[ %s ] socket unhandle disconnected - %s", adata.Username, err)
 		return true
 	}
 }
 
 func (g *SocketGroup) getSyncActive(min, max float32) time.Duration {
+	rand.Seed(time.Now().Unix())
 	r := min + rand.Float32()*(max-min)
 	return time.Second * time.Duration(r)
 }
@@ -117,82 +107,83 @@ func (g *SocketGroup) syncSocket(ctx context.Context, shopid int) {
 
 Parent:
 	for {
-		rand.Seed(time.Now().Unix())
-
 		select {
 		case <-ctx.Done():
 			break Parent
 
 		case <-syncTimer.C:
-			g.event.Emit(&sio_event.SocketSyncEvent{
-				Shopid: shopid,
-			})
+			g.event.Emit(sio_event.NewSocketSyncEvent(shopid))
 			syncTimer.Reset(g.config.GetSync())
 
 		case <-activeTimer.C:
-			g.event.Emit(&sio_event.AccountActiveEvent{
-				Shopid: shopid,
-			})
+			g.event.Emit(sio_event.NewAccountActiveEvent(shopid))
 			activeTimer.Reset(g.getSyncActive(180, 300))
 		}
 	}
 }
 
 func (g *SocketGroup) disconnect(shopid int) {
-	event := sio_event.SocketDisconnectedEvent{
-		Shopid: shopid,
-	}
-	g.event.Emit(&event)
-	g.sio.BroadcastToNamespace("", "disconnected_event", &event)
+	event := sio_event.NewSocketDisconnectedEvent(shopid)
+	g.event.Emit(event)
+	g.sio.BroadcastToNamespace("", "disconnected_event", event)
 }
 
-func (g *SocketGroup) AddSocket(ctx context.Context, accountData *model.AccountData, api *api.TokopediaApi) error {
+func (g *SocketGroup) AddSocket(ctx context.Context, adata *model.AccountData, api *api.TokopediaApi) error {
 	g.Lock()
 	defer g.Unlock()
 
-	oldSocket := g.data[accountData.Username]
+	oldSocket, _ := g.data.Get(adata.Username)
 	if oldSocket != nil {
+		g.disconnect(adata.ShopID)
 		oldSocket.Con.Close(websocket.StatusNormalClosure, "renew")
-		g.disconnect(int(api.AuthenticatedData.UserShopInfo.Info.ShopID))
 	}
 
 	socket := chat.NewSocketClient(api)
-	g.data[accountData.Username] = socket
+	g.data.Add(adata, socket)
 
-	eventHandler := g.socketEventHandler(accountData)
-	errorHandler := g.socketErrHandler(accountData)
+	eventHandler := g.socketEventHandler(adata)
+	errorHandler := g.socketErrHandler(adata)
 
-	event := sio_event.SocketConnectEvent{
-		Shopid: accountData.ShopID,
-	}
-	g.event.Emit(&event)
+	event := sio_event.NewSocketConnectEvent(adata.ShopID)
+	g.event.Emit(event)
 	g.sio.BroadcastToNamespace("", "connected_event", &event)
 
 	go socket.Connect(ctx, eventHandler, errorHandler)
-	go g.syncSocket(ctx, accountData.ShopID)
+	go g.syncSocket(ctx, adata.ShopID)
 
 	return nil
 }
 
-var ErrNoSocket = errors.New("socket not found")
-
-type SocketHandler func(*chat.SocketClient) error
-
-func (g *SocketGroup) WithSocket(username string, handler SocketHandler) error {
+func (g *SocketGroup) WithSocket(username string, handler func(socket *chat.SocketClient) error) error {
 	g.RLock()
 	defer g.RUnlock()
 
-	socket := g.data[username]
-	if socket == nil {
-		return ErrNoSocket
+	socket, err := g.data.Get(username)
+	if err != nil {
+		return err
 	}
 
 	return handler(socket)
 }
 
-func (g *SocketGroup) DisconnectSocket(username, cause string) error {
-	return g.WithSocket(username, func(sc *chat.SocketClient) error {
-		g.disconnect(int(sc.Api.AuthenticatedData.UserShopInfo.Info.ShopID))
+func (g *SocketGroup) WithSocketByShopid(shopid int, handler func(username string, socket *chat.SocketClient) error) error {
+	g.RLock()
+	defer g.RUnlock()
+
+	username, socket, err := g.data.GetByShopid(shopid)
+	if err != nil {
+		return err
+	}
+
+	return handler(username, socket)
+}
+
+func (g *SocketGroup) DisconnectSocket(shopid int, cause string) error {
+	g.RLock()
+	defer g.RUnlock()
+
+	return g.WithSocketByShopid(shopid, func(username string, sc *chat.SocketClient) error {
+		g.disconnect(shopid)
 		sc.Con.Close(websocket.StatusNormalClosure, cause)
 		return nil
 	})

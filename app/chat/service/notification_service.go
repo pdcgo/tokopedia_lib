@@ -6,7 +6,6 @@ import (
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/common_conf/pdc_common"
-	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
@@ -16,7 +15,6 @@ import (
 
 type NotificationService struct {
 	event          *common_concept.CoreEvent
-	initConfig     *config.InitConfig
 	sio            *socketio.Server
 	accountRepo    *repo.AccountRepo
 	driverGroup    *group.DriverGroup
@@ -25,7 +23,6 @@ type NotificationService struct {
 
 func NewNotificationService(
 	event *common_concept.CoreEvent,
-	initConfig *config.InitConfig,
 	sio *socketio.Server,
 	accountRepo *repo.AccountRepo,
 	driverGroup *group.DriverGroup,
@@ -34,7 +31,6 @@ func NewNotificationService(
 
 	notificationService := NotificationService{
 		event:          event,
-		initConfig:     initConfig,
 		sio:            sio,
 		accountRepo:    accountRepo,
 		driverGroup:    driverGroup,
@@ -45,23 +41,23 @@ func NewNotificationService(
 	return &notificationService
 }
 
-func (s *NotificationService) SendSyncAccountNotification(account *model.Account) error {
+func (s *NotificationService) SendSyncAccountNotification(shopid int) error {
 
-	username := account.GetUsername()
-	return s.driverGroup.WithDriverApi(username, func(dapi *group.DriverApi) error {
+	// username := account.GetUsername()
+	return s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
 
 		notif, err := dapi.Api.NotificationCounter()
 		if err != nil {
 			return err
 		}
 
-		syncAccountEvent := sio_event.NewSyncAccountNotificationEvent(account.ID, notif)
+		syncAccountEvent := sio_event.NewSyncAccountNotificationEvent(shopid, notif)
 		hash, err := syncAccountEvent.GetHash()
 		if err != nil {
 			return err
 		}
 
-		err = s.accountService.SyncAccount(account.ID, hash, notif)
+		err = s.accountService.SyncAccount(shopid, hash, notif)
 		if err != nil {
 			return err
 		}
@@ -70,7 +66,7 @@ func (s *NotificationService) SendSyncAccountNotification(account *model.Account
 
 		s.event.Emit(syncAccountEvent)
 		s.sio.BroadcastToNamespace("", "notification", &sio_event.NotificationEvent{
-			Shopid: account.ID,
+			Shopid: shopid,
 			Event:  notif,
 		})
 
@@ -79,11 +75,7 @@ func (s *NotificationService) SendSyncAccountNotification(account *model.Account
 }
 
 func (s *NotificationService) syncAccount(shopid int) {
-
-	err := s.accountRepo.WithAccount(s.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
-		return s.SendSyncAccountNotification(account)
-	})
-	if err != nil {
+	if err := s.SendSyncAccountNotification(shopid); err != nil {
 		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
 			return event.Str("event", "sync").Int("shopid", shopid)
 		})

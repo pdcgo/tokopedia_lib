@@ -8,7 +8,6 @@ import (
 
 	"github.com/pdcgo/common_conf/common_concept"
 	"github.com/pdcgo/common_conf/pdc_common"
-	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
@@ -19,7 +18,6 @@ import (
 
 type OrderService struct {
 	event       *common_concept.CoreEvent
-	initConfig  *config.InitConfig
 	accountRepo *repo.AccountRepo
 	orderRepo   *repo.OrderRepo
 	driverGroup *group.DriverGroup
@@ -27,7 +25,6 @@ type OrderService struct {
 
 func NewOrderService(
 	event *common_concept.CoreEvent,
-	initConfig *config.InitConfig,
 	accountRepo *repo.AccountRepo,
 	orderRepo *repo.OrderRepo,
 	driverGroup *group.DriverGroup,
@@ -35,7 +32,6 @@ func NewOrderService(
 
 	orderservice := OrderService{
 		event:       event,
-		initConfig:  initConfig,
 		accountRepo: accountRepo,
 		orderRepo:   orderRepo,
 		driverGroup: driverGroup,

@@ -27,3 +27,9 @@ type AccountWithdrawEvent struct {
 type AccountActiveEvent struct {
 	Shopid int `json:"shopid,string"`
 }
+
+func NewAccountActiveEvent(shopid int) *AccountActiveEvent {
+	return &AccountActiveEvent{
+		Shopid: shopid,
+	}
+}

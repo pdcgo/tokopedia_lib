@@ -5,10 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pdcgo/tokopedia_lib/app/chat/config"
-	"github.com/pdcgo/tokopedia_lib/app/chat/group"
 	"github.com/pdcgo/tokopedia_lib/app/chat/helper"
-	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/tokopedia_lib/app/chat/service"
 	tokpedapi "github.com/pdcgo/tokopedia_lib/lib/api"
@@ -19,27 +16,19 @@ import (
 
 type ChatApi struct {
 	BaseApi
-	initConfig          *config.InitConfig
-	accountRepo         *repo.AccountRepo
-	driverGroup         *group.DriverGroup
 	sound               *helper.SoundPlayer
 	chatService         *service.ChatService
 	notificationService *service.NotificationService
 }
 
 func NewChatApi(
-	initConfig *config.InitConfig,
 	accountRepo *repo.AccountRepo,
-	driverGroup *group.DriverGroup,
 	sound *helper.SoundPlayer,
 	chatService *service.ChatService,
 	notificationService *service.NotificationService,
 ) *ChatApi {
 
 	return &ChatApi{
-		initConfig:          initConfig,
-		accountRepo:         accountRepo,
-		driverGroup:         driverGroup,
 		sound:               sound,
 		chatService:         chatService,
 		notificationService: notificationService,
@@ -62,18 +51,12 @@ func (api *ChatApi) users(ctx *gin.Context) {
 		return
 	}
 
-	err = api.driverGroup.WithDriverApiByShopid(query.Shopid, func(username string, dapi *group.DriverApi) error {
-		res, err := dapi.Api.GetChatList(payload)
-		if err != nil {
-			return err
-		}
-
-		ctx.JSON(http.StatusOK, res)
-		return nil
-	})
+	res, err := api.chatService.GetChatList(query.Shopid, payload)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
+		return
 	}
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (api *ChatApi) messages(ctx *gin.Context) {
@@ -92,18 +75,12 @@ func (api *ChatApi) messages(ctx *gin.Context) {
 		return
 	}
 
-	err = api.driverGroup.WithDriverApiByShopid(query.Shopid, func(username string, dapi *group.DriverApi) error {
-		res, err := dapi.Api.GetChatRoom(payload)
-		if err != nil {
-			return err
-		}
-
-		ctx.JSON(http.StatusOK, res)
-		return nil
-	})
+	res, err := api.chatService.GetChatRoom(query.Shopid, payload)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
+		return
 	}
+	ctx.JSON(http.StatusOK, res)
 }
 
 type ChatReadQuery struct {
@@ -122,19 +99,22 @@ func (api *ChatApi) read(ctx *gin.Context) {
 		return
 	}
 
-	err = api.accountRepo.WithAccount(api.initConfig.ActiveGroup, query.Shopid, func(account *model.Account) error {
-		err = api.chatService.ReadChat(account.GetUsername(), query.MessageId)
-		if err != nil {
-			return err
-		}
-
-		return api.notificationService.SendSyncAccountNotification(account)
-	})
+	err = api.chatService.ReadChat(query.Shopid, query.MessageId)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return
 	}
 
+	err = api.notificationService.SendSyncAccountNotification(query.Shopid)
+	if err != nil {
+		ctx.JSON(api.BaseResponseInternalServerError(err))
+		return
+	}
+
+	if err != nil {
+		ctx.JSON(api.BaseResponseInternalServerError(err))
+		return
+	}
 	ctx.JSON(api.BaseResponseSuccess())
 }
 
@@ -154,18 +134,12 @@ func (api *ChatApi) attachment(ctx *gin.Context) {
 		return
 	}
 
-	err = api.driverGroup.WithDriverApiByShopid(query.Shopid, func(username string, dapi *group.DriverApi) error {
-		res, err := dapi.Api.GetChatAttachments(payload)
-		if err != nil {
-			return err
-		}
-
-		ctx.JSON(http.StatusOK, res)
-		return nil
-	})
+	res, err := api.chatService.GetChatAttachments(query.Shopid, payload)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
+		return
 	}
+	ctx.JSON(http.StatusOK, res)
 }
 
 type ChatPinQuery struct {
@@ -182,29 +156,13 @@ func (api *ChatApi) pin(ctx *gin.Context) {
 		return
 	}
 
-	isUnpin := strings.Contains(ctx.Request.URL.Path, "unpin")
-	err = api.driverGroup.WithDriverApiByShopid(query.Shopid, func(username string, dapi *group.DriverApi) error {
-
-		if isUnpin {
-			res, err := dapi.Api.ChatUnpin(query.MessageId)
-			if err != nil {
-				return err
-			}
-			ctx.JSON(http.StatusOK, res)
-
-		} else {
-			res, err := dapi.Api.ChatPin(query.MessageId)
-			if err != nil {
-				return err
-			}
-			ctx.JSON(http.StatusOK, res)
-		}
-
-		return nil
-	})
+	pin := strings.Contains(ctx.Request.URL.Path, "unpin")
+	res, err := api.chatService.Pin(query.Shopid, pin, query.MessageId)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
+		return
 	}
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (api *ChatApi) userSearch(ctx *gin.Context) {
@@ -226,18 +184,12 @@ func (api *ChatApi) userSearch(ctx *gin.Context) {
 		return
 	}
 
-	err = api.driverGroup.WithDriverApiByShopid(query.Shopid, func(username string, dapi *group.DriverApi) error {
-		res, err := dapi.Api.GetChatSearch(payload)
-		if err != nil {
-			return err
-		}
-
-		ctx.JSON(http.StatusOK, res)
-		return nil
-	})
+	res, err := api.chatService.GetChatSearch(query.Shopid, payload)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
+		return
 	}
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (api *ChatApi) send(ctx *gin.Context) {
@@ -256,10 +208,7 @@ func (api *ChatApi) send(ctx *gin.Context) {
 		return
 	}
 
-	err = api.accountRepo.WithAccount(api.initConfig.ActiveGroup, query.Shopid, func(account *model.Account) error {
-		data := payload.CreateEventData(account.ShopName)
-		return api.chatService.SendChat(account.GetUsername(), data)
-	})
+	err = api.chatService.SendChat(query.Shopid, payload)
 	if err != nil {
 		ctx.JSON(api.BaseResponseInternalServerError(err))
 		return

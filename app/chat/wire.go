@@ -29,6 +29,8 @@ func InitApplication(cfg *config.AppConfig) (*Application, error) {
 		repo.NewAccountRepo,
 		repo.NewGroupRepo,
 		repo.NewOrderRepo,
+		group.NewDriverApiData,
+		group.NewSocketData,
 		group.NewDriverGroup,
 		group.NewSocketGroup,
 		group.NewChatGroup,

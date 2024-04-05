@@ -11,29 +11,20 @@ import (
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 )
 
-type DriverApi struct {
-	Api    *api.TokopediaApi
-	Driver *tokopedia_lib.DriverAccount
-}
-
 type DriverGroup struct {
 	sync.RWMutex
-	driverLock  sync.Mutex
-	data        map[string]*DriverApi
-	usernamemap map[int]string
+	data *DriverApiData
 }
 
-func NewDriverGroup() *DriverGroup {
+func NewDriverGroup(data *DriverApiData) *DriverGroup {
 	return &DriverGroup{
-		driverLock:  sync.Mutex{},
-		data:        map[string]*DriverApi{},
-		usernamemap: map[int]string{},
+		data: data,
 	}
 }
 
 func (g *DriverGroup) AddDriverApi(username string, password string, secret string) error {
-	g.driverLock.Lock()
-	defer g.driverLock.Unlock()
+	g.Lock()
+	defer g.Unlock()
 
 	driver, err := tokopedia_lib.NewDriverAccount(username, password, secret)
 	if err != nil {
@@ -47,42 +38,32 @@ func (g *DriverGroup) AddDriverApi(username string, password string, secret stri
 	defer saveSession()
 
 	shopid := acapi.AuthenticatedData.UserShopInfo.Info.ShopID
-	g.usernamemap[int(shopid)] = username
-	g.data[username] = &DriverApi{
-		Api:    acapi,
-		Driver: driver,
-	}
+	g.data.Add(int(shopid), username, driver, acapi)
 	return nil
 }
-
-var ErrNoDriver = errors.New("driver not found")
-
-type DriverApiHandler func(driver *tokopedia_lib.DriverAccount, api *api.TokopediaApi) error
 
 func (g *DriverGroup) WithDriverApi(username string, handler func(dapi *DriverApi) error) (err error) {
 	g.RLock()
 	defer g.RUnlock()
 
-	dapi := g.data[username]
-	if dapi == nil {
-		return ErrNoDriver
+	dapi, err := g.data.Get(username)
+	if err != nil {
+		return err
 	}
 
 	return handler(dapi)
 }
 
 func (g *DriverGroup) WithDriverApiByShopid(shopid int, handler func(username string, dapi *DriverApi) error) error {
-	username := g.usernamemap[shopid]
-	return g.WithDriverApi(username, func(dapi *DriverApi) error {
-		return handler(username, dapi)
-	})
-}
+	g.RLock()
+	defer g.RUnlock()
 
-func (g *DriverGroup) Reset() {
-	g.Lock()
-	defer g.Unlock()
+	username, dapi, err := g.data.GetByShopid(shopid)
+	if err != nil {
+		return err
+	}
 
-	g.data = map[string]*DriverApi{}
+	return handler(username, dapi)
 }
 
 func (g *DriverGroup) reqSaldoSuccess(session tokopedia_lib.DriverSession) (success bool) {
@@ -115,16 +96,15 @@ func (g *DriverGroup) OpenDriver(shopid int) (context.CancelFunc, error) {
 	g.RLock()
 	defer g.RUnlock()
 
-	username := g.usernamemap[shopid]
-	dapi := g.data[username]
-	if dapi == nil {
-		return func() {}, ErrNoDriver
+	_, dapi, err := g.data.GetByShopid(shopid)
+	if err != nil {
+		return func() {}, err
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	dapi.Driver.ParentCtx = ctx
 
-	_, err := dapi.Api.IsAutheticated()
+	_, err = dapi.Api.IsAutheticated()
 	if errors.Is(err, api.ErrNoShopid) {
 		dapi.Driver.Session.DeleteSession()
 	}

@@ -60,7 +60,6 @@ func (g *ChatGroup) Connect(groupName string) {
 	}
 
 	g.connectCancel()
-	g.driverGroup.Reset()
 	g.connectCtx, g.connectCancel = context.WithCancel(context.Background())
 
 	err = g.accountRepo.IterateGroupAccount(groupName, func(account model.AccountData) error {
@@ -105,15 +104,19 @@ func (g *ChatGroup) Reconnect(shopid int) error {
 	g.reconnectLock.Lock()
 	defer g.reconnectLock.Unlock()
 
+	err := g.socketGroup.DisconnectSocket(shopid, "reconnect")
+	if err != nil && !errors.Is(err, ErrNoSocket) {
+		return err
+	}
+
 	return g.accountRepo.WithAccount(g.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
 		// disconnect socket if exist
-		username := account.GetUsername()
-		err := g.socketGroup.DisconnectSocket(username, "reconnect")
+		err := g.socketGroup.DisconnectSocket(shopid, "reconnect")
 		if err != nil && !errors.Is(err, ErrNoSocket) {
 			return err
 		}
 
-		return g.driverGroup.WithDriverApi(username, func(dapi *DriverApi) error {
+		return g.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *DriverApi) error {
 			return g.socketGroup.AddSocket(g.connectCtx, account.AccountData, dapi.Api)
 		})
 	})

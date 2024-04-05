@@ -12,6 +12,7 @@ import (
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/repo"
 	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
+	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/chat"
 )
 
@@ -21,6 +22,7 @@ type ChatService struct {
 	areplyConfig *config.AutoReplyConfig
 	accountRepo  *repo.AccountRepo
 	socketGroup  *group.SocketGroup
+	driverGroup  *group.DriverGroup
 	sound        *helper.SoundPlayer
 }
 
@@ -30,6 +32,7 @@ func NewChatService(
 	areplyConfig *config.AutoReplyConfig,
 	accountRepo *repo.AccountRepo,
 	socketGroup *group.SocketGroup,
+	driverGroup *group.DriverGroup,
 	sound *helper.SoundPlayer,
 ) *ChatService {
 
@@ -39,6 +42,7 @@ func NewChatService(
 		areplyConfig: areplyConfig,
 		accountRepo:  accountRepo,
 		socketGroup:  socketGroup,
+		driverGroup:  driverGroup,
 		sound:        sound,
 	}
 
@@ -46,7 +50,7 @@ func NewChatService(
 	return &chatService
 }
 
-func (s *ChatService) ReadChat(username string, msgId uint) error {
+func (s *ChatService) ReadChat(shopid int, msgId uint) error {
 
 	readEvent := chat.BaseSocketType{
 		Code: chat.ReadUserChatEvent,
@@ -55,13 +59,15 @@ func (s *ChatService) ReadChat(username string, msgId uint) error {
 		},
 	}
 
-	return s.socketGroup.WithSocket(username, func(sc *chat.SocketClient) error {
+	return s.socketGroup.WithSocketByShopid(shopid, func(username string, sc *chat.SocketClient) error {
 		return sc.SendEvent(readEvent)
 	})
 }
 
-func (s *ChatService) SendChat(username string, data *chat.SendChat) error {
-	err := s.socketGroup.WithSocket(username, func(sc *chat.SocketClient) error {
+func (s *ChatService) SendChat(shopid int, payload chat.SendChatPayload) error {
+	return s.socketGroup.WithSocketByShopid(shopid, func(username string, sc *chat.SocketClient) error {
+
+		data := payload.CreateEventData(username)
 
 		log.Printf("[ %s ] send message attach:%d", username, data.AttachmentType)
 		return sc.SendEvent(&chat.EmitEventSocket{
@@ -71,7 +77,56 @@ func (s *ChatService) SendChat(username string, data *chat.SendChat) error {
 			Data: data,
 		})
 	})
-	return err
+}
+
+func (s *ChatService) Pin(shopid int, pin bool, msgid int64) (any, error) {
+	var res any
+	err := s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) (err error) {
+		if pin {
+			res, err = dapi.Api.ChatPin(msgid)
+		} else {
+			res, err = dapi.Api.ChatUnpin(msgid)
+		}
+		return
+	})
+
+	return res, err
+}
+
+func (s *ChatService) GetChatSearch(shopid int, payload api.ChatSearchVar) (res *api.ChatSearchRes, err error) {
+	err = s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+		res, err = dapi.Api.GetChatSearch(payload)
+		return err
+	})
+
+	return
+}
+
+func (s *ChatService) GetChatList(shopid int, payload api.ChatListVar) (res *api.ChatListRes, err error) {
+	err = s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+		res, err = dapi.Api.GetChatList(payload)
+		return err
+	})
+
+	return
+}
+
+func (s *ChatService) GetChatRoom(shopid int, payload api.ChatRoomVar) (res *api.ChatRoomRes, err error) {
+	err = s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+		res, err = dapi.Api.GetChatRoom(payload)
+		return err
+	})
+
+	return
+}
+
+func (s *ChatService) GetChatAttachments(shopid int, payload api.ChatAttachmentVar) (res *api.ChatAttachmentRes, err error) {
+	err = s.driverGroup.WithDriverApiByShopid(shopid, func(username string, dapi *group.DriverApi) error {
+		res, err = dapi.Api.GetChatAttachments(payload)
+		return err
+	})
+
+	return
 }
 
 func (s *ChatService) autoReply(shopid int, data *chat.RcvChat) {
@@ -79,7 +134,6 @@ func (s *ChatService) autoReply(shopid int, data *chat.RcvChat) {
 
 		reply := s.areplyConfig.Find(data.Message.OriginalReply)
 		if reply != nil {
-
 			err := s.accountRepo.WithAccount(s.initConfig.ActiveGroup, shopid, func(account *model.Account) error {
 				delay := reply.GetDelay()
 				log.Printf("[ %s ] auto replying for %ds...", account.AccountData.Username, int(delay.Seconds()))
@@ -89,7 +143,7 @@ func (s *ChatService) autoReply(shopid int, data *chat.RcvChat) {
 					MessageId: data.MsgID,
 					Message:   reply.Reply,
 				}
-				return s.SendChat(account.GetUsername(), sendpayload.CreateEventData(account.ShopName))
+				return s.SendChat(shopid, sendpayload)
 			})
 			if err != nil {
 				pdc_common.ReportError(err)
