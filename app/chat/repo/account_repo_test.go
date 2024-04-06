@@ -28,11 +28,6 @@ func TestAccountModel(t *testing.T) {
 					ID:       100,
 					ShopName: "test",
 				},
-				Groups: []model.Group{
-					{
-						Name: groupName,
-					},
-				},
 			}
 
 			t.Run("test add account data", func(t *testing.T) {

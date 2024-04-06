@@ -44,12 +44,6 @@ func NewChatGroup(
 	}
 }
 
-func (g *ChatGroup) reportErr(err error, ev string, data any) error {
-	return pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
-		return event.Str("event", ev).Interface("data", data)
-	})
-}
-
 func (g *ChatGroup) applyConnect(account *model.AccountData) error {
 	disconnectEvent := sio_event.NewSocketDisconnectedEvent(account.ShopID)
 	dapi, err := g.driverGroup.AddDriverApi(account.Username, account.Password, account.OtpPassword)
@@ -70,6 +64,7 @@ func (g *ChatGroup) applyConnect(account *model.AccountData) error {
 func (g *ChatGroup) Connect(groupName string) {
 
 	data := map[string]string{
+		"event":      "connect",
 		"group_name": groupName,
 	}
 
@@ -78,7 +73,9 @@ func (g *ChatGroup) Connect(groupName string) {
 	}
 	err := g.initConfig.SetGroup(groupName)
 	if err != nil {
-		g.reportErr(err, "connect", data)
+		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+			return event.Interface("data", data)
+		})
 	}
 
 	g.connectCancel()
@@ -98,7 +95,9 @@ func (g *ChatGroup) Connect(groupName string) {
 	})
 
 	if err != nil {
-		g.reportErr(err, "connect", data)
+		pdc_common.ReportErrorCustom(err, func(event *zerolog.Event) *zerolog.Event {
+			return event.Interface("data", data)
+		})
 	}
 }
 

@@ -172,47 +172,62 @@ func (s *AutochatSender) SendProductReply(msgId int64, product *model_public.Pdp
 	})
 }
 
-func (s *AutochatSender) GetMessages(ctx context.Context, filters ...func(msg *chat.RcvChat) bool) chan *chat.RcvChat {
-
-	messages := make(chan *chat.RcvChat, s.config.Concurrent)
+func (s *AutochatSender) eventHandler(
+	ctx context.Context,
+	messages chan<- *chat.RcvChat,
+	filters ...func(msg *chat.RcvChat) bool) chat.SocketEventhandler {
 	name := s.GetName()
 
+	return func(socket *chat.SocketClient, event *chat.RcvEventSocket) error {
+		switch data := event.Data.(type) {
+		case *chat.RcvChat:
+
+			inPattern := s.message.InPattern(data.Message.OriginalReply)
+			if data.IsOpposite && inPattern {
+
+				select {
+				case <-ctx.Done():
+					return nil
+
+				default:
+					for _, filter := range filters {
+						if filter(data) {
+							return nil
+						}
+					}
+
+					log.Printf("[ %s ] %d | get message in pattern '%s'", name, data.MsgID, data.Message.OriginalReply)
+					messages <- data
+				}
+			}
+		}
+
+		return nil
+	}
+}
+
+func (s *AutochatSender) GetMessages(ctx context.Context, filters ...func(msg *chat.RcvChat) bool) chan *chat.RcvChat {
+
+	sctx, cancel := context.WithCancel(ctx)
+	messages := make(chan *chat.RcvChat, s.config.Concurrent)
+
 	go func() {
-		<-ctx.Done()
+		<-sctx.Done()
 		close(messages)
 	}()
 
-	go s.socket.Connect(ctx,
-		func(socket *chat.SocketClient, event *chat.RcvEventSocket) error {
-			switch data := event.Data.(type) {
-			case *chat.RcvChat:
+	evhandler := s.eventHandler(ctx, messages, filters...)
+	errhandler := func(socket *chat.SocketClient, err error) bool {
+		cancel()
+		pdc_common.ReportError(err)
+		return false
+	}
 
-				inPattern := s.message.InPattern(data.Message.OriginalReply)
-				if data.IsOpposite && inPattern {
-
-					select {
-					case <-ctx.Done():
-						return nil
-
-					default:
-						for _, filter := range filters {
-							if filter(data) {
-								return nil
-							}
-						}
-
-						log.Printf("[ %s ] %d | get message in pattern '%s'", name, data.MsgID, data.Message.OriginalReply)
-						messages <- data
-					}
-				}
-			}
-
-			return nil
-
-		}, func(socket *chat.SocketClient, err error) bool {
+	go func() {
+		err := s.socket.Connect(ctx, evhandler, errhandler)
+		if err != nil {
 			pdc_common.ReportError(err)
-			return false
-		})
-
+		}
+	}()
 	return messages
 }

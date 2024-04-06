@@ -21,10 +21,11 @@ type Session interface {
 
 type SocketClient struct {
 	sync.Mutex
-	Api     *api.TokopediaApi
-	Ctx     context.Context
-	Session Session
-	Con     *websocket.Conn
+	Api       *api.TokopediaApi
+	Ctx       context.Context
+	Session   Session
+	Con       *websocket.Conn
+	Connected bool
 }
 
 func NewSocketClient(api *api.TokopediaApi) *SocketClient {
@@ -52,7 +53,14 @@ func (socket *SocketClient) logError(err error, handlers ...func(event *zerolog.
 type SocketEventhandler func(socket *SocketClient, event *RcvEventSocket) error
 type SocketErrorhandler func(socket *SocketClient, err error) bool
 
-func (socket *SocketClient) Connect(ctx context.Context, eventhandler SocketEventhandler, errhandler SocketErrorhandler) {
+func (socket *SocketClient) Close(reason string) error {
+	if socket.Con != nil {
+		socket.Con.Close(websocket.StatusNormalClosure, reason)
+	}
+	return nil
+}
+
+func (socket *SocketClient) Connect(ctx context.Context, eventhandler SocketEventhandler, errhandler SocketErrorhandler) error {
 	socket.Lock()
 	defer socket.Unlock()
 
@@ -73,13 +81,13 @@ func (socket *SocketClient) Connect(ctx context.Context, eventhandler SocketEven
 
 	con, _, err := websocket.Dial(ctx, uri, &opts)
 	if err != nil {
-		pdc_common.ReportError(err)
+		return err
 	}
 
 	socket.Con = con
 	socket.Ctx = ctx
 	socket.ListenData(eventhandler, errhandler)
-
+	return nil
 }
 
 func (socket *SocketClient) ListenData(eventhandler SocketEventhandler, errhandler SocketErrorhandler) {

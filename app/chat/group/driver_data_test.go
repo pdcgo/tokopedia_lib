@@ -34,9 +34,9 @@ func TestDriverData(t *testing.T) {
 
 	t.Run("test get driver", func(t *testing.T) {
 
-		gdapi, err := data.Get(7125740)
+		dapi, err := data.Get(7125740)
 		assert.Nil(t, err)
-		assert.NotEmpty(t, gdapi)
-		assert.Equal(t, "schmart", gdapi.GetUsername())
+		assert.NotEmpty(t, dapi)
+		assert.Equal(t, "schmart", dapi.GetUsername())
 	})
 }

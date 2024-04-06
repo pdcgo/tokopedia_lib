@@ -11,12 +11,12 @@ import (
 
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/pdcgo/common_conf/common_concept"
+	"github.com/pdcgo/common_conf/pdc_common"
 	"github.com/pdcgo/tokopedia_lib/app/chat/config"
 	"github.com/pdcgo/tokopedia_lib/app/chat/model"
 	"github.com/pdcgo/tokopedia_lib/app/chat/sio_event"
 	"github.com/pdcgo/tokopedia_lib/lib/api"
 	"github.com/pdcgo/tokopedia_lib/lib/chat"
-	"nhooyr.io/websocket"
 )
 
 type SocketGroup struct {
@@ -137,7 +137,7 @@ func (g *SocketGroup) AddSocket(ctx context.Context, account *model.AccountData,
 	oldSocket, _ := g.data.Get(account.ShopID)
 	if oldSocket != nil {
 		g.disconnect(account.ShopID)
-		oldSocket.Con.Close(websocket.StatusNormalClosure, "renew")
+		oldSocket.Close("renew")
 	}
 
 	socket := chat.NewSocketClient(api)
@@ -150,7 +150,13 @@ func (g *SocketGroup) AddSocket(ctx context.Context, account *model.AccountData,
 	g.event.Emit(event)
 	g.sio.BroadcastToNamespace("", "connected_event", &event)
 
-	go socket.Connect(sctx, eventHandler, errorHandler)
+	go func() {
+		err := socket.Connect(sctx, eventHandler, errorHandler)
+		if err != nil {
+			g.disconnect(account.ShopID)
+			pdc_common.ReportError(err)
+		}
+	}()
 	go g.syncSocket(sctx, account.ShopID)
 
 	return nil
@@ -174,7 +180,7 @@ func (g *SocketGroup) DisconnectSocket(shopid int, cause string) error {
 
 	return g.WithSocket(shopid, func(sc *Socket) error {
 		g.disconnect(shopid)
-		sc.Con.Close(websocket.StatusNormalClosure, cause)
+		sc.Close(cause)
 		return nil
 	})
 }

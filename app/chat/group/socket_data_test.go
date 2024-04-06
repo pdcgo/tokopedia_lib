@@ -47,9 +47,9 @@ func TestSocketData(t *testing.T) {
 
 	t.Run("test get socket", func(t *testing.T) {
 
-		gdapi, err := data.Get(6699)
+		socket, err := data.Get(6699)
 		assert.Nil(t, err)
-		assert.NotEmpty(t, gdapi)
-		assert.Equal(t, "test", gdapi.Account.Username)
+		assert.NotEmpty(t, socket)
+		assert.Equal(t, "test", socket.Account.Username)
 	})
 }
