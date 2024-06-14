@@ -53,7 +53,7 @@ func (d *DriverAccount) SellerLogin(dctx *DriverContext) error {
 	}()
 
 	go func() {
-		masukTitle := `//*/h3[contains(text(), "Masuk")]`
+		masukTitle := `//*/div[@data-testid="loginform"]`
 		chromedp.Run(loginCtx,
 			chromedp.WaitReady(masukTitle, chromedp.BySearch),
 		)

@@ -52,8 +52,7 @@ func (agg *ProductAggregateIpml) IterCategory(namespace string, handler func(tok
 		return err
 	}
 
-	cursor.All(context.TODO(), &hasil)
-
+	err = cursor.All(context.TODO(), &hasil)
 	if err != nil {
 		return err
 	}
