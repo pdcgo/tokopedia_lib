@@ -72,6 +72,7 @@ func (mapi *ShopeeTopedMapApi) UpdateMap(c *gin.Context) {
 }
 
 type GetMapQuery struct {
+	Qlobot     bool   `json:"qlobot,omitempty" form:"qlobot,omitempty"`
 	Collection string `json:"collection" form:"collection"`
 }
 
@@ -82,6 +83,10 @@ func (mapi *ShopeeTopedMapApi) GetCollectionCategories(c *gin.Context) ([]mongor
 	aggQuery := mongorepo.ProductMatchStageQuery{
 		Marketplace: mongorepo.MP_SHOPEE,
 		Namespace:   query.Collection,
+	}
+
+	if query.Qlobot {
+		aggQuery.Marketplace = mongorepo.MP_QLOBOT_SHOPEE
 	}
 
 	return mapi.prodRepo.CategoryAgg(aggQuery)

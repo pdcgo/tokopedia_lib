@@ -7,7 +7,7 @@ func (api *TokopediaApi) VariantPriceValidation(catId int, variant *model.Varian
 	cpvariant := &model.Variant{
 		Products:   model.ProductVariants{},
 		Selections: variant.Selections,
-		Sizecharts: []any{},
+		Sizecharts: []*model.Pictures{},
 	}
 
 	for _, prod := range variant.Products {

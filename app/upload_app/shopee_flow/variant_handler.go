@@ -93,7 +93,7 @@ func (flow *ShopeeToTopedFlow) createVariantHandler(spin shopeeuploader.SpinFunc
 		payload.Variant = &model.Variant{
 			Products:   products,
 			Selections: selections,
-			Sizecharts: []interface{}{},
+			Sizecharts: []*model.Pictures{},
 		}
 
 		log.Println("setup variant")
