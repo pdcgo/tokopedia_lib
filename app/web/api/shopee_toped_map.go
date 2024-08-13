@@ -243,7 +243,7 @@ func (mapi *ShopeeTopedMapApi) TokopediaCollectionCategory(ctx *gin.Context) {
 		}
 
 		mapitem, err := mapi.smapper.GetShopeeID(tokopediaID)
-		if err == nil {
+		if err == nil || errors.Is(err, config.ErrMapNotFound) {
 			item.ShopeeID = mapitem.ShopeeID
 
 		} else {
