@@ -72,7 +72,7 @@ func NewAutochatMessage(base pdc_application.BaseApplication) (*AutochatMessage,
 	// load patterns
 	err := fileTxtWalk(base.Path(PatternDir), func(file *os.File) error {
 		lines, err := fileLineSplit(file)
-		automessage.Patterns = lines
+		automessage.Patterns = append(automessage.Patterns, lines...)
 		return err
 	})
 	if err != nil {

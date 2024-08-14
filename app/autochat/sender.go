@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/pdcgo/common_conf/pdc_common"
@@ -91,6 +93,7 @@ func (s *AutochatSender) SendReply(msgId int64, handlers ...SendReplyHandler) er
 		Message:      message,
 		Source:       "inbox",
 		StartTime:    time.Now(),
+		LocalID:      strconv.FormatInt(int64(-1e6*rand.Float64()), 10),
 	}
 
 	for _, handler := range handlers {
