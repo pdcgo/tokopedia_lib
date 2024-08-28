@@ -145,3 +145,78 @@ func TestScenarioView(t *testing.T) {
 		assert.True(t, cek)
 	})
 }
+
+func TestScenarioConfigZero(t *testing.T) {
+	cfg := deleter_product.TokopediaDeleteConfig{
+		SoldFilter: &deleter_product.SoldConfig{
+			Min: 0,
+			Max: 0,
+		},
+		ViewFilter: &deleter_product.ViewConfig{
+			Min: 0,
+			Max: 0,
+		},
+		PriceFilter: &deleter_product.PriceConfig{
+			Min: 0,
+			Max: 0,
+		},
+	}
+
+	t.Run("test filter view", func(t *testing.T) {
+
+		filter := cfg.ViewFilter.GenerateFilter()
+		for expect, view := range map[bool]int{
+			true:  0,
+			false: 1,
+		} {
+
+			t.Run(fmt.Sprintf("test filter view should be %t", expect), func(t *testing.T) {
+				cek := filter(&model.SellerProductItem{
+					Stats: model.Stats{
+						CountView: view,
+					},
+				})
+				assert.Equal(t, cek, expect)
+			})
+		}
+	})
+
+	t.Run("test filter sold", func(t *testing.T) {
+
+		filter := cfg.SoldFilter.GenerateFilter()
+		for expect, sold := range map[bool]int{
+			true:  0,
+			false: 1,
+		} {
+
+			t.Run(fmt.Sprintf("test filter sold should be %t", expect), func(t *testing.T) {
+				cek := filter(&model.SellerProductItem{
+					TxStats: model.TxStats{
+						Sold: sold,
+					},
+				})
+				assert.Equal(t, cek, expect)
+			})
+		}
+	})
+
+	t.Run("test filter price", func(t *testing.T) {
+
+		filter := cfg.PriceFilter.GenerateFilter()
+		for expect, price := range map[bool]int{
+			true:  0,
+			false: 100,
+		} {
+
+			t.Run(fmt.Sprintf("test filter price should be %t", expect), func(t *testing.T) {
+				cek := filter(&model.SellerProductItem{
+					Price: model.Price{
+						Min: price,
+						Max: price,
+					},
+				})
+				assert.Equal(t, cek, expect)
+			})
+		}
+	})
+}

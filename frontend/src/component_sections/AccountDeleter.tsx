@@ -37,9 +37,18 @@ export default function AccountDeleter() {
         start_time: 0,
         end_time: 0,
         akuns: [],
-        sold_filter: undefined,
-        view_filter: undefined,
-        price_filter: undefined
+        sold_filter: {
+            min: 0,
+            max: 0,
+        },
+        view_filter: {
+            min: 0,
+            max: 0,
+        },
+        price_filter: {
+            min: 0,
+            max: 0,
+        }
     })
     const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
         dayjs().subtract(30, "day"),
@@ -60,16 +69,6 @@ export default function AccountDeleter() {
                 config.akuns = data.filter(Boolean) as AkunDeleteItem[]
                 config.start_time = dateRange[0].unix()
                 config.end_time = dateRange[1].unix()
-
-                if (!config.sold_filter?.max) {
-                    config.sold_filter = undefined
-                }
-                if (!config.view_filter?.max) {
-                    config.view_filter = undefined
-                }
-                if (!config.price_filter?.max) {
-                    config.price_filter = undefined
-                }
 
                 filterPutter({
                     onSuccess() {
